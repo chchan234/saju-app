@@ -560,7 +560,7 @@ function CompatibilityCard({ compatibility, person1, person2, name1, name2 }: {
                 <p className="text-sm text-muted-foreground">{name1}</p>
                 <p className="text-2xl font-bold">{ilju1}</p>
               </div>
-              <div className="text-2xl">💕</div>
+              <div className="text-2xl font-bold text-pink-500">&amp;</div>
               <div className="text-center p-3 bg-muted rounded-lg">
                 <p className="text-sm text-muted-foreground">{name2}</p>
                 <p className="text-2xl font-bold">{ilju2}</p>
@@ -595,7 +595,7 @@ function CompatibilityCard({ compatibility, person1, person2, name1, name2 }: {
                 matchInfo.category === "동반성장" ? "bg-green-50 border border-green-200" :
                 "bg-orange-50 border border-orange-200"
               }`}>
-                <h5 className="font-semibold mb-2">✨ 특별한 인연입니다!</h5>
+                <h5 className="font-semibold mb-2">특별한 인연입니다!</h5>
                 <p className="text-sm mb-3">{matchInfo.reason}</p>
               </div>
             )}
@@ -613,7 +613,7 @@ function CompatibilityCard({ compatibility, person1, person2, name1, name2 }: {
                 {/* 관계 조언 */}
                 {ilganRelation && (
                   <div className="p-4 bg-primary/5 rounded-lg">
-                    <h5 className="font-semibold mb-2">💡 관계 조언</h5>
+                    <h5 className="font-semibold mb-2">관계 조언</h5>
                     <p className="text-sm">{ilganRelation.advice}</p>
                   </div>
                 )}

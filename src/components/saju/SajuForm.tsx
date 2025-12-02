@@ -276,7 +276,7 @@ export function SajuForm() {
               <div className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center">
-              <span className="bg-background px-2 text-xl text-accent">♥</span>
+              <span className="bg-background px-2 text-xl text-accent">&amp;</span>
             </div>
           </div>
 
@@ -312,7 +312,7 @@ export function SajuForm() {
                   onClick={() => removeFamilyMember(index)}
                   className="absolute top-4 right-4 text-muted-foreground hover:text-destructive transition-colors"
                 >
-                  ✕
+                  X
                 </button>
               )}
             </div>

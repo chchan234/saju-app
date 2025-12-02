@@ -422,7 +422,7 @@ function FamilyStoryIntroCard({
     <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200">
       <CardContent className="pt-6">
         <div className="text-center space-y-3">
-          <div className="text-3xl">👨‍👩‍👧‍👦</div>
+          <div className="text-2xl font-bold text-amber-600">Family</div>
           <p className="text-sm text-amber-800 leading-relaxed italic">
             "{storyIntro}"
           </p>
@@ -888,7 +888,7 @@ function FamilyAnalysisCard({ analysis }: { analysis: FamilyAnalysisResult }) {
             <ul className="space-y-2">
               {familyStrengths.map((item, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm">
-                  <span className="text-green-600 mt-0.5 shrink-0">✓</span>
+                  <span className="text-green-600 mt-0.5 shrink-0">-</span>
                   <span>{item}</span>
                 </li>
               ))}

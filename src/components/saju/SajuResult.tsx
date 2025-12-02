@@ -492,7 +492,7 @@ function CheonganRelationsCard({ pillars }: { pillars: Pillar[] }) {
                   <div className="p-3 bg-white dark:bg-background rounded border mt-2">
                     <p className="text-sm"><span className="font-medium">관계에서:</span> {hap.inRelationship}</p>
                   </div>
-                  <p className="text-sm text-blue-600 dark:text-blue-400 mt-2">💡 {hap.advice}</p>
+                  <p className="text-sm text-blue-600 dark:text-blue-400 mt-2">[TIP] {hap.advice}</p>
                 </div>
               ))}
 
@@ -508,7 +508,7 @@ function CheonganRelationsCard({ pillars }: { pillars: Pillar[] }) {
                   <div className="p-3 bg-white dark:bg-background rounded border mt-2">
                     <p className="text-sm"><span className="font-medium">관계에서:</span> {chung.inRelationship}</p>
                   </div>
-                  <p className="text-sm text-orange-600 dark:text-orange-400 mt-2">💡 {chung.resolution}</p>
+                  <p className="text-sm text-orange-600 dark:text-orange-400 mt-2">[TIP] {chung.resolution}</p>
                 </div>
               ))}
             </CollapsibleContent>
