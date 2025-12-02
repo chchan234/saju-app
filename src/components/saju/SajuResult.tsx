@@ -9,7 +9,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp, Sparkles, Mountain, Flame, Droplets, Coins, TreeDeciduous } from "lucide-react";
+import { ChevronDown, ChevronUp, Sparkles, Mountain, Flame, Droplets, Coins, TreeDeciduous, Scroll } from "lucide-react";
 import type { SajuApiResult, Pillar, OhengCount } from "@/types/saju";
 import type { IlganTraits, OhengAdvice } from "@/lib/saju-traits";
 import {
@@ -23,6 +23,14 @@ import {
   type IljuSymbol,
 } from "@/lib/saju-analysis-data";
 import { getAllPillarMeanings, type PillarPositionMeaning } from "@/lib/saju-pillar-meanings";
+import {
+  Radar,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  ResponsiveContainer,
+} from "recharts";
 
 interface SajuResultProps {
   result: SajuApiResult & {
@@ -42,135 +50,37 @@ interface SajuResultProps {
   timeUnknown?: boolean;
 }
 
-// 오행 색상
-const OHENG_COLORS: Record<string, string> = {
-  목: "bg-green-500",
-  화: "bg-red-500",
-  토: "bg-yellow-600",
-  금: "bg-gray-400",
-  수: "bg-blue-500",
-};
+import {
+  OHENG_COLORS,
+  OHENG_TEXT_COLORS,
+  OHENG_ICONS,
+  PillarCard,
+  OhengChart,
+  MysticalIntroCard,
+} from "@/components/saju/SajuUI";
 
-// 오행 텍스트 색상
-const OHENG_TEXT_COLORS: Record<string, string> = {
-  목: "text-green-600",
-  화: "text-red-600",
-  토: "text-yellow-700",
-  금: "text-gray-600",
-  수: "text-blue-600",
-};
+// 오행 차트용 색상 코드 (Hex) - This constant is now only used within OhengChart, which is moved.
+// If it's still needed elsewhere, it should be imported or redefined.
+// For now, it's removed as per the instruction's implied scope.
 
-// 오행 아이콘
-const OHENG_ICONS: Record<string, React.ReactNode> = {
-  목: <TreeDeciduous className="w-4 h-4" />,
-  화: <Flame className="w-4 h-4" />,
-  토: <Mountain className="w-4 h-4" />,
-  금: <Coins className="w-4 h-4" />,
-  수: <Droplets className="w-4 h-4" />,
-};
 
-// 기둥 컴포넌트
-function PillarCard({ pillar, label }: { pillar: Pillar; label: string }) {
-  return (
-    <div className="flex flex-col items-center gap-2">
-      <span className="text-sm text-muted-foreground">{label}</span>
-      <div className="flex flex-col items-center border rounded-lg p-3 min-w-[80px] bg-card">
-        {/* 천간 */}
-        <div className="flex flex-col items-center mb-2">
-          <span className={`text-2xl font-bold ${OHENG_TEXT_COLORS[pillar.cheonganOheng]}`}>
-            {pillar.cheongan}
-          </span>
-          <div className="flex gap-1 mt-1">
-            <Badge variant="outline" className={`text-xs ${OHENG_TEXT_COLORS[pillar.cheonganOheng]}`}>
-              {pillar.cheonganOheng}
-            </Badge>
-            <Badge variant="secondary" className="text-xs">
-              {pillar.cheonganYinyang}
-            </Badge>
-          </div>
-          {pillar.cheonganSipsin && (
-            <span className="text-xs text-muted-foreground mt-1">{pillar.cheonganSipsin}</span>
-          )}
-        </div>
-
-        <div className="w-full h-px bg-border my-2" />
-
-        {/* 지지 */}
-        <div className="flex flex-col items-center">
-          <span className={`text-2xl font-bold ${OHENG_TEXT_COLORS[pillar.jijiOheng]}`}>
-            {pillar.jiji}
-          </span>
-          <div className="flex gap-1 mt-1">
-            <Badge variant="outline" className={`text-xs ${OHENG_TEXT_COLORS[pillar.jijiOheng]}`}>
-              {pillar.jijiOheng}
-            </Badge>
-            <Badge variant="secondary" className="text-xs">
-              {pillar.jijiYinyang}
-            </Badge>
-          </div>
-          {pillar.jijiSipsin && (
-            <span className="text-xs text-muted-foreground mt-1">{pillar.jijiSipsin}</span>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// 오행 차트 컴포넌트
-function OhengChart({ ohengCount }: { ohengCount: OhengCount }) {
-  const total = Object.values(ohengCount).reduce((a, b) => a + b, 0);
-  const maxCount = Math.max(...Object.values(ohengCount));
-
-  return (
-    <div className="space-y-3">
-      {(Object.entries(ohengCount) as [keyof OhengCount, number][]).map(([element, count]) => (
-        <div key={element} className="flex items-center gap-3">
-          <span className={`w-8 text-lg font-bold ${OHENG_TEXT_COLORS[element]}`}>{element}</span>
-          <div className="flex-1 bg-secondary rounded-full h-6 overflow-hidden">
-            <div
-              className={`h-full ${OHENG_COLORS[element]} transition-all duration-500`}
-              style={{ width: `${maxCount > 0 ? (count / maxCount) * 100 : 0}%` }}
-            />
-          </div>
-          <span className="w-8 text-center font-mono">{count}</span>
-          <span className="w-12 text-sm text-muted-foreground">
-            ({total > 0 ? Math.round((count / total) * 100) : 0}%)
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// 스토리 도입부 컴포넌트
+// 스토리 도입부 컴포넌트 (개선된 디자인)
 function StoryIntroCard({ ilju, dominantOheng, name }: { ilju: string; dominantOheng: string; name?: string }) {
   const symbol = ILJU_SYMBOLS[ilju];
   const storyIntro = generateStoryIntro(ilju, dominantOheng, symbol);
 
   return (
-    <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-      <CardContent className="pt-6">
-        <div className="flex items-start gap-3">
-          <Sparkles className="w-6 h-6 text-primary flex-shrink-0 mt-1" />
-          <div className="space-y-3">
-            <p className="text-muted-foreground italic">{storyIntro.seasonGreeting}</p>
-            {name && (
-              <p className="font-medium text-lg">
-                {name}님, {storyIntro.characterSummary}
-              </p>
-            )}
-            {!name && (
-              <p className="font-medium text-lg">{storyIntro.characterSummary}</p>
-            )}
-            <p className="text-sm text-muted-foreground">
-              당신의 인생 주제: <span className="text-foreground font-medium">{storyIntro.lifeTheme}</span>
-            </p>
-            <p className="text-sm text-primary font-medium">{storyIntro.closingRemark}</p>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+    <MysticalIntroCard
+      title={
+        <>
+          {name ? `${name}님의 운명은` : "당신의 운명은"} <br />
+          <span className="text-[#BFA588]">"{storyIntro.characterSummary}"</span>
+        </>
+      }
+      subtitle={storyIntro.seasonGreeting}
+      content={storyIntro.closingRemark}
+      footer={<>인생 주제: {storyIntro.lifeTheme}</>}
+    />
   );
 }
 
@@ -179,35 +89,49 @@ function IljuSymbolCard({ ilju, symbol }: { ilju: string; symbol: IljuSymbol }) 
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <Card>
+    <Card className="border-none shadow-md bg-white/80 dark:bg-stone-900/80 backdrop-blur-sm overflow-hidden">
+      <div className="h-2 bg-gradient-to-r from-[#8E7F73] to-[#D4C5B0]"></div>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <span className="text-2xl">{symbol.hanja}</span>
-          일주 - &quot;{symbol.nickname}&quot;
+        <CardTitle className="flex items-center gap-3 font-serif text-xl">
+          <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-stone-100 dark:bg-stone-800 text-2xl font-bold text-[#8E7F73]">
+            {symbol.hanja}
+          </span>
+          <div>
+            <span className="block text-sm text-muted-foreground font-sans font-normal">당신의 일주</span>
+            <span>"{symbol.nickname}"</span>
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          <div className="p-4 bg-gradient-to-r from-primary/5 to-transparent rounded-lg border-l-4 border-primary">
-            <p className="text-lg font-medium mb-2">🎋 {symbol.symbol}</p>
-            <p className="text-muted-foreground">{symbol.essence}</p>
+          <div className="p-5 bg-[#F9F7F2] dark:bg-[#2C2824] rounded-xl border border-[#E8DCC4] dark:border-[#3E3832]">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">🎋</span>
+              <div>
+                <p className="font-serif text-lg font-medium text-[#5C544A] dark:text-[#D4C5B0] mb-1">{symbol.symbol}</p>
+                <p className="text-sm text-stone-600 dark:text-stone-400 leading-relaxed">{symbol.essence}</p>
+              </div>
+            </div>
           </div>
 
           <Collapsible open={isOpen} onOpenChange={setIsOpen}>
             <CollapsibleTrigger asChild>
-              <Button variant="ghost" className="w-full justify-between">
-                <span>상세 성향 보기</span>
+              <Button variant="ghost" className="w-full justify-between hover:bg-stone-100 dark:hover:bg-stone-800">
+                <span className="font-serif">상세 성향 더보기</span>
                 {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="space-y-4 pt-4">
-              <div className="p-4 border rounded-lg">
-                <h4 className="font-medium mb-2">성격 특성</h4>
-                <p className="text-sm text-muted-foreground">{symbol.personality}</p>
+              <div className="p-4 border border-stone-200 dark:border-stone-800 rounded-lg">
+                <h4 className="font-serif font-medium mb-2 flex items-center gap-2">
+                  <span className="w-1 h-4 bg-[#8E7F73] rounded-full"></span>
+                  성격 특성
+                </h4>
+                <p className="text-sm text-muted-foreground leading-relaxed">{symbol.personality}</p>
               </div>
-              <div className="p-4 bg-primary/5 rounded-lg">
-                <h4 className="font-medium mb-2">인생 주제</h4>
-                <p className="text-sm">{symbol.lifeTheme}</p>
+              <div className="p-4 bg-[#F5F1E6] dark:bg-[#2C2824] rounded-lg">
+                <h4 className="font-serif font-medium mb-2 text-[#8E7F73]">인생 주제</h4>
+                <p className="text-sm text-stone-700 dark:text-stone-300">{symbol.lifeTheme}</p>
               </div>
             </CollapsibleContent>
           </Collapsible>
@@ -225,39 +149,43 @@ function PillarMeaningsCard({ timeUnknown }: { timeUnknown: boolean }) {
     : ["년주", "월주", "일주", "시주"];
 
   return (
-    <Card>
+    <Card className="border-stone-200 dark:border-stone-800">
       <CardHeader>
-        <CardTitle>사주 기둥별 영역</CardTitle>
+        <CardTitle className="font-serif">사주 기둥별 의미</CardTitle>
       </CardHeader>
       <CardContent>
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
           <CollapsibleTrigger asChild>
-            <Button variant="ghost" className="w-full justify-between mb-4">
-              <span className="text-sm text-muted-foreground">각 기둥이 담당하는 인생 영역을 확인하세요</span>
+            <Button variant="ghost" className="w-full justify-between">
+              <span className="text-sm text-muted-foreground">내 인생의 시기별 의미 확인하기</span>
               {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </Button>
           </CollapsibleTrigger>
-          <CollapsibleContent className="space-y-4">
-            {pillars.map((pillarName) => {
-              const pillar = PILLAR_MEANINGS[pillarName];
-              if (!pillar) return null;
-              return (
-                <div key={pillarName} className="p-4 border rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="font-bold text-lg">{pillar.name}</span>
-                    <span className="text-sm text-muted-foreground">({pillar.hanja})</span>
-                    <Badge variant="outline">{pillar.ageRange}</Badge>
+          <CollapsibleContent className="space-y-4 pt-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {pillars.map((pillarName) => {
+                const pillar = PILLAR_MEANINGS[pillarName];
+                if (!pillar) return null;
+                return (
+                  <div key={pillarName} className="p-4 border border-stone-100 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-900/50 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-serif font-bold text-lg text-[#5C544A] dark:text-[#D4C5B0]">{pillar.name}</span>
+                        <span className="text-xs text-muted-foreground">({pillar.hanja})</span>
+                      </div>
+                      <Badge variant="secondary" className="bg-white dark:bg-stone-800">{pillar.ageRange}</Badge>
+                    </div>
+                    <p className="text-sm font-medium text-[#8E7F73] mb-1">{pillar.lifeArea}</p>
+                    <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{pillar.characteristics}</p>
+                    <div className="flex flex-wrap gap-1">
+                      {pillar.represents.slice(0, 3).map((item) => (
+                        <Badge key={item} variant="outline" className="text-[10px] px-1.5 py-0 h-5 border-stone-200">{item}</Badge>
+                      ))}
+                    </div>
                   </div>
-                  <p className="text-sm font-medium text-primary mb-2">{pillar.lifeArea}</p>
-                  <p className="text-sm text-muted-foreground mb-2">{pillar.characteristics}</p>
-                  <div className="flex flex-wrap gap-1">
-                    {pillar.represents.map((item) => (
-                      <Badge key={item} variant="secondary" className="text-xs">{item}</Badge>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </CollapsibleContent>
         </Collapsible>
       </CardContent>
@@ -273,126 +201,102 @@ function OhengBoosterDetailCard({ yongsin }: { yongsin: string }) {
   if (!booster) return null;
 
   return (
-    <Card>
+    <Card className="border-l-4 border-l-[#8E7F73]">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <span className={OHENG_TEXT_COLORS[yongsin]}>{OHENG_ICONS[yongsin]}</span>
-          {yongsin}({booster.hanja}) 기운 보완법
+        <CardTitle className="flex items-center gap-2 font-serif">
+          <span className={`p-1.5 rounded-full bg-stone-100 dark:bg-stone-800 ${OHENG_TEXT_COLORS[yongsin]}`}>{OHENG_ICONS[yongsin]}</span>
+          <span>나에게 필요한 기운: {yongsin}({booster.hanja})</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           {/* 기본 정보 */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div className="p-3 bg-muted rounded-lg text-center">
-              <span className="text-xs text-muted-foreground block">방향</span>
-              <span className="font-medium">{booster.direction}</span>
+            <div className="p-3 bg-[#F9F7F2] dark:bg-[#2C2824] rounded-lg text-center border border-[#E8DCC4] dark:border-[#3E3832]">
+              <span className="text-xs text-muted-foreground block mb-1">방향</span>
+              <span className="font-serif font-medium text-[#5C544A] dark:text-[#D4C5B0]">{booster.direction}</span>
             </div>
-            <div className="p-3 bg-muted rounded-lg text-center">
-              <span className="text-xs text-muted-foreground block">계절</span>
-              <span className="font-medium">{booster.season}</span>
+            <div className="p-3 bg-[#F9F7F2] dark:bg-[#2C2824] rounded-lg text-center border border-[#E8DCC4] dark:border-[#3E3832]">
+              <span className="text-xs text-muted-foreground block mb-1">계절</span>
+              <span className="font-serif font-medium text-[#5C544A] dark:text-[#D4C5B0]">{booster.season}</span>
             </div>
-            <div className="p-3 bg-muted rounded-lg text-center">
-              <span className="text-xs text-muted-foreground block">행운 숫자</span>
-              <span className="font-medium">{booster.numbers.join(", ")}</span>
+            <div className="p-3 bg-[#F9F7F2] dark:bg-[#2C2824] rounded-lg text-center border border-[#E8DCC4] dark:border-[#3E3832]">
+              <span className="text-xs text-muted-foreground block mb-1">행운 숫자</span>
+              <span className="font-serif font-medium text-[#5C544A] dark:text-[#D4C5B0]">{booster.numbers.join(", ")}</span>
             </div>
-            <div className="p-3 bg-muted rounded-lg text-center">
-              <span className="text-xs text-muted-foreground block">추천 색상</span>
-              <span className="font-medium">{booster.color[0]}</span>
+            <div className="p-3 bg-[#F9F7F2] dark:bg-[#2C2824] rounded-lg text-center border border-[#E8DCC4] dark:border-[#3E3832]">
+              <span className="text-xs text-muted-foreground block mb-1">추천 색상</span>
+              <span className="font-serif font-medium text-[#5C544A] dark:text-[#D4C5B0]">{booster.color[0]}</span>
             </div>
           </div>
 
           <Collapsible open={isOpen} onOpenChange={setIsOpen}>
             <CollapsibleTrigger asChild>
               <Button variant="ghost" className="w-full justify-between">
-                <span>상세 보완법 보기</span>
+                <span className="font-serif">운을 높이는 방법 더보기</span>
                 {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="space-y-4 pt-4">
-              {/* 색상 */}
-              <div className="p-4 border rounded-lg">
-                <h4 className="font-medium mb-2">추천 색상</h4>
-                <div className="flex flex-wrap gap-2">
-                  {booster.color.map((c) => (
-                    <Badge key={c} variant="outline">{c}</Badge>
-                  ))}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* 색상 */}
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-serif font-medium mb-2 text-sm text-muted-foreground">추천 색상</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {booster.color.map((c) => (
+                      <Badge key={c} variant="outline" className="bg-white">{c}</Badge>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              {/* 음식 */}
-              <div className="p-4 border rounded-lg">
-                <h4 className="font-medium mb-2">추천 음식</h4>
-                <div className="flex flex-wrap gap-2">
-                  {booster.foods.map((f) => (
-                    <Badge key={f} variant="secondary">{f}</Badge>
-                  ))}
+                {/* 음식 */}
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-serif font-medium mb-2 text-sm text-muted-foreground">추천 음식</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {booster.foods.map((f) => (
+                      <Badge key={f} variant="secondary">{f}</Badge>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              {/* 활동 */}
-              <div className="p-4 border rounded-lg">
-                <h4 className="font-medium mb-2">추천 활동</h4>
-                <div className="flex flex-wrap gap-2">
-                  {booster.activities.map((a) => (
-                    <Badge key={a} variant="outline">{a}</Badge>
-                  ))}
+                {/* 활동 */}
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-serif font-medium mb-2 text-sm text-muted-foreground">추천 활동</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {booster.activities.map((a) => (
+                      <Badge key={a} variant="outline" className="bg-white">{a}</Badge>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              {/* 직업/분야 */}
-              <div className="p-4 border rounded-lg">
-                <h4 className="font-medium mb-2">추천 직업/분야</h4>
-                <div className="flex flex-wrap gap-2">
-                  {booster.careers.map((c) => (
-                    <Badge key={c} variant="secondary">{c}</Badge>
-                  ))}
-                </div>
-              </div>
-
-              {/* 소품 */}
-              <div className="p-4 border rounded-lg">
-                <h4 className="font-medium mb-2">추천 소품</h4>
-                <div className="flex flex-wrap gap-2">
-                  {booster.items.map((i) => (
-                    <Badge key={i} variant="outline">{i}</Badge>
-                  ))}
-                </div>
-              </div>
-
-              {/* 공간 */}
-              <div className="p-4 border rounded-lg">
-                <h4 className="font-medium mb-2">추천 공간</h4>
-                <div className="flex flex-wrap gap-2">
-                  {booster.spaces.map((s) => (
-                    <Badge key={s} variant="secondary">{s}</Badge>
-                  ))}
+                {/* 직업/분야 */}
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-serif font-medium mb-2 text-sm text-muted-foreground">추천 직업/분야</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {booster.careers.map((c) => (
+                      <Badge key={c} variant="secondary">{c}</Badge>
+                    ))}
+                  </div>
                 </div>
               </div>
 
               {/* 일상 습관 */}
-              <div className="p-4 border rounded-lg">
-                <h4 className="font-medium mb-2">일상 습관</h4>
+              <div className="p-4 bg-[#F5F1E6] dark:bg-[#2C2824] rounded-lg">
+                <h4 className="font-serif font-medium mb-2 text-[#8E7F73]">일상 습관</h4>
                 <ul className="space-y-1">
                   {booster.habits.map((h) => (
-                    <li key={h} className="text-sm flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 bg-primary rounded-full" />
+                    <li key={h} className="text-sm flex items-center gap-2 text-stone-700 dark:text-stone-300">
+                      <span className="w-1.5 h-1.5 bg-[#8E7F73] rounded-full" />
                       {h}
                     </li>
                   ))}
                 </ul>
               </div>
 
-              {/* 마음가짐 */}
-              <div className="p-4 bg-primary/5 rounded-lg">
-                <h4 className="font-medium mb-2">마음가짐</h4>
-                <p className="text-sm">{booster.mindset}</p>
-              </div>
-
               {/* 주의사항 */}
               <div className="p-4 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-900 rounded-lg">
-                <h4 className="font-medium mb-2 text-orange-700 dark:text-orange-400">과잉 시 주의</h4>
-                <p className="text-sm text-orange-600 dark:text-orange-300">{booster.warning}</p>
+                <h4 className="font-medium mb-1 text-orange-700 dark:text-orange-400 text-sm">⚠️ 과잉 시 주의</h4>
+                <p className="text-xs text-orange-600 dark:text-orange-300">{booster.warning}</p>
               </div>
             </CollapsibleContent>
           </Collapsible>
@@ -457,17 +361,17 @@ function CheonganRelationsCard({ pillars }: { pillars: Pillar[] }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>천간 관계 분석</CardTitle>
+        <CardTitle className="font-serif">천간 관계 분석</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           {/* 요약 */}
           <div className="flex flex-wrap gap-2">
             {hapPairs.length > 0 && (
-              <Badge className="bg-blue-500">합(合) {hapPairs.length}개</Badge>
+              <Badge className="bg-blue-600 hover:bg-blue-700">합(合) {hapPairs.length}개</Badge>
             )}
             {chungPairs.length > 0 && (
-              <Badge className="bg-orange-500">충(沖) {chungPairs.length}개</Badge>
+              <Badge className="bg-red-600 hover:bg-red-700">충(沖) {chungPairs.length}개</Badge>
             )}
           </div>
 
@@ -498,9 +402,9 @@ function CheonganRelationsCard({ pillars }: { pillars: Pillar[] }) {
 
               {/* 충 */}
               {chungPairs.map(({ chung, pair }) => (
-                <div key={pair.join("")} className="p-4 border border-orange-200 bg-orange-50 dark:bg-orange-950/20 dark:border-orange-900 rounded-lg">
+                <div key={pair.join("")} className="p-4 border border-red-200 bg-red-50 dark:bg-red-950/20 dark:border-red-900 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
-                    <Badge className="bg-orange-500">{chung.name}</Badge>
+                    <Badge className="bg-red-500">{chung.name}</Badge>
                     <span className="text-sm text-muted-foreground">{chung.hanja}</span>
                   </div>
                   <p className="text-sm font-medium mb-2">{chung.meaning}</p>
@@ -508,7 +412,7 @@ function CheonganRelationsCard({ pillars }: { pillars: Pillar[] }) {
                   <div className="p-3 bg-white dark:bg-background rounded border mt-2">
                     <p className="text-sm"><span className="font-medium">관계에서:</span> {chung.inRelationship}</p>
                   </div>
-                  <p className="text-sm text-orange-600 dark:text-orange-400 mt-2">[TIP] {chung.resolution}</p>
+                  <p className="text-sm text-red-600 dark:text-red-400 mt-2">[TIP] {chung.resolution}</p>
                 </div>
               ))}
             </CollapsibleContent>
@@ -537,10 +441,10 @@ function PersonalPillarMeaningsCard({
   const meanings = getAllPillarMeanings(yearGapja, monthGapja, dayGapja, hourGapja);
 
   const pillarLabels = [
-    { key: "year", label: "년주", gapja: yearGapja, emoji: "👶" },
-    { key: "month", label: "월주", gapja: monthGapja, emoji: "💪" },
-    { key: "day", label: "일주", gapja: dayGapja, emoji: "💎" },
-    ...(timeUnknown ? [] : [{ key: "hour", label: "시주", gapja: hourGapja || "", emoji: "🌅" }]),
+    { key: "year", label: "년주", gapja: yearGapja, emoji: "🌱" },
+    { key: "month", label: "월주", gapja: monthGapja, emoji: "🌿" },
+    { key: "day", label: "일주", gapja: dayGapja, emoji: "🌳" },
+    ...(timeUnknown ? [] : [{ key: "hour", label: "시주", gapja: hourGapja || "", emoji: "🍎" }]),
   ];
 
   const getMeaning = (key: string): PillarPositionMeaning | null => {
@@ -556,14 +460,14 @@ function PersonalPillarMeaningsCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-primary" />
-          나의 기둥별 개인 해석
+        <CardTitle className="flex items-center gap-2 font-serif">
+          <Scroll className="w-5 h-5 text-[#8E7F73]" />
+          나의 기둥별 해석
         </CardTitle>
       </CardHeader>
       <CardContent>
         <p className="text-sm text-muted-foreground mb-4">
-          각 기둥(년주/월주/일주/시주)에 있는 갑자에 따라 당신만의 개인적인 운명 해석입니다.
+          각 기둥(년주/월주/일주/시주)에 있는 글자가 당신의 인생 시기에 미치는 영향입니다.
         </p>
 
         {/* 요약 카드 */}
@@ -572,13 +476,13 @@ function PersonalPillarMeaningsCard({
             const meaning = getMeaning(key);
             if (!meaning) return null;
             return (
-              <div key={key} className="p-3 border rounded-lg bg-gradient-to-br from-primary/5 to-transparent">
+              <div key={key} className="p-3 border rounded-lg bg-[#F9F7F2] dark:bg-[#2C2824] border-[#E8DCC4] dark:border-[#3E3832]">
                 <div className="flex items-center gap-2 mb-1">
                   <span>{emoji}</span>
-                  <span className="font-medium">{label}</span>
-                  <Badge variant="outline" className="text-xs">{gapja}</Badge>
+                  <span className="font-serif font-medium">{label}</span>
+                  <Badge variant="outline" className="text-xs bg-white dark:bg-black/20">{gapja}</Badge>
                 </div>
-                <p className="text-sm text-foreground">{meaning.meaning}</p>
+                <p className="text-sm text-stone-700 dark:text-stone-300 line-clamp-2">{meaning.meaning}</p>
               </div>
             );
           })}
@@ -587,7 +491,7 @@ function PersonalPillarMeaningsCard({
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
           <CollapsibleTrigger asChild>
             <Button variant="ghost" className="w-full justify-between">
-              <span>상세 해석 보기</span>
+              <span className="font-serif">상세 해석 전체 보기</span>
               {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </Button>
           </CollapsibleTrigger>
@@ -599,22 +503,22 @@ function PersonalPillarMeaningsCard({
                 <div key={key} className="p-4 border rounded-lg">
                   <div className="flex items-center gap-2 mb-3">
                     <span className="text-xl">{emoji}</span>
-                    <span className="font-bold text-lg">{label}</span>
-                    <Badge className="bg-primary/10 text-primary border-primary/20">{gapja}</Badge>
+                    <span className="font-bold text-lg font-serif">{label}</span>
+                    <Badge className="bg-[#8E7F73]/10 text-[#8E7F73] border-[#8E7F73]/20">{gapja}</Badge>
                   </div>
                   <div className="space-y-2">
                     <p className="text-sm font-medium text-foreground">{meaning.meaning}</p>
                     <ul className="space-y-1 text-sm text-muted-foreground">
                       <li className="flex items-start gap-2">
-                        <span className="w-1.5 h-1.5 mt-2 bg-primary/60 rounded-full flex-shrink-0" />
+                        <span className="w-1.5 h-1.5 mt-2 bg-[#8E7F73]/60 rounded-full flex-shrink-0" />
                         {meaning.detail1}
                       </li>
                       <li className="flex items-start gap-2">
-                        <span className="w-1.5 h-1.5 mt-2 bg-primary/60 rounded-full flex-shrink-0" />
+                        <span className="w-1.5 h-1.5 mt-2 bg-[#8E7F73]/60 rounded-full flex-shrink-0" />
                         {meaning.detail2}
                       </li>
                       <li className="flex items-start gap-2">
-                        <span className="w-1.5 h-1.5 mt-2 bg-primary/60 rounded-full flex-shrink-0" />
+                        <span className="w-1.5 h-1.5 mt-2 bg-[#8E7F73]/60 rounded-full flex-shrink-0" />
                         {meaning.detail3}
                       </li>
                     </ul>
@@ -658,95 +562,110 @@ export function SajuResult({ result, name, timeUnknown = false }: SajuResultProp
     : [yearPillar, monthPillar, dayPillar, timePillar];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 animate-in fade-in duration-700">
       {/* 스토리텔링 도입부 */}
       <StoryIntroCard ilju={ilju} dominantOheng={dominantOheng} name={name} />
 
       {/* 기본 정보 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            {name && <span>{name}님의</span>}
-            사주팔자
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-4 text-sm mb-4">
-            <div>
-              <span className="text-muted-foreground">양력: </span>
-              <span className="font-medium">
-                {birthInfo.solarYear}년 {birthInfo.solarMonth}월 {birthInfo.solarDay}일
-              </span>
+      <Card className="overflow-hidden border-none shadow-sm bg-white/50 dark:bg-stone-900/50">
+        <CardContent className="p-4">
+          <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground">
+            <div className="flex items-center gap-1">
+              <span>📅</span>
+              <span>{birthInfo.solarYear}.{birthInfo.solarMonth}.{birthInfo.solarDay}</span>
             </div>
-            <div>
-              <span className="text-muted-foreground">음력: </span>
-              <span className="font-medium">
-                {birthInfo.lunarYear}년 {birthInfo.lunarMonth}월 {birthInfo.lunarDay}일
-                {birthInfo.isLeapMonth && " (윤달)"}
-              </span>
+            <div className="w-px h-3 bg-stone-300"></div>
+            <div className="flex items-center gap-1">
+              <span>⏰</span>
+              <span>{timeUnknown ? "시간 모름" : `${String(birthInfo.hour).padStart(2, "0")}:${String(birthInfo.minute).padStart(2, "0")}`}</span>
             </div>
-            <div>
-              <span className="text-muted-foreground">시간: </span>
-              <span className="font-medium">
-                {timeUnknown ? "모름" : `${String(birthInfo.hour).padStart(2, "0")}:${String(birthInfo.minute).padStart(2, "0")}`}
-              </span>
+            <div className="w-px h-3 bg-stone-300"></div>
+            <div className="flex items-center gap-1">
+              <span>🐯</span>
+              <span>{meta.ddiLunar}띠</span>
             </div>
-            <div>
-              <span className="text-muted-foreground">요일: </span>
-              <span className="font-medium">{meta.weekday?.trim()}요일</span>
-            </div>
-          </div>
-
-          {/* 띠 정보 */}
-          <div className="flex flex-wrap gap-3 pt-4 border-t">
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground">띠:</span>
-              <Badge variant="default" className="text-sm">
-                {meta.ddiLunar}띠
-              </Badge>
-              <span className="text-xs text-muted-foreground">(음력 기준)</span>
-            </div>
-            {meta.ddi !== meta.ddiLunar && (
-              <div className="flex items-center gap-2">
-                <span className="text-muted-foreground">사주 띠:</span>
-                <Badge variant="outline" className="text-sm">
-                  {meta.ddi}띠
-                </Badge>
-                <span className="text-xs text-muted-foreground">(입춘 기준)</span>
-              </div>
-            )}
           </div>
         </CardContent>
       </Card>
 
-      {/* 사주 기둥 */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{timeUnknown ? "삼주 (三柱)" : "사주 (四柱)"}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex justify-center gap-4 md:gap-8 overflow-x-auto py-2">
-            {!timeUnknown && <PillarCard pillar={timePillar} label="시주" />}
-            <PillarCard pillar={dayPillar} label="일주" />
-            <PillarCard pillar={monthPillar} label="월주" />
-            <PillarCard pillar={yearPillar} label="년주" />
-          </div>
-          {timeUnknown && (
-            <p className="text-center text-sm text-orange-600 mt-4">
-              태어난 시간을 모르면 시주를 알 수 없어 삼주(三柱)로 분석합니다.
-            </p>
-          )}
-          <p className="text-center text-sm text-muted-foreground mt-4">
-            일간(日干): <span className={`font-bold ${OHENG_TEXT_COLORS[dayPillar.cheonganOheng]}`}>
-              {dayPillar.cheongan}({dayPillar.cheonganOheng})
-            </span>
-            {" "}기준으로 십신을 계산합니다
+      {/* 사주 기둥 (메인) */}
+      <section className="space-y-4">
+        <div className="text-center mb-6">
+          <h3 className="font-serif text-2xl font-bold text-[#5C544A] dark:text-[#D4C5B0]">
+            {timeUnknown ? "나의 삼주(三柱)" : "나의 사주(四柱)"}
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            당신이 태어난 순간의 우주적 기운입니다
           </p>
-        </CardContent>
-      </Card>
+        </div>
+
+        <div className="flex justify-center gap-3 md:gap-6 overflow-x-auto py-4 px-2">
+          {!timeUnknown && <PillarCard pillar={timePillar} label="시주 (말년)" />}
+          <PillarCard pillar={dayPillar} label="일주 (중년)" />
+          <PillarCard pillar={monthPillar} label="월주 (청년)" />
+          <PillarCard pillar={yearPillar} label="년주 (초년)" />
+        </div>
+
+        {timeUnknown && (
+          <p className="text-center text-xs text-orange-600/80 bg-orange-50/50 py-2 rounded-lg mx-auto max-w-md">
+            ※ 태어난 시간을 모르면 말년운과 자식운을 나타내는 '시주'를 정확히 알 수 없습니다.
+          </p>
+        )}
+      </section>
 
       {/* 일주 상징/별명 */}
       {iljuSymbol && <IljuSymbolCard ilju={ilju} symbol={iljuSymbol} />}
+
+      {/* 오행 분석 (Radar Chart) */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-serif">오행의 균형 (五行)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+            {/* 차트 영역 */}
+            <div className="bg-stone-50 dark:bg-stone-900/50 rounded-xl p-4">
+              <OhengChart ohengCount={ohengCount} />
+            </div>
+
+            {/* 분석 텍스트 영역 */}
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-medium text-sm text-muted-foreground mb-2">가장 강한 기운</h4>
+                <div className="flex flex-wrap gap-2">
+                  {maxOhengList.map(([element, count]) => (
+                    <Badge key={element} className={`${OHENG_COLORS[element]} text-white border-none px-3 py-1`}>
+                      {element} ({count}개)
+                    </Badge>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  당신의 성향과 재능을 주도하는 핵심 에너지입니다.
+                </p>
+              </div>
+
+              <div>
+                <h4 className="font-medium text-sm text-muted-foreground mb-2">부족하거나 없는 기운</h4>
+                <div className="flex flex-wrap gap-2">
+                  {minOhengList.map(([element, count]) => (
+                    <Badge key={element} variant="outline" className="border-stone-300">
+                      {element} ({count}개)
+                    </Badge>
+                  ))}
+                </div>
+                {minCount === 0 && (
+                  <p className="text-xs text-orange-600 mt-1">
+                    ※ 없는 오행은 살면서 의식적으로 보완하면 좋습니다.
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 오행 보완법 */}
+      {yongsin && <OhengBoosterDetailCard yongsin={yongsin} />}
 
       {/* 사주 기둥별 영역 설명 */}
       <PillarMeaningsCard timeUnknown={timeUnknown} />
@@ -762,286 +681,6 @@ export function SajuResult({ result, name, timeUnknown = false }: SajuResultProp
         hourGapja={hourGapja}
         timeUnknown={timeUnknown}
       />
-
-      {/* 오행 분석 */}
-      <Card>
-        <CardHeader>
-          <CardTitle>오행 분석 (五行)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {timeUnknown && (
-            <p className="text-sm text-orange-600 mb-4 p-3 bg-orange-50 rounded-lg">
-              시간을 모르면 시주가 제외되어 6글자 기준으로 분석됩니다. 정확한 분석을 위해 태어난 시간을 확인해보세요.
-            </p>
-          )}
-          <OhengChart ohengCount={ohengCount} />
-
-          <div className="mt-6 p-4 bg-muted rounded-lg">
-            <h4 className="font-medium mb-2">분석 결과</h4>
-            <ul className="space-y-2 text-sm">
-              <li className="flex items-center gap-2 flex-wrap">
-                <span className="text-muted-foreground">가장 많은 오행:</span>
-                {maxOhengList.map(([element, count]) => (
-                  <Badge key={element} className={OHENG_COLORS[element]}>
-                    {element} ({count}개)
-                  </Badge>
-                ))}
-              </li>
-              <li className="flex items-center gap-2 flex-wrap">
-                <span className="text-muted-foreground">가장 적은 오행:</span>
-                {minOhengList.map(([element, count]) => (
-                  <Badge key={element} variant="outline" className={OHENG_TEXT_COLORS[element]}>
-                    {element} ({count}개)
-                  </Badge>
-                ))}
-                {minCount === 0 && <span className="text-destructive text-xs">(보충 필요)</span>}
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="text-muted-foreground">보충 추천:</span>
-                <Badge className={OHENG_COLORS[yongsin]}>{yongsin}</Badge>
-                <span className="text-xs text-muted-foreground">
-                  ({minCount === 0 ? "없는 오행" : "가장 적은 오행"})
-                </span>
-              </li>
-            </ul>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* 보충 오행 상세 보완법 */}
-      <OhengBoosterDetailCard yongsin={yongsin} />
-
-      {/* 일간 성향 분석 */}
-      {result.analysis?.ilganTraits && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <span className={`text-2xl font-bold ${OHENG_TEXT_COLORS[result.analysis.ilganTraits.oheng]}`}>
-                {result.analysis.ilganTraits.hanja}
-              </span>
-              일간 성향 분석
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              {/* 핵심 요약 */}
-              <div className="p-4 bg-muted rounded-lg">
-                <div className="flex flex-wrap items-center gap-2 mb-3">
-                  <Badge variant="default" className={OHENG_COLORS[result.analysis.ilganTraits.oheng]}>
-                    {result.analysis.ilganTraits.oheng}({result.analysis.ilganTraits.yinyang})
-                  </Badge>
-                  <span className="font-medium text-lg">{result.analysis.ilganTraits.type}</span>
-                </div>
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {result.analysis.ilganTraits.keywords.map((keyword) => (
-                    <Badge key={keyword} variant="outline">{keyword}</Badge>
-                  ))}
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {result.analysis.ilganTraits.symbol}
-                </p>
-              </div>
-
-              {/* 강점과 약점 */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 border rounded-lg">
-                  <h4 className="font-medium mb-2 text-green-600">강점</h4>
-                  <ul className="space-y-1 text-sm">
-                    {result.analysis.ilganTraits.strengths.map((strength) => (
-                      <li key={strength} className="flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-                        {strength}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="p-4 border rounded-lg">
-                  <h4 className="font-medium mb-2 text-orange-600">주의점</h4>
-                  <ul className="space-y-1 text-sm">
-                    {result.analysis.ilganTraits.weaknesses.map((weakness) => (
-                      <li key={weakness} className="flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 bg-orange-500 rounded-full" />
-                        {weakness}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-
-              {/* 상세 성향 */}
-              <div className="space-y-4">
-                <div className="p-4 border rounded-lg">
-                  <h4 className="font-medium mb-2">성격</h4>
-                  <p className="text-sm text-muted-foreground">{result.analysis.ilganTraits.personality}</p>
-                </div>
-                <div className="p-4 border rounded-lg">
-                  <h4 className="font-medium mb-2">의사결정 스타일</h4>
-                  <p className="text-sm text-muted-foreground">{result.analysis.ilganTraits.decisionStyle}</p>
-                </div>
-                <div className="p-4 border rounded-lg">
-                  <h4 className="font-medium mb-2">대인관계</h4>
-                  <p className="text-sm text-muted-foreground">{result.analysis.ilganTraits.relationStyle}</p>
-                </div>
-                <div className="p-4 border rounded-lg">
-                  <h4 className="font-medium mb-2">업무 스타일</h4>
-                  <p className="text-sm text-muted-foreground">{result.analysis.ilganTraits.workStyle}</p>
-                </div>
-                <div className="p-4 border rounded-lg">
-                  <h4 className="font-medium mb-2">연애 스타일</h4>
-                  <p className="text-sm text-muted-foreground">{result.analysis.ilganTraits.loveStyle}</p>
-                </div>
-                <div className="p-4 border rounded-lg">
-                  <h4 className="font-medium mb-2">스트레스 패턴</h4>
-                  <p className="text-sm text-muted-foreground">{result.analysis.ilganTraits.stressPattern}</p>
-                </div>
-              </div>
-
-              {/* 조언 */}
-              <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
-                <h4 className="font-medium mb-2">발전을 위한 조언</h4>
-                <p className="text-sm">{result.analysis.ilganTraits.advice}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* 보충 오행 생활 조언 */}
-      {result.analysis?.yongsinAdvice && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              보충 오행 생활 조언
-              <Badge className={`${OHENG_COLORS[result.analysis.yongsinAdvice.name]} text-white`}>
-                {result.analysis.yongsinAdvice.name}
-              </Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              <p className="text-sm text-muted-foreground">
-                {result.analysis.yongsinAdvice.description}
-              </p>
-
-              {/* 보완 방법 */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 border rounded-lg">
-                  <h4 className="font-medium mb-2">추천 색상</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {result.analysis.yongsinAdvice.colors.map((color) => (
-                      <Badge key={color} variant="outline">{color}</Badge>
-                    ))}
-                  </div>
-                </div>
-                <div className="p-4 border rounded-lg">
-                  <h4 className="font-medium mb-2">추천 방향</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {result.analysis.yongsinAdvice.directions.map((dir) => (
-                      <Badge key={dir} variant="outline">{dir}</Badge>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-4 border rounded-lg">
-                <h4 className="font-medium mb-2">추천 직업/분야</h4>
-                <div className="flex flex-wrap gap-2">
-                  {result.analysis.yongsinAdvice.careers.map((career) => (
-                    <Badge key={career} variant="secondary">{career}</Badge>
-                  ))}
-                </div>
-              </div>
-
-              <div className="p-4 border rounded-lg">
-                <h4 className="font-medium mb-2">일상 습관 추천</h4>
-                <ul className="space-y-2 text-sm">
-                  {result.analysis.yongsinAdvice.habits.map((habit) => (
-                    <li key={habit} className="flex items-start gap-2">
-                      <span className="w-1.5 h-1.5 mt-2 bg-primary rounded-full flex-shrink-0" />
-                      {habit}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="p-4 border rounded-lg">
-                <h4 className="font-medium mb-2">건강 관리</h4>
-                <p className="text-sm text-muted-foreground">{result.analysis.yongsinAdvice.health}</p>
-              </div>
-
-              {/* 계절/숫자 정보 */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 bg-muted rounded-lg text-center">
-                  <span className="text-sm text-muted-foreground">좋은 계절</span>
-                  <p className="font-medium mt-1">{result.analysis.yongsinAdvice.seasons}</p>
-                </div>
-                <div className="p-4 bg-muted rounded-lg text-center">
-                  <span className="text-sm text-muted-foreground">행운의 숫자</span>
-                  <p className="font-medium mt-1">{result.analysis.yongsinAdvice.numbers.join(", ")}</p>
-                </div>
-              </div>
-
-              {/* 추천 음식 */}
-              <div className="p-4 border rounded-lg">
-                <h4 className="font-medium mb-2">추천 음식</h4>
-                <div className="flex flex-wrap gap-2">
-                  {result.analysis.yongsinAdvice.food.map((item) => (
-                    <Badge key={item} variant="outline">{item}</Badge>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* 오행 균형 분석 */}
-      {result.analysis?.ohengBalance && (
-        <Card>
-          <CardHeader>
-            <CardTitle>오행 균형 분석</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {result.analysis.ohengBalance.strong.length > 0 && (
-                  <div className="p-4 border rounded-lg">
-                    <h4 className="font-medium mb-2 text-blue-600">강한 오행</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {result.analysis.ohengBalance.strong.map((e) => (
-                        <Badge key={e} className={OHENG_COLORS[e]}>{e}</Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {result.analysis.ohengBalance.weak.length > 0 && (
-                  <div className="p-4 border rounded-lg">
-                    <h4 className="font-medium mb-2 text-orange-600">약한 오행</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {result.analysis.ohengBalance.weak.map((e) => (
-                        <Badge key={e} variant="outline" className={OHENG_TEXT_COLORS[e]}>{e}</Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {result.analysis.ohengBalance.missing.length > 0 && (
-                  <div className="p-4 border rounded-lg">
-                    <h4 className="font-medium mb-2 text-red-600">없는 오행</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {result.analysis.ohengBalance.missing.map((e) => (
-                        <Badge key={e} variant="destructive">{e}</Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div className="p-4 bg-muted rounded-lg">
-                <p className="text-sm">{result.analysis.ohengBalance.advice}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
