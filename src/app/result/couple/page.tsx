@@ -18,10 +18,7 @@ import {
   OHENG_BOOSTERS,
   generateGroupStoryIntro,
 } from "@/lib/saju-analysis-data";
-import {
-  analyzeIljuCompatibility,
-  type SpecialIljuMatch,
-} from "@/lib/saju-family";
+import { analyzeIljuCompatibility } from "@/lib/saju-family";
 
 function LoadingCard() {
   return (
@@ -246,161 +243,6 @@ function CoupleIljuCard({ person1, person2, name1, name2 }: {
   );
 }
 
-// 일주 궁합 분석 카드
-function IljuCompatibilityCard({ person1, person2, name1, name2 }: {
-  person1: SajuApiResult;
-  person2: SajuApiResult;
-  name1: string;
-  name2: string;
-}) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const ilju1 = person1.dayPillar.ganji;
-  const ilju2 = person2.dayPillar.ganji;
-
-  if (!ilju1 || !ilju2) return null;
-
-  const iljuAnalysis = analyzeIljuCompatibility(ilju1, ilju2);
-  const { isSpecialMatch, matchInfo, generalCompatibility, ilganRelation } = iljuAnalysis;
-
-  // 카테고리별 배지 색상
-  const getCategoryBadgeColor = (category: SpecialIljuMatch["category"]) => {
-    switch (category) {
-      case "천생연분": return "bg-pink-500 text-white";
-      case "상호보완": return "bg-blue-500 text-white";
-      case "동반성장": return "bg-green-500 text-white";
-      case "주의필요": return "bg-orange-500 text-white";
-      default: return "bg-gray-500 text-white";
-    }
-  };
-
-  return (
-    <Card className="border-2 border-primary/10">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Heart className="w-5 h-5 text-pink-500" />
-          일주(日柱) 궁합 분석
-          {isSpecialMatch && matchInfo && (
-            <Badge className={getCategoryBadgeColor(matchInfo.category)}>
-              {matchInfo.category}
-            </Badge>
-          )}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-          {/* 일주 비교 */}
-          <div className="flex items-center justify-center gap-4 mb-4">
-            <div className="text-center p-3 bg-muted rounded-lg">
-              <p className="text-sm text-muted-foreground">{name1}</p>
-              <p className="text-2xl font-bold">{ilju1}</p>
-            </div>
-            <div className="text-2xl">💕</div>
-            <div className="text-center p-3 bg-muted rounded-lg">
-              <p className="text-sm text-muted-foreground">{name2}</p>
-              <p className="text-2xl font-bold">{ilju2}</p>
-            </div>
-          </div>
-
-          {/* 궁합 점수 */}
-          <div className="text-center mb-4">
-            <div className={`text-3xl font-bold ${getScoreColor(generalCompatibility.score)}`}>
-              {generalCompatibility.score}점
-            </div>
-            <Badge variant="secondary" className="mt-1">
-              {generalCompatibility.grade}
-            </Badge>
-            <p className="text-sm text-muted-foreground mt-2">
-              {generalCompatibility.description}
-            </p>
-          </div>
-
-          {/* 일간 관계 요약 */}
-          <div className="bg-muted/50 rounded-lg p-4 mb-4">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-sm font-medium">일간 관계:</span>
-              <Badge variant="outline">{ilganRelation.type}</Badge>
-              <Badge variant="outline" className={
-                ilganRelation.compatibility === "상" ? "border-green-500 text-green-600" :
-                ilganRelation.compatibility === "중상" ? "border-blue-500 text-blue-600" :
-                ilganRelation.compatibility === "중" ? "border-yellow-500 text-yellow-600" :
-                ilganRelation.compatibility === "중하" ? "border-orange-500 text-orange-600" :
-                "border-red-500 text-red-600"
-              }>
-                궁합 {ilganRelation.compatibility}
-              </Badge>
-            </div>
-            <p className="text-sm text-muted-foreground">{ilganRelation.description}</p>
-          </div>
-
-          {/* 특별 조합인 경우 상세 정보 */}
-          {isSpecialMatch && matchInfo && (
-            <div className={`rounded-lg p-4 mb-4 ${
-              matchInfo.category === "천생연분" ? "bg-pink-50 border border-pink-200" :
-              matchInfo.category === "상호보완" ? "bg-blue-50 border border-blue-200" :
-              matchInfo.category === "동반성장" ? "bg-green-50 border border-green-200" :
-              "bg-orange-50 border border-orange-200"
-            }`}>
-              <h4 className="font-semibold mb-2">✨ 특별한 인연입니다!</h4>
-              <p className="text-sm mb-3">{matchInfo.reason}</p>
-            </div>
-          )}
-
-          <CollapsibleTrigger asChild>
-            <Button variant="ghost" className="w-full justify-between">
-              <span>상세 분석 보기</span>
-              {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            </Button>
-          </CollapsibleTrigger>
-
-          <CollapsibleContent className="space-y-4 pt-4">
-            {/* 관계 조언 */}
-            <div className="p-4 bg-primary/5 rounded-lg">
-              <h4 className="font-semibold mb-2">💡 관계 조언</h4>
-              <p className="text-sm">{ilganRelation.advice}</p>
-            </div>
-
-            {/* 특별 조합 상세 */}
-            {isSpecialMatch && matchInfo && (
-              <>
-                {/* 장점 */}
-                <div className="p-4 border border-green-200 bg-green-50 rounded-lg">
-                  <h4 className="font-semibold text-green-700 mb-2">강점</h4>
-                  <ul className="space-y-1">
-                    {matchInfo.strengths.map((s, i) => (
-                      <li key={i} className="text-sm text-green-800 flex items-start gap-2">
-                        <span>+</span><span>{s}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* 주의점 */}
-                <div className="p-4 border border-orange-200 bg-orange-50 rounded-lg">
-                  <h4 className="font-semibold text-orange-700 mb-2">주의할 점</h4>
-                  <ul className="space-y-1">
-                    {matchInfo.challenges.map((c, i) => (
-                      <li key={i} className="text-sm text-orange-800 flex items-start gap-2">
-                        <span>!</span><span>{c}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* 조언 */}
-                <div className="p-4 border rounded-lg">
-                  <h4 className="font-semibold mb-2">맞춤 조언</h4>
-                  <p className="text-sm">{matchInfo.advice}</p>
-                </div>
-              </>
-            )}
-          </CollapsibleContent>
-        </Collapsible>
-      </CardContent>
-    </Card>
-  );
-}
-
 // 커플 오행 보완 제안 카드
 function CoupleOhengAdviceCard({ person1, person2, name1, name2 }: {
   person1: SajuApiResult;
@@ -521,8 +363,32 @@ function CoupleOhengAdviceCard({ person1, person2, name1, name2 }: {
 }
 
 // 궁합 결과 카드
-function CompatibilityCard({ compatibility }: { compatibility: CompatibilityResult }) {
+function CompatibilityCard({ compatibility, person1, person2, name1, name2 }: {
+  compatibility: CompatibilityResult;
+  person1: SajuApiResult;
+  person2: SajuApiResult;
+  name1: string;
+  name2: string;
+}) {
   const { totalScore, grade, gradeDescription, ilganAnalysis, jijiAnalysis, summary } = compatibility;
+  const [isIljuOpen, setIsIljuOpen] = useState(false);
+
+  // 일주 정보 추출
+  const ilju1 = person1.dayPillar.ganji;
+  const ilju2 = person2.dayPillar.ganji;
+  const iljuAnalysis = ilju1 && ilju2 ? analyzeIljuCompatibility(ilju1, ilju2) : null;
+  const { isSpecialMatch, matchInfo, ilganRelation } = iljuAnalysis || { isSpecialMatch: false, matchInfo: undefined, ilganRelation: undefined };
+
+  // 카테고리별 배지 색상
+  const getCategoryBadgeColor = (category: string) => {
+    switch (category) {
+      case "천생연분": return "bg-pink-500 text-white";
+      case "상호보완": return "bg-blue-500 text-white";
+      case "동반성장": return "bg-green-500 text-white";
+      case "주의필요": return "bg-orange-500 text-white";
+      default: return "bg-gray-500 text-white";
+    }
+  };
 
   return (
     <Card className="border-2 border-primary/20">
@@ -674,6 +540,122 @@ function CompatibilityCard({ compatibility }: { compatibility: CompatibilityResu
           <h4 className="font-semibold mb-2">조언</h4>
           <p className="text-sm">{summary.advice}</p>
         </div>
+
+        {/* 일주 관계 분석 (점수/등급 없이 관계만) */}
+        {iljuAnalysis && ilju1 && ilju2 && (
+          <div className="border-t pt-6 space-y-4">
+            <h4 className="font-semibold flex items-center gap-2">
+              <Heart className="w-4 h-4 text-pink-500" />
+              일주(日柱) 관계 분석
+              {isSpecialMatch && matchInfo && (
+                <Badge className={getCategoryBadgeColor(matchInfo.category)}>
+                  {matchInfo.category}
+                </Badge>
+              )}
+            </h4>
+
+            {/* 일주 비교 */}
+            <div className="flex items-center justify-center gap-4">
+              <div className="text-center p-3 bg-muted rounded-lg">
+                <p className="text-sm text-muted-foreground">{name1}</p>
+                <p className="text-2xl font-bold">{ilju1}</p>
+              </div>
+              <div className="text-2xl">💕</div>
+              <div className="text-center p-3 bg-muted rounded-lg">
+                <p className="text-sm text-muted-foreground">{name2}</p>
+                <p className="text-2xl font-bold">{ilju2}</p>
+              </div>
+            </div>
+
+            {/* 일간 관계 요약 */}
+            {ilganRelation && (
+              <div className="bg-muted/50 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-sm font-medium">일간 관계:</span>
+                  <Badge variant="outline">{ilganRelation.type}</Badge>
+                  <Badge variant="outline" className={
+                    ilganRelation.compatibility === "상" ? "border-green-500 text-green-600" :
+                    ilganRelation.compatibility === "중상" ? "border-blue-500 text-blue-600" :
+                    ilganRelation.compatibility === "중" ? "border-yellow-500 text-yellow-600" :
+                    ilganRelation.compatibility === "중하" ? "border-orange-500 text-orange-600" :
+                    "border-red-500 text-red-600"
+                  }>
+                    궁합 {ilganRelation.compatibility}
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">{ilganRelation.description}</p>
+              </div>
+            )}
+
+            {/* 특별 조합인 경우 */}
+            {isSpecialMatch && matchInfo && (
+              <div className={`rounded-lg p-4 ${
+                matchInfo.category === "천생연분" ? "bg-pink-50 border border-pink-200" :
+                matchInfo.category === "상호보완" ? "bg-blue-50 border border-blue-200" :
+                matchInfo.category === "동반성장" ? "bg-green-50 border border-green-200" :
+                "bg-orange-50 border border-orange-200"
+              }`}>
+                <h5 className="font-semibold mb-2">✨ 특별한 인연입니다!</h5>
+                <p className="text-sm mb-3">{matchInfo.reason}</p>
+              </div>
+            )}
+
+            {/* 상세 분석 Collapsible */}
+            <Collapsible open={isIljuOpen} onOpenChange={setIsIljuOpen}>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" className="w-full justify-between">
+                  <span>일주 상세 분석 보기</span>
+                  {isIljuOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </Button>
+              </CollapsibleTrigger>
+
+              <CollapsibleContent className="space-y-4 pt-4">
+                {/* 관계 조언 */}
+                {ilganRelation && (
+                  <div className="p-4 bg-primary/5 rounded-lg">
+                    <h5 className="font-semibold mb-2">💡 관계 조언</h5>
+                    <p className="text-sm">{ilganRelation.advice}</p>
+                  </div>
+                )}
+
+                {/* 특별 조합 상세 */}
+                {isSpecialMatch && matchInfo && (
+                  <>
+                    {/* 강점 */}
+                    <div className="p-4 border border-green-200 bg-green-50 rounded-lg">
+                      <h5 className="font-semibold text-green-700 mb-2">강점</h5>
+                      <ul className="space-y-1">
+                        {matchInfo.strengths.map((s, i) => (
+                          <li key={i} className="text-sm text-green-800 flex items-start gap-2">
+                            <span>+</span><span>{s}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* 주의점 */}
+                    <div className="p-4 border border-orange-200 bg-orange-50 rounded-lg">
+                      <h5 className="font-semibold text-orange-700 mb-2">주의할 점</h5>
+                      <ul className="space-y-1">
+                        {matchInfo.challenges.map((c, i) => (
+                          <li key={i} className="text-sm text-orange-800 flex items-start gap-2">
+                            <span>!</span><span>{c}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* 맞춤 조언 */}
+                    <div className="p-4 border rounded-lg">
+                      <h5 className="font-semibold mb-2">맞춤 조언</h5>
+                      <p className="text-sm">{matchInfo.advice}</p>
+                    </div>
+                  </>
+                )}
+              </CollapsibleContent>
+            </Collapsible>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -847,16 +829,14 @@ function CoupleResultContent() {
           name2={names.person2}
         />
 
-        {/* 일주 궁합 분석 */}
-        <IljuCompatibilityCard
+        {/* 궁합 분석 결과 (일주 관계 포함) */}
+        <CompatibilityCard
+          compatibility={compatibility}
           person1={person1Result}
           person2={person2Result}
           name1={names.person1}
           name2={names.person2}
         />
-
-        {/* 궁합 분석 결과 */}
-        <CompatibilityCard compatibility={compatibility} />
 
         {/* 함께하면 좋은 활동 */}
         <CoupleOhengAdviceCard
