@@ -30,7 +30,7 @@ function LoadingCard() {
   );
 }
 
-// 후원 정보 버튼
+// 후원하기 버튼
 function DonationInfoButton() {
   const [copied, setCopied] = useState(false);
   const accountNumber = "3333-01-5848626";
@@ -55,8 +55,8 @@ function DonationInfoButton() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="icon" className="rounded-full">
-          <Info className="w-5 h-5" />
+        <Button variant="outline">
+          후원하기
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
@@ -74,9 +74,10 @@ function DonationInfoButton() {
             <p className="text-sm font-medium">
               후원해주시면 감사하겠습니다 🙏
             </p>
+            <p className="text-sm text-muted-foreground">카카오뱅크</p>
             <div className="flex items-center gap-2">
               <div className="flex-1 p-2 bg-background rounded border text-sm font-mono">
-                카카오뱅크 {accountNumber}
+                {accountNumber}
               </div>
               <Button
                 variant="outline"
