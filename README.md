@@ -1,36 +1,164 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 사주팔자 분석 서비스
 
-## Getting Started
+사주팔자(四柱八字)를 기반으로 개인 운세, 커플 궁합, 가족 통합 분석을 제공하는 웹 애플리케이션입니다.
 
-First, run the development server:
+## 주요 기능
+
+### 1. 개인 사주 분석
+- 생년월일시를 입력하여 사주팔자 계산
+- 년주, 월주, 일주, 시주 분석
+- 오행(목, 화, 토, 금, 수) 분포 확인
+- 일간 기준 성격 및 운세 분석
+- **일주 상징/별명**: 60갑자별 고유한 상징과 별명 (예: "산속의 호랑이", "바다 위의 큰 나무")
+- **12운성 분석**: 생명 리듬의 12단계 흐름 해석
+- **기둥별 영역 설명**: 년주(사회/조상), 월주(직업/부모), 일주(본인/배우자), 시주(말년/자녀)
+- **천간 합/충 분석**: 사주 내 천간 관계 상세 해석
+- **스토리텔링 인트로**: 계절감 있는 맞춤형 인사말
+- **오행 보완법 상세**: 음식, 활동, 물건, 공간, 습관 등 실생활 조언
+
+### 2. 커플 궁합 분석
+- 두 사람의 사주를 비교 분석
+- 일간(日干) 관계 분석 (십신 관계)
+  - 비견, 겁재, 식신, 상관, 편재, 정재, 편관, 정관, 편인, 정인
+- 지지(地支) 관계 분석
+  - 육합(六合): 조화로운 관계
+  - 충(沖): 충돌 관계
+  - 형(刑): 마찰 관계
+  - 해(害): 주의 필요 관계
+- 궁합 점수 및 등급 제공
+- 강점, 주의점, 조언 제공
+- **스토리텔링 인트로**: 커플 점수 기반 맞춤 인사말
+- **일주 상징 비교**: 두 사람의 60갑자 일주 별명 비교
+- **공통 오행 보완 활동**: 함께 할 수 있는 활동/음식 추천
+
+### 3. 가족 통합 분석
+- 최대 10명까지 가족 구성원 분석
+- 구성원 간 모든 조합의 궁합 분석
+- 가족 전체 오행 균형 분석
+- 가족 조화도 점수 및 등급
+- 가족별 강점, 주의점, 종합 조언
+- **스토리텔링 인트로**: 가족 인원/점수 기반 따뜻한 인사말
+- **가족 일주 상징**: 모든 구성원의 60갑자 별명 한눈에 보기
+- **가족 오행 보완 활동**: 가족이 함께 할 수 있는 활동/음식 추천
+- **구성원별 역할 제안**: 오행 특성 기반 가족 내 역할
+- **상호 보완 관계**: 누가 누구의 부족한 오행을 보완하는지
+
+## 기술 스택
+
+- **Framework**: Next.js 15 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **UI Components**: shadcn/ui
+- **Calendar**: 음력/양력 변환 지원
+
+## 프로젝트 구조
+
+```
+src/
+├── app/
+│   ├── api/
+│   │   └── saju/
+│   │       ├── route.ts              # 개인 사주 API
+│   │       ├── compatibility/
+│   │       │   └── route.ts          # 커플 궁합 API
+│   │       └── family/
+│   │           └── route.ts          # 가족 통합 API
+│   ├── result/
+│   │   ├── page.tsx                  # 개인 결과 페이지
+│   │   ├── couple/
+│   │   │   └── page.tsx              # 커플 궁합 결과
+│   │   └── family/
+│   │       └── page.tsx              # 가족 통합 결과
+│   └── page.tsx                      # 메인 페이지
+├── components/
+│   ├── saju/
+│   │   ├── SajuForm.tsx              # 입력 폼
+│   │   └── PersonForm.tsx            # 개인 정보 입력
+│   └── ui/                           # shadcn/ui 컴포넌트
+├── lib/
+│   ├── saju.ts                       # 사주 계산 로직
+│   ├── saju-compatibility.ts         # 궁합 분석 로직
+│   ├── saju-family.ts                # 가족 분석 로직
+│   └── saju-analysis-data.ts         # 분석 데이터 (60갑자, 12운성, 오행 보완법 등)
+└── types/
+    └── saju.ts                       # 타입 정의
+```
+
+## 시작하기
+
+### 설치
+
+```bash
+npm install
+```
+
+### 개발 서버 실행
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+[http://localhost:3000](http://localhost:3000)에서 확인할 수 있습니다.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 빌드
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+```
 
-## Learn More
+## API 엔드포인트
 
-To learn more about Next.js, take a look at the following resources:
+### POST /api/saju
+개인 사주 계산
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```json
+{
+  "year": 1997,
+  "month": 2,
+  "day": 5,
+  "hour": 12,
+  "minute": 0,
+  "isLunar": false,
+  "timeUnknown": false
+}
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### POST /api/saju/compatibility
+커플 궁합 분석
 
-## Deploy on Vercel
+```json
+{
+  "person1": { /* SajuApiResult */ },
+  "person2": { /* SajuApiResult */ }
+}
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### POST /api/saju/family
+가족 통합 분석
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```json
+{
+  "members": [
+    {
+      "name": "본인",
+      "relation": "me",
+      "saju": { /* SajuApiResult */ },
+      "timeUnknown": false
+    },
+    // ... 추가 구성원
+  ]
+}
+```
+
+## 사주 용어 설명
+
+- **사주팔자**: 태어난 년, 월, 일, 시를 간지(干支)로 표현한 8글자
+- **천간(天干)**: 갑, 을, 병, 정, 무, 기, 경, 신, 임, 계 (10간)
+- **지지(地支)**: 자, 축, 인, 묘, 진, 사, 오, 미, 신, 유, 술, 해 (12지)
+- **오행(五行)**: 목(木), 화(火), 토(土), 금(金), 수(水)
+- **일간(日干)**: 일주의 천간, 사주에서 '나' 자신을 나타냄
+- **십신(十神)**: 일간과 다른 간지의 관계를 나타내는 10가지 용어
+
+## 주의사항
+
+본 서비스는 참고용이며, 실제 운세나 인간관계는 개인의 노력과 선택에 따라 달라집니다.
