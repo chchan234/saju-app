@@ -22,6 +22,7 @@ import {
   generateStoryIntro,
   type IljuSymbol,
 } from "@/lib/saju-analysis-data";
+import { getAllPillarMeanings, type PillarPositionMeaning } from "@/lib/saju-pillar-meanings";
 
 interface SajuResultProps {
   result: SajuApiResult & {
@@ -518,6 +519,116 @@ function CheonganRelationsCard({ pillars }: { pillars: Pillar[] }) {
   );
 }
 
+// 기둥별 개인 해석 카드
+function PersonalPillarMeaningsCard({
+  yearGapja,
+  monthGapja,
+  dayGapja,
+  hourGapja,
+  timeUnknown,
+}: {
+  yearGapja: string;
+  monthGapja: string;
+  dayGapja: string;
+  hourGapja?: string;
+  timeUnknown: boolean;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const meanings = getAllPillarMeanings(yearGapja, monthGapja, dayGapja, hourGapja);
+
+  const pillarLabels = [
+    { key: "year", label: "년주", gapja: yearGapja, emoji: "👶" },
+    { key: "month", label: "월주", gapja: monthGapja, emoji: "💪" },
+    { key: "day", label: "일주", gapja: dayGapja, emoji: "💎" },
+    ...(timeUnknown ? [] : [{ key: "hour", label: "시주", gapja: hourGapja || "", emoji: "🌅" }]),
+  ];
+
+  const getMeaning = (key: string): PillarPositionMeaning | null => {
+    switch (key) {
+      case "year": return meanings.year;
+      case "month": return meanings.month;
+      case "day": return meanings.day;
+      case "hour": return meanings.hour;
+      default: return null;
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Sparkles className="w-5 h-5 text-primary" />
+          나의 기둥별 개인 해석
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className="text-sm text-muted-foreground mb-4">
+          각 기둥(년주/월주/일주/시주)에 있는 갑자에 따라 당신만의 개인적인 운명 해석입니다.
+        </p>
+
+        {/* 요약 카드 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+          {pillarLabels.map(({ key, label, gapja, emoji }) => {
+            const meaning = getMeaning(key);
+            if (!meaning) return null;
+            return (
+              <div key={key} className="p-3 border rounded-lg bg-gradient-to-br from-primary/5 to-transparent">
+                <div className="flex items-center gap-2 mb-1">
+                  <span>{emoji}</span>
+                  <span className="font-medium">{label}</span>
+                  <Badge variant="outline" className="text-xs">{gapja}</Badge>
+                </div>
+                <p className="text-sm text-foreground">{meaning.meaning}</p>
+              </div>
+            );
+          })}
+        </div>
+
+        <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+          <CollapsibleTrigger asChild>
+            <Button variant="ghost" className="w-full justify-between">
+              <span>상세 해석 보기</span>
+              {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="space-y-4 pt-4">
+            {pillarLabels.map(({ key, label, gapja, emoji }) => {
+              const meaning = getMeaning(key);
+              if (!meaning) return null;
+              return (
+                <div key={key} className="p-4 border rounded-lg">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-xl">{emoji}</span>
+                    <span className="font-bold text-lg">{label}</span>
+                    <Badge className="bg-primary/10 text-primary border-primary/20">{gapja}</Badge>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-foreground">{meaning.meaning}</p>
+                    <ul className="space-y-1 text-sm text-muted-foreground">
+                      <li className="flex items-start gap-2">
+                        <span className="w-1.5 h-1.5 mt-2 bg-primary/60 rounded-full flex-shrink-0" />
+                        {meaning.detail1}
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="w-1.5 h-1.5 mt-2 bg-primary/60 rounded-full flex-shrink-0" />
+                        {meaning.detail2}
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="w-1.5 h-1.5 mt-2 bg-primary/60 rounded-full flex-shrink-0" />
+                        {meaning.detail3}
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              );
+            })}
+          </CollapsibleContent>
+        </Collapsible>
+      </CardContent>
+    </Card>
+  );
+}
+
 export function SajuResult({ result, name, timeUnknown = false }: SajuResultProps) {
   const { yearPillar, monthPillar, dayPillar, timePillar, ohengCount, yongsin, birthInfo, meta } = result;
 
@@ -534,6 +645,12 @@ export function SajuResult({ result, name, timeUnknown = false }: SajuResultProp
   const ilju = dayPillar.cheongan + dayPillar.jiji;
   const iljuSymbol = ILJU_SYMBOLS[ilju];
   const dominantOheng = maxOhengList[0][0];
+
+  // 기둥별 갑자 계산
+  const yearGapja = yearPillar.cheongan + yearPillar.jiji;
+  const monthGapja = monthPillar.cheongan + monthPillar.jiji;
+  const dayGapja = ilju; // 일주와 동일
+  const hourGapja = timeUnknown ? undefined : timePillar.cheongan + timePillar.jiji;
 
   // 기둥 배열
   const pillars = timeUnknown
@@ -636,6 +753,15 @@ export function SajuResult({ result, name, timeUnknown = false }: SajuResultProp
 
       {/* 천간 관계 분석 (합/충) */}
       <CheonganRelationsCard pillars={pillars} />
+
+      {/* 나의 기둥별 개인 해석 */}
+      <PersonalPillarMeaningsCard
+        yearGapja={yearGapja}
+        monthGapja={monthGapja}
+        dayGapja={dayGapja}
+        hourGapja={hourGapja}
+        timeUnknown={timeUnknown}
+      />
 
       {/* 오행 분석 */}
       <Card>
