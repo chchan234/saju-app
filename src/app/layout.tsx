@@ -18,6 +18,10 @@ export const metadata: Metadata = {
   title: "운명 - 당신의 이야기를 듣다",
   description: "사주팔자로 알아보는 당신의 운명. 정확한 만세력 데이터 기반의 사주 풀이 서비스.",
   keywords: ["사주", "팔자", "운명", "궁합", "만세력", "오행", "용신"],
+  icons: {
+    icon: "/favicon.svg",
+    apple: "/favicon.svg",
+  },
   openGraph: {
     title: "운명 - 당신의 이야기를 듣다",
     description: "사주팔자로 알아보는 당신의 운명",

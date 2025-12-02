@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Background circle (crystal ball) -->
+  <defs>
+    <linearGradient id="ballGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#E8DCC4"/>
+      <stop offset="50%" style="stop-color:#D4C5B0"/>
+      <stop offset="100%" style="stop-color:#BFA588"/>
+    </linearGradient>
+    <linearGradient id="shineGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:0.8"/>
+      <stop offset="100%" style="stop-color:#FFFFFF;stop-opacity:0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Main ball -->
+  <circle cx="32" cy="28" r="24" fill="url(#ballGradient)" stroke="#8E7F73" stroke-width="2"/>
+
+  <!-- Shine effect -->
+  <ellipse cx="24" cy="20" rx="8" ry="6" fill="url(#shineGradient)"/>
+
+  <!-- Stars inside -->
+  <text x="26" y="26" font-size="8" fill="#8E7F73">*</text>
+  <text x="34" y="32" font-size="10" fill="#5C544A">*</text>
+  <text x="38" y="24" font-size="6" fill="#8E7F73">*</text>
+
+  <!-- Base/stand -->
+  <ellipse cx="32" cy="54" rx="16" ry="4" fill="#8E7F73"/>
+  <path d="M 20 52 Q 32 58 44 52 L 42 48 Q 32 52 22 48 Z" fill="#5C544A"/>
+
+  <!-- Korean character for fortune (운) -->
+  <text x="32" y="34" font-family="serif" font-size="14" fill="#5C544A" text-anchor="middle" font-weight="bold">運</text>
+</svg>
