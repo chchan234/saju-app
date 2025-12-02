@@ -421,6 +421,25 @@ export function analyzeIljuCompatibility(ilju1: string, ilju2: string): {
     ["진", "유"], ["사", "신"], ["오", "미"],
   ];
 
+  // 지지 충(沖) - 정반대 위치
+  const chung: [string, string][] = [
+    ["자", "오"], ["축", "미"], ["인", "신"],
+    ["묘", "유"], ["진", "술"], ["사", "해"],
+  ];
+
+  // 지지 형(刑) - 갈등 관계
+  const hyung: [string, string][] = [
+    ["인", "사"], ["사", "신"], ["인", "신"], // 무은지형
+    ["축", "술"], ["술", "미"], ["축", "미"], // 지세지형
+    ["자", "묘"], // 무례지형
+  ];
+
+  // 지지 해(害) - 해로운 관계
+  const hae: [string, string][] = [
+    ["자", "미"], ["축", "오"], ["인", "사"],
+    ["묘", "진"], ["신", "해"], ["유", "술"],
+  ];
+
   // 삼합 체크
   for (const group of samhap) {
     if (group.includes(jiji1) && group.includes(jiji2)) {
@@ -437,7 +456,31 @@ export function analyzeIljuCompatibility(ilju1: string, ilju2: string): {
     }
   }
 
-  const finalScore = Math.min(100, baseScore + jijiBonus);
+  // 충 체크 (감점)
+  for (const [a, b] of chung) {
+    if ((jiji1 === a && jiji2 === b) || (jiji1 === b && jiji2 === a)) {
+      jijiBonus -= 8;
+      break;
+    }
+  }
+
+  // 형 체크 (감점)
+  for (const [a, b] of hyung) {
+    if ((jiji1 === a && jiji2 === b) || (jiji1 === b && jiji2 === a)) {
+      jijiBonus -= 5;
+      break;
+    }
+  }
+
+  // 해 체크 (감점)
+  for (const [a, b] of hae) {
+    if ((jiji1 === a && jiji2 === b) || (jiji1 === b && jiji2 === a)) {
+      jijiBonus -= 3;
+      break;
+    }
+  }
+
+  const finalScore = Math.max(30, Math.min(100, baseScore + jijiBonus));
 
   // 등급 결정
   let grade: string;
