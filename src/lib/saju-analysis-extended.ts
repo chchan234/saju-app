@@ -6,6 +6,14 @@
 
 import type { Pillar, OhengCount } from "@/types/saju";
 
+// 한국어 조사 처리 (받침 유무에 따라 이/가 선택)
+function getSubjectParticle(word: string): string {
+  const lastChar = word.charAt(word.length - 1);
+  const code = lastChar.charCodeAt(0) - 0xAC00;
+  const hasJongseong = code >= 0 && code <= 11171 && code % 28 !== 0;
+  return hasJongseong ? "이" : "가";
+}
+
 // ============================================
 // 격국(格局) 분석
 // ============================================
@@ -148,7 +156,7 @@ export function determineGeokguk(monthPillar: Pillar, dayPillar: Pillar): {
   if (monthCheonganSipsin && GEOKGUK_INFO[monthCheonganSipsin + "격"]) {
     geokguk = monthCheonganSipsin + "격";
     confidence = "높음";
-    explanation = `월간에 ${monthCheonganSipsin}이 투출하여 ${geokguk}을 이룹니다.`;
+    explanation = `월간에 ${monthCheonganSipsin}${getSubjectParticle(monthCheonganSipsin)} 있어 ${geokguk}을 이룹니다.`;
   }
   // 월지 본기로 격 판정
   else if (monthJijiSipsin && GEOKGUK_INFO[monthJijiSipsin + "격"]) {

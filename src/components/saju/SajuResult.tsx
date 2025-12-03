@@ -81,6 +81,22 @@ import {
   MysticalIntroCard,
 } from "@/components/saju/SajuUI";
 
+// 띠별 이모지 매핑
+const DDI_EMOJI: Record<string, string> = {
+  쥐: "🐭",
+  소: "🐮",
+  호랑이: "🐯",
+  토끼: "🐰",
+  용: "🐲",
+  뱀: "🐍",
+  말: "🐴",
+  양: "🐑",
+  원숭이: "🐵",
+  닭: "🐔",
+  개: "🐶",
+  돼지: "🐷",
+};
+
 // 오행 차트용 색상 코드 (Hex) - This constant is now only used within OhengChart, which is moved.
 // If it's still needed elsewhere, it should be imported or redefined.
 // For now, it's removed as per the instruction's implied scope.
@@ -746,8 +762,11 @@ export function SajuResult({ result, name, timeUnknown = false }: SajuResultProp
             </div>
             <div className="w-px h-3 bg-stone-300"></div>
             <div className="flex items-center gap-1">
-              <span>🐯</span>
-              <span>{meta.ddiLunar}띠</span>
+              <span>{DDI_EMOJI[meta.ddi] || "🐯"}</span>
+              <span>{meta.ddi}띠</span>
+              {meta.ddi !== meta.ddiLunar && (
+                <span className="text-xs text-muted-foreground">(양력 {meta.ddiLunar}띠)</span>
+              )}
             </div>
             <div className="w-px h-3 bg-stone-300"></div>
             <div className="flex items-center gap-1">

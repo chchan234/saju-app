@@ -141,9 +141,6 @@ function ResultContent() {
       <div className="max-w-2xl mx-auto">
         <header className="text-center mb-8">
           <h1 className="text-3xl font-bold mb-2">사주 분석 결과</h1>
-          <p className="text-muted-foreground">
-            AI 기반 정밀 사주 분석
-          </p>
         </header>
 
         <SajuResult result={result} name={name} timeUnknown={timeUnknown} />

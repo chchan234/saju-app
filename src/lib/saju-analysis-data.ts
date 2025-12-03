@@ -1596,7 +1596,7 @@ export function generateStoryIntro(
   let lifeTheme = "";
 
   if (symbol) {
-    characterSummary = `당신은 "${symbol.nickname}"의 기운을 타고났습니다. ${symbol.essence}`;
+    characterSummary = `당신은 「${symbol.nickname}」의 기운을 타고났습니다. ${symbol.essence}`;
     lifeTheme = symbol.lifeTheme;
   } else {
     // 기본 문구
