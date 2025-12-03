@@ -1311,6 +1311,28 @@ function FamilyAnalysisCard({ analysis }: { analysis: FamilyAnalysisResult }) {
         </CardContent>
       </Card>
 
+      {/* 구성원 간 궁합 - 상세 보기 (핵심 분석이므로 오행 다음에 배치) */}
+      <Card className="border-stone-200 dark:border-stone-800">
+        <CardHeader>
+          <CardTitle className="text-lg font-serif text-[#5C544A] dark:text-[#D4C5B0]">구성원 간 궁합 상세</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            각 구성원 간의 사주 궁합을 상세하게 분석한 결과입니다. 클릭하면 상세 내용을 볼 수 있습니다.
+          </p>
+          <div className="space-y-3">
+            {pairCompatibilities.map((pair, index) => (
+              <PairCompatibilityDetailCard
+                key={index}
+                pair={pair}
+                isOpen={openPairIndex === index}
+                onToggle={() => setOpenPairIndex(openPairIndex === index ? null : index)}
+              />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* 가족 역할 제안 */}
       {familyRoles.length > 0 && (
         <Card className="border-stone-200 dark:border-stone-800">
@@ -1367,28 +1389,6 @@ function FamilyAnalysisCard({ analysis }: { analysis: FamilyAnalysisResult }) {
           ))}
         </div>
       )}
-
-      {/* 구성원 간 궁합 - 상세 보기 */}
-      <Card className="border-stone-200 dark:border-stone-800">
-        <CardHeader>
-          <CardTitle className="text-lg font-serif text-[#5C544A] dark:text-[#D4C5B0]">구성원 간 궁합 상세</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            각 구성원 간의 사주 궁합을 상세하게 분석한 결과입니다. 클릭하면 상세 내용을 볼 수 있습니다.
-          </p>
-          <div className="space-y-3">
-            {pairCompatibilities.map((pair, index) => (
-              <PairCompatibilityDetailCard
-                key={index}
-                pair={pair}
-                isOpen={openPairIndex === index}
-                onToggle={() => setOpenPairIndex(openPairIndex === index ? null : index)}
-              />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
 
       {/* 강점 */}
       {familyStrengths.length > 0 && (
@@ -1604,19 +1604,13 @@ function FamilyResultContent() {
           </p>
         </header>
 
-        {/* 스토리텔링 인트로 */}
+        {/* 1. 스토리텔링 인트로 */}
         <FamilyStoryIntroCard
           memberCount={members.length}
           familyScore={analysis.familyScore}
         />
 
-        {/* 가족 일주 상징 */}
-        <FamilyIljuSymbolsCard members={members} />
-
-        {/* 가족 오행 보완 활동 */}
-        <FamilyOhengAdviceCard members={members} />
-
-        {/* 가족 구성원 카드 */}
+        {/* 2. 가족 구성원 카드 - 기본 정보 먼저 */}
         <Card className="bg-white/50 dark:bg-stone-900/50 border-stone-200 dark:border-stone-800">
           <CardHeader>
             <CardTitle className="text-lg font-serif text-[#5C544A] dark:text-[#D4C5B0]">가족 구성원</CardTitle>
@@ -1650,17 +1644,23 @@ function FamilyResultContent() {
           </CardContent>
         </Card>
 
-        {/* 구성원 간 궁합 이유 요약 */}
+        {/* 3. 가족 분석 결과 - 점수/오행/역할/궁합 상세 */}
+        <FamilyAnalysisCard analysis={analysis} />
+
+        {/* 4. 구성원 간 궁합 이유 요약 */}
         <PairCompatibilityReasonCard pairs={analysis.pairCompatibilities} />
 
-        {/* 가족 십성 관계도 */}
+        {/* 5. 가족 일주 상징 */}
+        <FamilyIljuSymbolsCard members={members} />
+
+        {/* 6. 가족 십성 관계도 */}
         <FamilySipseongRelationCard members={members} />
 
-        {/* 가족 대운 캘린더 */}
+        {/* 7. 가족 대운 캘린더 */}
         <FamilyFortuneCalendarCard memberFortunes={memberFortunes} />
 
-        {/* 가족 분석 결과 */}
-        <FamilyAnalysisCard analysis={analysis} />
+        {/* 8. 가족 오행 보완 활동 - 액션 아이템은 마지막에 */}
+        <FamilyOhengAdviceCard members={members} />
 
         {/* 총정리 */}
         <Card className="border-2 border-amber-200 dark:border-amber-900/50 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30">

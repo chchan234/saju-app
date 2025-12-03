@@ -44,7 +44,7 @@ function SipsinDistributionChart({
   const chartData = Object.entries(distribution).map(([category, count]) => {
     const info = SIPSIN_CATEGORY_INFO[category as TraditionalSipsinCategory];
     return {
-      category: `${info.name}(${info.friendlyName})`,
+      category: info.name,
       value: count,
       fullMark: 4,
     };

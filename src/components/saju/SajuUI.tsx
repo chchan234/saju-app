@@ -370,11 +370,11 @@ export function PillarCard({ pillar, label, size = "default" }: { pillar: Pillar
 // 3. Oheng Radar Chart
 export function OhengChart({ ohengCount }: { ohengCount: OhengCount }) {
     const data = [
-        { subject: "목(나무)", A: ohengCount["목"], fullMark: 5, fill: OHENG_CHART_COLORS["목"] },
-        { subject: "화(불)", A: ohengCount["화"], fullMark: 5, fill: OHENG_CHART_COLORS["화"] },
-        { subject: "토(흙)", A: ohengCount["토"], fullMark: 5, fill: OHENG_CHART_COLORS["토"] },
-        { subject: "금(쇠)", A: ohengCount["금"], fullMark: 5, fill: OHENG_CHART_COLORS["금"] },
-        { subject: "수(물)", A: ohengCount["수"], fullMark: 5, fill: OHENG_CHART_COLORS["수"] },
+        { subject: "목", A: ohengCount["목"], fullMark: 5, fill: OHENG_CHART_COLORS["목"] },
+        { subject: "화", A: ohengCount["화"], fullMark: 5, fill: OHENG_CHART_COLORS["화"] },
+        { subject: "토", A: ohengCount["토"], fullMark: 5, fill: OHENG_CHART_COLORS["토"] },
+        { subject: "금", A: ohengCount["금"], fullMark: 5, fill: OHENG_CHART_COLORS["금"] },
+        { subject: "수", A: ohengCount["수"], fullMark: 5, fill: OHENG_CHART_COLORS["수"] },
     ];
 
     return (
