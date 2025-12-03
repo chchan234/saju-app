@@ -99,26 +99,36 @@ export function BokbiModal() {
                             봉투를 눌러 마음을 전하세요.
                         </p>
 
-                        {/* Envelope UI - 반응형 봉투 */}
+                        {/* Envelope UI - 단순화된 봉투 */}
                         <div
                             className="relative w-full cursor-pointer mt-6 mb-4"
-                            style={{ aspectRatio: '4/3' }}
+                            style={{ aspectRatio: '3/2' }}
                             onClick={toggleEnvelope}
                         >
-                            {/* 봉투 컨테이너 (overflow-hidden으로 내용물 가림) */}
-                            <div className="absolute inset-0 overflow-hidden">
-                                {/* 계좌 카드 - 봉투 안에 숨겨져 있다가 위로 튀어나옴 */}
+                            {/* 봉투 본체 (사각형) */}
+                            <div className="absolute bottom-0 left-0 w-full h-[65%] bg-[#D4C5B0] dark:bg-[#5C5044] rounded-lg shadow-lg overflow-hidden">
+                                {/* 봉투 안쪽 그림자 */}
+                                <div className="absolute inset-0 bg-gradient-to-b from-[#C5B4A0] to-transparent h-8 dark:from-[#4A4036]"></div>
+
+                                {/* 계좌 카드 - 봉투 안에서 위로 슬라이드 */}
                                 <div
-                                    className={`absolute left-[10%] right-[10%] bg-white dark:bg-[#2C2824] border border-stone-200 dark:border-stone-700 rounded-xl flex flex-col items-center justify-center p-4 shadow-lg transition-all duration-700 ease-out
-                                    ${isEnvelopeOpen ? 'bottom-[55%] z-50 opacity-100' : 'bottom-[-35%] z-10 opacity-90'}`}
-                                    style={{ height: '40%' }}
+                                    className={`absolute left-[8%] right-[8%] bg-white dark:bg-[#2C2824] rounded-lg flex flex-col items-center justify-center p-3 shadow-md border border-stone-200 dark:border-stone-600
+                                    transition-all ease-out
+                                    ${isEnvelopeOpen ? 'bottom-[15%] opacity-100' : 'bottom-[-60%] opacity-0'}`}
+                                    style={{
+                                        height: '75%',
+                                        transitionDuration: '500ms',
+                                        transitionDelay: isEnvelopeOpen ? '250ms' : '0ms'
+                                    }}
                                 >
-                                    <p className="text-xs text-stone-400 mb-1">카카오뱅크</p>
-                                    <p className="font-mono font-bold text-stone-700 dark:text-stone-300 text-base sm:text-lg tracking-wider">3333-01-5848626</p>
+                                    <p className="text-[10px] sm:text-xs text-stone-400 mb-1">카카오뱅크</p>
+                                    <p className="font-mono font-bold text-stone-700 dark:text-stone-300 text-sm sm:text-base tracking-wider">
+                                        3333-01-5848626
+                                    </p>
                                     <Button
                                         size="sm"
                                         variant="outline"
-                                        className="h-7 text-xs gap-1 bg-stone-50 hover:bg-stone-100 dark:bg-stone-800 dark:hover:bg-stone-700 mt-2"
+                                        className="h-6 sm:h-7 text-[10px] sm:text-xs gap-1 bg-stone-50 hover:bg-stone-100 dark:bg-stone-800 dark:hover:bg-stone-700 mt-2"
                                         onClick={handleCopy}
                                     >
                                         {copied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
@@ -127,61 +137,34 @@ export function BokbiModal() {
                                 </div>
                             </div>
 
-                            {/* 봉투 뒷면 (그림자용) */}
+                            {/* 봉투 플랩 (삼각형) - 위로 올라가는 애니메이션 */}
                             <div
-                                className="absolute bottom-0 left-0 w-full bg-[#C5B4A0] dark:bg-[#4A4036] rounded-b-xl shadow-xl"
-                                style={{ height: '50%' }}
-                            ></div>
-
-                            {/* 봉투 플랩 (삼각형 뚜껑) */}
-                            <div
-                                className="absolute left-0 w-full transition-all duration-500 ease-in-out origin-bottom"
+                                className={`absolute left-0 w-full transition-all duration-300 ease-out
+                                ${isEnvelopeOpen ? 'bottom-[63%]' : 'bottom-[40%]'}`}
                                 style={{
-                                    height: '35%',
-                                    bottom: '50%',
-                                    transform: isEnvelopeOpen ? 'rotateX(180deg) translateY(100%)' : 'rotateX(0deg)',
-                                    transformStyle: 'preserve-3d',
-                                    zIndex: isEnvelopeOpen ? 5 : 25
+                                    height: '45%',
+                                    zIndex: isEnvelopeOpen ? 5 : 20
                                 }}
                             >
+                                {/* 플랩 삼각형 */}
                                 <div
                                     className="absolute inset-0 bg-[#BFA588] dark:bg-[#5C5044]"
                                     style={{
-                                        clipPath: "polygon(0 0, 100% 0, 50% 100%)",
-                                        backfaceVisibility: 'hidden'
+                                        clipPath: "polygon(0 0, 50% 100%, 100% 0)",
                                     }}
                                 ></div>
+
+                                {/* 福 봉인 - 플랩 안에 포함 (같이 움직임) */}
                                 <div
-                                    className="absolute inset-0 bg-[#A89070] dark:bg-[#4A4036]"
-                                    style={{
-                                        clipPath: "polygon(0 0, 100% 0, 50% 100%)",
-                                        transform: 'rotateX(180deg)',
-                                        backfaceVisibility: 'hidden'
-                                    }}
-                                ></div>
-                            </div>
-
-                            {/* 봉투 앞면 (V자 모양) */}
-                            <div
-                                className="absolute bottom-0 left-0 w-full bg-[#D4C5B0] dark:bg-[#5C5044] rounded-b-xl pointer-events-none"
-                                style={{
-                                    height: '50%',
-                                    clipPath: "polygon(0 0, 50% 35%, 100% 0, 100% 100%, 0 100%)",
-                                    zIndex: 30
-                                }}
-                            ></div>
-
-                            {/* 福 봉인 - 플랩과 본체 경계에 위치 */}
-                            <div
-                                className={`absolute left-1/2 -translate-x-1/2 w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-red-700 to-red-900 rounded-full border-2 border-red-950 shadow-lg flex items-center justify-center text-yellow-100 font-serif text-base sm:text-lg font-bold transition-all duration-500
-                                ${isEnvelopeOpen ? 'opacity-0 scale-50 rotate-45' : 'opacity-100 scale-100 rotate-0'}`}
-                                style={{
-                                    bottom: '50%',
-                                    transform: `translateX(-50%) translateY(50%)`,
-                                    zIndex: 35
-                                }}
-                            >
-                                福
+                                    className={`absolute left-1/2 -translate-x-1/2 bottom-0 translate-y-1/2
+                                    w-9 h-9 sm:w-11 sm:h-11 bg-gradient-to-br from-red-600 to-red-800
+                                    rounded-full border-2 border-red-900 shadow-md
+                                    flex items-center justify-center text-yellow-100 font-serif text-sm sm:text-base font-bold
+                                    transition-opacity duration-300
+                                    ${isEnvelopeOpen ? 'opacity-0' : 'opacity-100'}`}
+                                >
+                                    福
+                                </div>
                             </div>
                         </div>
 
