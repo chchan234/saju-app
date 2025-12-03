@@ -141,6 +141,7 @@ export function SajuForm() {
         minute: time1.minute.toString(),
         lunar: person1.calendarType === "lunar",
         name: person1.name || "나",
+        gender: person1.gender,
         timeUnknown: p1TimeUnknown,
       },
       person2: {
@@ -151,6 +152,7 @@ export function SajuForm() {
         minute: time2.minute.toString(),
         lunar: person2.calendarType === "lunar",
         name: person2.name || "상대방",
+        gender: person2.gender,
         timeUnknown: p2TimeUnknown,
       },
     };
@@ -171,6 +173,7 @@ export function SajuForm() {
         minute: time.minute.toString(),
         lunar: member.calendarType === "lunar",
         name: member.name || `구성원 ${index + 1}`,
+        gender: member.gender,
         relation: member.relation || "other",
         timeUnknown,
       };

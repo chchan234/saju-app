@@ -10,7 +10,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp, Sparkles, Heart, User } from "lucide-react";
+import { ChevronDown, ChevronUp, Sparkles, Heart } from "lucide-react";
 import type { SajuApiResult } from "@/types/saju";
 import type { CompatibilityResult } from "@/lib/saju-compatibility";
 import {
@@ -18,7 +18,9 @@ import {
   OHENG_BOOSTERS,
   generateGroupStoryIntro,
 } from "@/lib/saju-analysis-data";
-import { analyzeIljuCompatibility } from "@/lib/saju-family";
+import { analyzeIljuCompatibility, analyzeIlganRelationship, type IlganRelationship } from "@/lib/saju-family";
+import type { MajorFortuneInfo } from "@/lib/saju-calculator";
+import { DAEUN_OHENG_INTERPRETATION } from "@/lib/saju-fortune-data";
 import { getScoreColorClass } from "@/lib/utils";
 import {
   PillarCard,
@@ -48,10 +50,12 @@ function LoadingCard() {
 function PersonSummaryCard({
   result,
   label,
+  gender,
   timeUnknown
 }: {
   result: SajuApiResult;
   label: string;
+  gender: "male" | "female";
   timeUnknown: boolean;
 }) {
   const { yearPillar, monthPillar, dayPillar, timePillar, ohengCount, meta } = result;
@@ -60,7 +64,7 @@ function PersonSummaryCard({
     <Card className="bg-white/50 dark:bg-stone-900/50 border-stone-200 dark:border-stone-800 shadow-sm">
       <CardHeader className="pb-2 border-b border-stone-100 dark:border-stone-800">
         <CardTitle className="text-lg flex items-center gap-2 font-serif text-[#5C544A] dark:text-[#D4C5B0]">
-          <User className="w-4 h-4" />
+          <span className="text-base">{gender === "male" ? "👨" : "👩"}</span>
           {label}
         </CardTitle>
       </CardHeader>
@@ -205,6 +209,681 @@ function CoupleIljuCard({ person1, person2, name1, name2 }: {
                   <p className="text-sm text-[#8E7F73] mt-2 font-medium">인생 주제: {symbol2.lifeTheme}</p>
                 </div>
               )}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      </CardContent>
+    </Card>
+  );
+}
+
+// 배우자궁 분석 카드
+function SpousePalaceCard({
+  person1,
+  person2,
+  name1,
+  name2,
+  gender1,
+  gender2,
+}: {
+  person1: SajuApiResult;
+  person2: SajuApiResult;
+  name1: string;
+  name2: string;
+  gender1: "male" | "female";
+  gender2: "male" | "female";
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  // 일지 (배우자궁) - 일주의 지지
+  const spousePalace1 = person1.dayPillar.jiji;
+  const spousePalace2 = person2.dayPillar.jiji;
+
+  // 십성 관계 분석 (배우자궁 지지와 상대 일간)
+  // Note: 배우자궁은 지지인데, 십성 계산은 천간 기반이므로
+  // 여기서는 일간-일간 관계로 해석
+  const relation1 = analyzeIlganRelationship(person1.dayPillar.cheongan, person2.dayPillar.cheongan, "couple");
+  const relation2 = analyzeIlganRelationship(person2.dayPillar.cheongan, person1.dayPillar.cheongan, "couple");
+
+  // 지지에서 한자 가져오기
+  const JIJI_HANJA: Record<string, string> = {
+    자: "子", 축: "丑", 인: "寅", 묘: "卯",
+    진: "辰", 사: "巳", 오: "午", 미: "未",
+    신: "申", 유: "酉", 술: "戌", 해: "亥",
+  };
+
+  // 성별에 따른 배우자 십성 해석
+  const getSpouseInterpretation = (gender: "male" | "female", relation: IlganRelationship) => {
+    // 남자의 경우: 재성(편재/정재)이 아내를 나타냄
+    // 여자의 경우: 관성(편관/정관)이 남편을 나타냄
+    const sipseong = relation.type;
+
+    if (gender === "male") {
+      if (sipseong === "정재" || sipseong === "편재") {
+        return "이상적인 배우자 관계입니다. 자연스럽게 상대방을 아끼고 보살피게 됩니다.";
+      }
+      if (sipseong === "정관" || sipseong === "편관") {
+        return "상대방으로부터 도전받는 느낌을 받을 수 있지만, 이는 서로를 성장시키는 관계가 됩니다.";
+      }
+      if (sipseong === "정인" || sipseong === "편인") {
+        return "상대방이 지혜와 도움을 주는 관계입니다. 의지가 되는 파트너입니다.";
+      }
+      if (sipseong === "식신" || sipseong === "상관") {
+        return "상대방을 자연스럽게 돌보고 표현하게 됩니다. 감정 표현이 풍부한 관계입니다.";
+      }
+      if (sipseong === "비견" || sipseong === "겁재") {
+        return "동등한 파트너로서 서로를 이해하지만, 경쟁심이 생길 수 있어 배려가 필요합니다.";
+      }
+    } else {
+      if (sipseong === "정관" || sipseong === "편관") {
+        return "이상적인 배우자 관계입니다. 상대방이 든든한 지지자가 됩니다.";
+      }
+      if (sipseong === "정재" || sipseong === "편재") {
+        return "상대방을 돌보고 싶은 마음이 생기는 관계입니다. 실질적인 도움을 주고받습니다.";
+      }
+      if (sipseong === "정인" || sipseong === "편인") {
+        return "상대방이 지혜와 도움을 주는 관계입니다. 배움이 있는 파트너십입니다.";
+      }
+      if (sipseong === "식신" || sipseong === "상관") {
+        return "자신을 표현하고 상대방을 돌보는 관계입니다. 창의적인 에너지가 흐릅니다.";
+      }
+      if (sipseong === "비견" || sipseong === "겁재") {
+        return "동등한 파트너로서 서로를 이해하지만, 각자의 영역을 존중하는 것이 중요합니다.";
+      }
+    }
+    return relation.dynamics;
+  };
+
+  return (
+    <Card className="border-stone-200 dark:border-stone-800 bg-white/50 dark:bg-stone-900/50">
+      <CardHeader>
+        <CardTitle className="font-serif text-[#5C544A] dark:text-[#D4C5B0] flex items-center gap-2">
+          <span className="text-xl">💑</span>
+          배우자궁 분석
+        </CardTitle>
+        <p className="text-sm text-muted-foreground mt-1">
+          일주의 지지(일지)는 배우자의 자리를 나타냅니다
+        </p>
+      </CardHeader>
+      <CardContent>
+        <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+          <div className="space-y-4">
+            {/* Person 1의 배우자궁 분석 */}
+            <div className="bg-rose-50/50 dark:bg-rose-950/20 rounded-lg p-4 space-y-2">
+              <div className="flex items-center gap-2 text-sm font-medium text-rose-800 dark:text-rose-200">
+                <span>{gender1 === "male" ? "👨" : "👩"}</span>
+                <span>{name1}님의 배우자궁</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className={`text-2xl font-bold px-3 py-1 rounded ${OHENG_COLORS[person1.dayPillar.jijiOheng]} text-white`}>
+                  {JIJI_HANJA[spousePalace1] || spousePalace1}
+                </div>
+                <div className="text-sm">
+                  <span className="text-muted-foreground">{spousePalace1}</span>
+                  <span className="text-muted-foreground mx-1">·</span>
+                  <span className={OHENG_TEXT_COLORS[person1.dayPillar.jijiOheng]}>{person1.dayPillar.jijiOheng}</span>
+                </div>
+              </div>
+              <div className="mt-2 text-sm space-y-1">
+                <p className="text-muted-foreground">
+                  → 상대방 {name2}님의 일간: <span className={`font-medium ${OHENG_TEXT_COLORS[person2.dayPillar.cheonganOheng]}`}>{person2.dayPillar.cheongan}</span>
+                </p>
+                <p className="text-muted-foreground">
+                  → 관계: <Badge variant="outline" className="ml-1">{relation1.type}</Badge>
+                </p>
+              </div>
+              <p className="text-sm text-stone-700 dark:text-stone-300 bg-white/50 dark:bg-black/20 p-2 rounded">
+                {getSpouseInterpretation(gender1, relation1)}
+              </p>
+            </div>
+
+            {/* Person 2의 배우자궁 분석 */}
+            <div className="bg-blue-50/50 dark:bg-blue-950/20 rounded-lg p-4 space-y-2">
+              <div className="flex items-center gap-2 text-sm font-medium text-blue-800 dark:text-blue-200">
+                <span>{gender2 === "male" ? "👨" : "👩"}</span>
+                <span>{name2}님의 배우자궁</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className={`text-2xl font-bold px-3 py-1 rounded ${OHENG_COLORS[person2.dayPillar.jijiOheng]} text-white`}>
+                  {JIJI_HANJA[spousePalace2] || spousePalace2}
+                </div>
+                <div className="text-sm">
+                  <span className="text-muted-foreground">{spousePalace2}</span>
+                  <span className="text-muted-foreground mx-1">·</span>
+                  <span className={OHENG_TEXT_COLORS[person2.dayPillar.jijiOheng]}>{person2.dayPillar.jijiOheng}</span>
+                </div>
+              </div>
+              <div className="mt-2 text-sm space-y-1">
+                <p className="text-muted-foreground">
+                  → 상대방 {name1}님의 일간: <span className={`font-medium ${OHENG_TEXT_COLORS[person1.dayPillar.cheonganOheng]}`}>{person1.dayPillar.cheongan}</span>
+                </p>
+                <p className="text-muted-foreground">
+                  → 관계: <Badge variant="outline" className="ml-1">{relation2.type}</Badge>
+                </p>
+              </div>
+              <p className="text-sm text-stone-700 dark:text-stone-300 bg-white/50 dark:bg-black/20 p-2 rounded">
+                {getSpouseInterpretation(gender2, relation2)}
+              </p>
+            </div>
+          </div>
+
+          <CollapsibleTrigger asChild>
+            <Button variant="ghost" size="sm" className="w-full mt-4 text-muted-foreground hover:text-foreground">
+              {isOpen ? (
+                <>
+                  접기 <ChevronUp className="ml-1 h-4 w-4" />
+                </>
+              ) : (
+                <>
+                  상세 해석 보기 <ChevronDown className="ml-1 h-4 w-4" />
+                </>
+              )}
+            </Button>
+          </CollapsibleTrigger>
+
+          <CollapsibleContent className="mt-4 space-y-4 animate-in slide-in-from-top-2">
+            <div className="bg-amber-50/50 dark:bg-amber-950/20 rounded-lg p-4 space-y-3">
+              <h4 className="font-medium text-amber-800 dark:text-amber-200">배우자궁이란?</h4>
+              <p className="text-sm text-stone-600 dark:text-stone-400">
+                사주에서 일주(日柱)의 지지를 &apos;배우자궁&apos;이라 합니다. 이 자리는 배우자의 성향과
+                부부 관계의 특성을 나타냅니다. 배우자궁의 오행과 상대방의 일간(日干)을 비교하면
+                두 사람이 어떤 에너지로 만나는지 알 수 있습니다.
+              </p>
+
+              <div className="border-t border-amber-200 dark:border-amber-800 pt-3">
+                <h4 className="font-medium text-amber-800 dark:text-amber-200 mb-2">십성별 배우자 관계</h4>
+                <div className="grid gap-2 text-xs">
+                  <div className="flex gap-2">
+                    <Badge variant="secondary" className="shrink-0">비견·겁재</Badge>
+                    <span className="text-muted-foreground">동등한 파트너, 친구 같은 관계</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Badge variant="secondary" className="shrink-0">식신·상관</Badge>
+                    <span className="text-muted-foreground">돌봄을 주는 관계, 표현력이 풍부</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Badge variant="secondary" className="shrink-0">편재·정재</Badge>
+                    <span className="text-muted-foreground">현실적 관계, 남자에게는 아내의 자리</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Badge variant="secondary" className="shrink-0">편관·정관</Badge>
+                    <span className="text-muted-foreground">도전과 책임 관계, 여자에게는 남편의 자리</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Badge variant="secondary" className="shrink-0">편인·정인</Badge>
+                    <span className="text-muted-foreground">지혜와 도움을 주는 관계</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      </CardContent>
+    </Card>
+  );
+}
+
+// 십성 관계 분석 카드
+function SipseongRelationCard({
+  person1,
+  person2,
+  name1,
+  name2,
+  gender1,
+  gender2,
+}: {
+  person1: SajuApiResult;
+  person2: SajuApiResult;
+  name1: string;
+  name2: string;
+  gender1: "male" | "female";
+  gender2: "male" | "female";
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  // 양방향 십성 관계 분석
+  const relation1to2 = analyzeIlganRelationship(person1.dayPillar.cheongan, person2.dayPillar.cheongan, "couple");
+  const relation2to1 = analyzeIlganRelationship(person2.dayPillar.cheongan, person1.dayPillar.cheongan, "couple");
+
+  // 십성별 한자
+  const SIPSEONG_HANJA: Record<string, string> = {
+    비견: "比肩", 겁재: "劫財",
+    식신: "食神", 상관: "傷官",
+    편재: "偏財", 정재: "正財",
+    편관: "偏官", 정관: "正官",
+    편인: "偏印", 정인: "正印",
+  };
+
+  // 십성별 간단 설명
+  const SIPSEONG_SHORT: Record<string, string> = {
+    비견: "동등한 동료",
+    겁재: "경쟁적 동료",
+    식신: "편안한 돌봄",
+    상관: "자극적 표현",
+    편재: "현실적 관계",
+    정재: "헌신적 관계",
+    편관: "도전적 관계",
+    정관: "책임감 관계",
+    편인: "독특한 지원",
+    정인: "지혜로운 지원",
+  };
+
+  // 호환성 점수 색상
+  const getCompatColor = (compat: string) => {
+    switch (compat) {
+      case "상": return "text-green-600 dark:text-green-400";
+      case "중상": return "text-emerald-600 dark:text-emerald-400";
+      case "중": return "text-amber-600 dark:text-amber-400";
+      case "중하": return "text-orange-600 dark:text-orange-400";
+      case "하": return "text-red-600 dark:text-red-400";
+      default: return "text-muted-foreground";
+    }
+  };
+
+  // 관계 종합 평가
+  const getOverallAssessment = () => {
+    const score1 = { "상": 5, "중상": 4, "중": 3, "중하": 2, "하": 1 }[relation1to2.compatibility] || 3;
+    const score2 = { "상": 5, "중상": 4, "중": 3, "중하": 2, "하": 1 }[relation2to1.compatibility] || 3;
+    const avg = (score1 + score2) / 2;
+
+    if (avg >= 4.5) return { grade: "최상의 조합", desc: "서로를 완벽하게 보완하는 이상적인 관계입니다.", emoji: "💕" };
+    if (avg >= 3.5) return { grade: "좋은 조합", desc: "서로에게 좋은 영향을 주는 조화로운 관계입니다.", emoji: "💝" };
+    if (avg >= 2.5) return { grade: "무난한 조합", desc: "노력하면 좋은 관계를 유지할 수 있습니다.", emoji: "💛" };
+    if (avg >= 1.5) return { grade: "노력 필요", desc: "서로의 차이를 이해하고 배려가 필요합니다.", emoji: "🧡" };
+    return { grade: "주의 필요", desc: "근본적인 성향 차이가 있어 많은 노력이 필요합니다.", emoji: "💔" };
+  };
+
+  const assessment = getOverallAssessment();
+
+  return (
+    <Card className="border-stone-200 dark:border-stone-800 bg-white/50 dark:bg-stone-900/50">
+      <CardHeader>
+        <CardTitle className="font-serif text-[#5C544A] dark:text-[#D4C5B0] flex items-center gap-2">
+          <span className="text-xl">🔮</span>
+          십성 관계 분석
+        </CardTitle>
+        <p className="text-sm text-muted-foreground mt-1">
+          두 일간(日干)의 십성 관계로 보는 상호작용
+        </p>
+      </CardHeader>
+      <CardContent>
+        <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+          {/* 종합 평가 */}
+          <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 rounded-lg p-4 mb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-2xl mr-2">{assessment.emoji}</span>
+                <span className="font-medium text-purple-800 dark:text-purple-200">{assessment.grade}</span>
+              </div>
+            </div>
+            <p className="text-sm text-stone-600 dark:text-stone-400 mt-2">{assessment.desc}</p>
+          </div>
+
+          {/* 양방향 관계 */}
+          <div className="grid md:grid-cols-2 gap-4">
+            {/* Person1 → Person2 */}
+            <div className="bg-stone-50 dark:bg-stone-900 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-sm">{gender1 === "male" ? "👨" : "👩"}</span>
+                <span className="font-medium text-sm">{name1}</span>
+                <span className="text-muted-foreground">→</span>
+                <span className="text-sm">{gender2 === "male" ? "👨" : "👩"}</span>
+                <span className="font-medium text-sm">{name2}</span>
+              </div>
+              <div className="flex items-baseline gap-2 mb-2">
+                <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                  {relation1to2.type}
+                </Badge>
+                <span className="text-xs text-muted-foreground">({SIPSEONG_HANJA[relation1to2.type]})</span>
+              </div>
+              <p className="text-xs text-muted-foreground mb-1">{SIPSEONG_SHORT[relation1to2.type]}</p>
+              <p className={`text-xs font-medium ${getCompatColor(relation1to2.compatibility)}`}>
+                호환성: {relation1to2.compatibility}
+              </p>
+            </div>
+
+            {/* Person2 → Person1 */}
+            <div className="bg-stone-50 dark:bg-stone-900 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-sm">{gender2 === "male" ? "👨" : "👩"}</span>
+                <span className="font-medium text-sm">{name2}</span>
+                <span className="text-muted-foreground">→</span>
+                <span className="text-sm">{gender1 === "male" ? "👨" : "👩"}</span>
+                <span className="font-medium text-sm">{name1}</span>
+              </div>
+              <div className="flex items-baseline gap-2 mb-2">
+                <Badge className="bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200">
+                  {relation2to1.type}
+                </Badge>
+                <span className="text-xs text-muted-foreground">({SIPSEONG_HANJA[relation2to1.type]})</span>
+              </div>
+              <p className="text-xs text-muted-foreground mb-1">{SIPSEONG_SHORT[relation2to1.type]}</p>
+              <p className={`text-xs font-medium ${getCompatColor(relation2to1.compatibility)}`}>
+                호환성: {relation2to1.compatibility}
+              </p>
+            </div>
+          </div>
+
+          <CollapsibleTrigger asChild>
+            <Button variant="ghost" size="sm" className="w-full mt-4 text-muted-foreground hover:text-foreground">
+              {isOpen ? (
+                <>
+                  접기 <ChevronUp className="ml-1 h-4 w-4" />
+                </>
+              ) : (
+                <>
+                  상세 해석 보기 <ChevronDown className="ml-1 h-4 w-4" />
+                </>
+              )}
+            </Button>
+          </CollapsibleTrigger>
+
+          <CollapsibleContent className="mt-4 space-y-4 animate-in slide-in-from-top-2">
+            {/* Person1 → Person2 상세 */}
+            <div className="bg-purple-50/50 dark:bg-purple-950/20 rounded-lg p-4 space-y-2">
+              <h4 className="font-medium text-purple-800 dark:text-purple-200 text-sm">
+                {name1}님이 {name2}님을 바라보는 관계
+              </h4>
+              <p className="text-sm text-stone-600 dark:text-stone-400">{relation1to2.description}</p>
+              <div className="border-t border-purple-200 dark:border-purple-800 pt-2 mt-2">
+                <p className="text-xs font-medium text-purple-700 dark:text-purple-300">조언:</p>
+                <p className="text-xs text-stone-600 dark:text-stone-400">{relation1to2.advice}</p>
+              </div>
+            </div>
+
+            {/* Person2 → Person1 상세 */}
+            <div className="bg-pink-50/50 dark:bg-pink-950/20 rounded-lg p-4 space-y-2">
+              <h4 className="font-medium text-pink-800 dark:text-pink-200 text-sm">
+                {name2}님이 {name1}님을 바라보는 관계
+              </h4>
+              <p className="text-sm text-stone-600 dark:text-stone-400">{relation2to1.description}</p>
+              <div className="border-t border-pink-200 dark:border-pink-800 pt-2 mt-2">
+                <p className="text-xs font-medium text-pink-700 dark:text-pink-300">조언:</p>
+                <p className="text-xs text-stone-600 dark:text-stone-400">{relation2to1.advice}</p>
+              </div>
+            </div>
+
+            {/* 십성 해설 */}
+            <div className="bg-amber-50/50 dark:bg-amber-950/20 rounded-lg p-4 space-y-2">
+              <h4 className="font-medium text-amber-800 dark:text-amber-200 text-sm">십성이란?</h4>
+              <p className="text-xs text-stone-600 dark:text-stone-400">
+                십성(十星)은 나의 일간을 기준으로 다른 천간과의 관계를 나타내는 10가지 유형입니다.
+                같은 오행인지, 내가 생하는 오행인지, 내가 극하는 오행인지, 나를 극하는 오행인지,
+                나를 생하는 오행인지에 따라 비견·겁재, 식신·상관, 편재·정재, 편관·정관, 편인·정인으로 나뉩니다.
+              </p>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      </CardContent>
+    </Card>
+  );
+}
+
+// 대운 흐름 비교 카드
+function CoupleFortuneComparisonCard({
+  fortunes1,
+  fortunes2,
+  name1,
+  name2,
+  birthYear1,
+  birthYear2,
+  yongsin1,
+  yongsin2,
+}: {
+  fortunes1: MajorFortuneInfo[];
+  fortunes2: MajorFortuneInfo[];
+  name1: string;
+  name2: string;
+  birthYear1: number;
+  birthYear2: number;
+  yongsin1: string;
+  yongsin2: string;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const currentYear = new Date().getFullYear();
+
+  // 현재 나이 계산 (한국 나이)
+  const currentAge1 = currentYear - birthYear1 + 1;
+  const currentAge2 = currentYear - birthYear2 + 1;
+
+  // 현재 대운 찾기
+  const findCurrentFortune = (fortunes: MajorFortuneInfo[], age: number) => {
+    return fortunes.find(f => f.startAge <= age && f.endAge >= age);
+  };
+
+  const currentFortune1 = findCurrentFortune(fortunes1, currentAge1);
+  const currentFortune2 = findCurrentFortune(fortunes2, currentAge2);
+
+  // 대운이 용신과 일치하면 황금기
+  const isGoldenPeriod = (fortune: MajorFortuneInfo | undefined, yongsin: string) => {
+    if (!fortune) return false;
+    return fortune.element === yongsin;
+  };
+
+  // 두 사람의 황금기 오버랩 찾기
+  const findGoldenOverlaps = () => {
+    const overlaps: { period: string; elements: string[] }[] = [];
+    const currentDecade = Math.floor(currentYear / 10) * 10;
+
+    // 향후 50년 체크
+    for (let year = currentDecade; year <= currentDecade + 50; year += 10) {
+      const age1AtYear = year - birthYear1 + 1;
+      const age2AtYear = year - birthYear2 + 1;
+
+      const fortune1AtYear = fortunes1.find(f => f.startAge <= age1AtYear && f.endAge >= age1AtYear);
+      const fortune2AtYear = fortunes2.find(f => f.startAge <= age2AtYear && f.endAge >= age2AtYear);
+
+      if (fortune1AtYear && fortune2AtYear) {
+        const is1Golden = fortune1AtYear.element === yongsin1;
+        const is2Golden = fortune2AtYear.element === yongsin2;
+
+        if (is1Golden && is2Golden) {
+          overlaps.push({
+            period: `${year}년대`,
+            elements: [fortune1AtYear.element, fortune2AtYear.element],
+          });
+        }
+      }
+    }
+    return overlaps;
+  };
+
+  const goldenOverlaps = findGoldenOverlaps();
+
+  if (!fortunes1.length && !fortunes2.length) {
+    return null;
+  }
+
+  return (
+    <Card className="border-stone-200 dark:border-stone-800 bg-white/50 dark:bg-stone-900/50">
+      <CardHeader>
+        <CardTitle className="font-serif text-[#5C544A] dark:text-[#D4C5B0] flex items-center gap-2">
+          <span className="text-xl">⏰</span>
+          대운 흐름 비교
+        </CardTitle>
+        <p className="text-sm text-muted-foreground mt-1">
+          두 분의 10년 대운 흐름을 비교합니다
+        </p>
+      </CardHeader>
+      <CardContent>
+        <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+          {/* 현재 대운 비교 */}
+          <div className="grid md:grid-cols-2 gap-4 mb-4">
+            {/* Person 1 현재 대운 */}
+            <div className={`rounded-lg p-4 ${isGoldenPeriod(currentFortune1, yongsin1) ? "bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800" : "bg-stone-50 dark:bg-stone-900"}`}>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium">{name1}님 현재 대운</span>
+                {isGoldenPeriod(currentFortune1, yongsin1) && (
+                  <Badge className="bg-amber-500 text-white text-xs">황금기</Badge>
+                )}
+              </div>
+              {currentFortune1 ? (
+                <>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-2xl font-serif font-bold">{currentFortune1.ganji}</span>
+                    <Badge className={`${OHENG_COLORS[currentFortune1.element]} text-white`}>
+                      {currentFortune1.element}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {currentFortune1.startAge}세 ~ {currentFortune1.endAge}세 ({currentAge1}세)
+                  </p>
+                  {DAEUN_OHENG_INTERPRETATION[currentFortune1.element] && (
+                    <p className="text-xs text-stone-600 dark:text-stone-400 mt-2">
+                      {DAEUN_OHENG_INTERPRETATION[currentFortune1.element].theme}
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">대운 정보 없음</p>
+              )}
+            </div>
+
+            {/* Person 2 현재 대운 */}
+            <div className={`rounded-lg p-4 ${isGoldenPeriod(currentFortune2, yongsin2) ? "bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800" : "bg-stone-50 dark:bg-stone-900"}`}>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium">{name2}님 현재 대운</span>
+                {isGoldenPeriod(currentFortune2, yongsin2) && (
+                  <Badge className="bg-amber-500 text-white text-xs">황금기</Badge>
+                )}
+              </div>
+              {currentFortune2 ? (
+                <>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-2xl font-serif font-bold">{currentFortune2.ganji}</span>
+                    <Badge className={`${OHENG_COLORS[currentFortune2.element]} text-white`}>
+                      {currentFortune2.element}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {currentFortune2.startAge}세 ~ {currentFortune2.endAge}세 ({currentAge2}세)
+                  </p>
+                  {DAEUN_OHENG_INTERPRETATION[currentFortune2.element] && (
+                    <p className="text-xs text-stone-600 dark:text-stone-400 mt-2">
+                      {DAEUN_OHENG_INTERPRETATION[currentFortune2.element].theme}
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">대운 정보 없음</p>
+              )}
+            </div>
+          </div>
+
+          {/* 황금기 오버랩 */}
+          {goldenOverlaps.length > 0 && (
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 rounded-lg p-4 mb-4 border border-amber-200 dark:border-amber-800">
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles className="w-4 h-4 text-amber-600" />
+                <span className="font-medium text-amber-800 dark:text-amber-200 text-sm">함께하는 황금기</span>
+              </div>
+              <p className="text-xs text-stone-600 dark:text-stone-400 mb-2">
+                두 분 모두 용신(필요한 오행)이 들어오는 행운의 시기입니다
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {goldenOverlaps.map((overlap, i) => (
+                  <Badge key={i} className="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+                    {overlap.period}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <CollapsibleTrigger asChild>
+            <Button variant="ghost" size="sm" className="w-full mt-2 text-muted-foreground hover:text-foreground">
+              {isOpen ? (
+                <>
+                  접기 <ChevronUp className="ml-1 h-4 w-4" />
+                </>
+              ) : (
+                <>
+                  전체 대운 타임라인 보기 <ChevronDown className="ml-1 h-4 w-4" />
+                </>
+              )}
+            </Button>
+          </CollapsibleTrigger>
+
+          <CollapsibleContent className="mt-4 space-y-4 animate-in slide-in-from-top-2">
+            {/* 타임라인 비교 */}
+            <div className="space-y-4">
+              {/* Person 1 타임라인 */}
+              <div>
+                <h4 className="font-medium text-sm mb-2 text-stone-700 dark:text-stone-300">{name1}님의 대운 흐름</h4>
+                <div className="flex gap-1 overflow-x-auto pb-2">
+                  {fortunes1.slice(0, 6).map((fortune, i) => {
+                    const isCurrentFortune = fortune === currentFortune1;
+                    const isGolden = fortune.element === yongsin1;
+                    return (
+                      <div
+                        key={i}
+                        className={`flex-shrink-0 px-3 py-2 rounded text-center text-xs ${
+                          isCurrentFortune
+                            ? "ring-2 ring-purple-500 bg-purple-50 dark:bg-purple-950/50"
+                            : isGolden
+                              ? "bg-amber-50 dark:bg-amber-950/30"
+                              : "bg-stone-100 dark:bg-stone-800"
+                        }`}
+                      >
+                        <div className="font-serif font-bold">{fortune.ganji}</div>
+                        <div className={`text-xs ${OHENG_TEXT_COLORS[fortune.element]}`}>{fortune.element}</div>
+                        <div className="text-muted-foreground text-[10px]">{fortune.startAge}-{fortune.endAge}세</div>
+                        {isGolden && <span className="text-amber-500 text-[10px]">★</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Person 2 타임라인 */}
+              <div>
+                <h4 className="font-medium text-sm mb-2 text-stone-700 dark:text-stone-300">{name2}님의 대운 흐름</h4>
+                <div className="flex gap-1 overflow-x-auto pb-2">
+                  {fortunes2.slice(0, 6).map((fortune, i) => {
+                    const isCurrentFortune = fortune === currentFortune2;
+                    const isGolden = fortune.element === yongsin2;
+                    return (
+                      <div
+                        key={i}
+                        className={`flex-shrink-0 px-3 py-2 rounded text-center text-xs ${
+                          isCurrentFortune
+                            ? "ring-2 ring-purple-500 bg-purple-50 dark:bg-purple-950/50"
+                            : isGolden
+                              ? "bg-amber-50 dark:bg-amber-950/30"
+                              : "bg-stone-100 dark:bg-stone-800"
+                        }`}
+                      >
+                        <div className="font-serif font-bold">{fortune.ganji}</div>
+                        <div className={`text-xs ${OHENG_TEXT_COLORS[fortune.element]}`}>{fortune.element}</div>
+                        <div className="text-muted-foreground text-[10px]">{fortune.startAge}-{fortune.endAge}세</div>
+                        {isGolden && <span className="text-amber-500 text-[10px]">★</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 범례 */}
+              <div className="flex flex-wrap gap-3 text-xs text-muted-foreground pt-2 border-t border-stone-200 dark:border-stone-700">
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 rounded ring-2 ring-purple-500 bg-purple-50"></div>
+                  <span>현재 대운</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-amber-500">★</span>
+                  <span>황금기 (용신 대운)</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 대운 해설 */}
+            <div className="bg-blue-50/50 dark:bg-blue-950/20 rounded-lg p-4 space-y-2">
+              <h4 className="font-medium text-blue-800 dark:text-blue-200 text-sm">대운이란?</h4>
+              <p className="text-xs text-stone-600 dark:text-stone-400">
+                대운(大運)은 10년 단위로 변하는 인생의 큰 흐름입니다. 사주의 월주를 기준으로 순행 또는 역행하며
+                각 대운의 오행이 용신과 일치하면 &apos;황금기&apos;로, 행운이 따르는 시기입니다.
+                두 분의 황금기가 겹치는 시기에 함께 중요한 결정을 하면 좋습니다.
+              </p>
             </div>
           </CollapsibleContent>
         </Collapsible>
@@ -462,21 +1141,61 @@ function CompatibilityReasonCard({ compatibility, name1, name2 }: {
                 </div>
               </div>
 
-              {/* 보완 관계 */}
-              {ohengAnalysis.complementary.length > 0 && (
-                <div className="mt-3 p-3 bg-green-50/50 dark:bg-green-950/10 rounded border border-green-100 dark:border-green-900/30">
-                  <p className="text-sm text-green-700 dark:text-green-400">
-                    <span className="font-medium">✨ 보완 관계:</span> {ohengAnalysis.complementary.join(" / ")}
-                  </p>
+              {/* 보완 관계 상세 */}
+              {ohengAnalysis.complementaryDetails && ohengAnalysis.complementaryDetails.length > 0 && (
+                <div className="mt-4 space-y-3">
+                  <h5 className="font-medium text-green-700 dark:text-green-400 flex items-center gap-2">
+                    ✨ 서로 채워주는 부분
+                  </h5>
+                  {ohengAnalysis.complementaryDetails.map((detail, idx) => (
+                    <div key={idx} className="p-4 bg-green-50/50 dark:bg-green-950/10 rounded-lg border border-green-100 dark:border-green-900/30">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xl">{detail.emoji}</span>
+                        <span className="font-medium text-green-800 dark:text-green-300">{detail.title}</span>
+                      </div>
+                      <div className="space-y-2 text-sm">
+                        <p className="text-stone-600 dark:text-stone-400">
+                          <span className="text-green-600 dark:text-green-500 font-medium">
+                            {detail.whoLacks === "person1" ? "본인의 상황:" : "상대방의 상황:"}
+                          </span>{" "}
+                          {detail.lackingText}
+                        </p>
+                        <p className="text-stone-600 dark:text-stone-400">
+                          <span className="text-green-600 dark:text-green-500 font-medium">채워주는 효과:</span>{" "}
+                          {detail.fillsText}
+                        </p>
+                        <p className="text-green-700 dark:text-green-400 font-medium mt-2 pt-2 border-t border-green-100 dark:border-green-900/30">
+                          💑 {detail.benefitText}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
 
-              {/* 충돌 관계 */}
-              {ohengAnalysis.conflict.length > 0 && (
-                <div className="mt-2 p-3 bg-orange-50/50 dark:bg-orange-950/10 rounded border border-orange-100 dark:border-orange-900/30">
-                  <p className="text-sm text-orange-700 dark:text-orange-400">
-                    <span className="font-medium">⚡ 상극 관계:</span> {ohengAnalysis.conflict.join(" / ")}
-                  </p>
+              {/* 상극 관계 상세 */}
+              {ohengAnalysis.conflictDetails && ohengAnalysis.conflictDetails.length > 0 && (
+                <div className="mt-4 space-y-3">
+                  <h5 className="font-medium text-orange-700 dark:text-orange-400 flex items-center gap-2">
+                    ⚡ 주의가 필요한 부분
+                  </h5>
+                  {ohengAnalysis.conflictDetails.map((detail, idx) => (
+                    <div key={idx} className="p-4 bg-orange-50/50 dark:bg-orange-950/10 rounded-lg border border-orange-100 dark:border-orange-900/30">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xl">{detail.emojis[0]}{detail.emojis[1]}</span>
+                        <span className="font-medium text-orange-800 dark:text-orange-300">{detail.title}</span>
+                      </div>
+                      <div className="space-y-2 text-sm">
+                        <p className="text-stone-600 dark:text-stone-400">{detail.description}</p>
+                        <p className="text-orange-600 dark:text-orange-400">
+                          <span className="font-medium">⚠️ 주의:</span> {detail.warning}
+                        </p>
+                        <p className="text-blue-700 dark:text-blue-400 font-medium mt-2 pt-2 border-t border-orange-100 dark:border-orange-900/30">
+                          💡 {detail.advice}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -733,7 +1452,10 @@ function CoupleResultContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [names, setNames] = useState({ person1: "", person2: "" });
+  const [genders, setGenders] = useState<{ person1: "male" | "female"; person2: "male" | "female" }>({ person1: "female", person2: "female" });
   const [timeUnknown, setTimeUnknown] = useState({ person1: false, person2: false });
+  const [majorFortunes, setMajorFortunes] = useState<{ person1: MajorFortuneInfo[]; person2: MajorFortuneInfo[] }>({ person1: [], person2: [] });
+  const [birthYears, setBirthYears] = useState<{ person1: number; person2: number }>({ person1: 2000, person2: 2000 });
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -757,6 +1479,7 @@ function CoupleResultContent() {
         const p1Minute = parseInt(person1.minute);
         const p1Lunar = person1.lunar;
         const p1Name = person1.name || "첫 번째 분";
+        const p1Gender = person1.gender || "female";
         const p1TimeUnknown = person1.timeUnknown;
 
         // Person 2 데이터
@@ -767,9 +1490,11 @@ function CoupleResultContent() {
         const p2Minute = parseInt(person2.minute);
         const p2Lunar = person2.lunar;
         const p2Name = person2.name || "두 번째 분";
+        const p2Gender = person2.gender || "female";
         const p2TimeUnknown = person2.timeUnknown;
 
         setNames({ person1: p1Name, person2: p2Name });
+        setGenders({ person1: p1Gender, person2: p2Gender });
         setTimeUnknown({ person1: p1TimeUnknown, person2: p2TimeUnknown });
 
         if (!p1Year || !p1Month || !p1Day || !p2Year || !p2Month || !p2Day) {
@@ -787,6 +1512,7 @@ function CoupleResultContent() {
               year: p1Year, month: p1Month, day: p1Day,
               hour: p1Hour, minute: p1Minute,
               isLunar: p1Lunar, timeUnknown: p1TimeUnknown,
+              gender: p1Gender,
             }),
           }),
           fetch("/api/saju", {
@@ -796,6 +1522,7 @@ function CoupleResultContent() {
               year: p2Year, month: p2Month, day: p2Day,
               hour: p2Hour, minute: p2Minute,
               isLunar: p2Lunar, timeUnknown: p2TimeUnknown,
+              gender: p2Gender,
             }),
           }),
         ]);
@@ -808,6 +1535,18 @@ function CoupleResultContent() {
 
         setPerson1Result(data1.data);
         setPerson2Result(data2.data);
+
+        // 대운 데이터 저장
+        setMajorFortunes({
+          person1: data1.data.majorFortunes || [],
+          person2: data2.data.majorFortunes || [],
+        });
+
+        // 생년 저장
+        setBirthYears({
+          person1: data1.data.birthInfo?.solarYear || p1Year,
+          person2: data2.data.birthInfo?.solarYear || p2Year,
+        });
 
         // 궁합 분석 API 호출
         const compatRes = await fetch("/api/saju/compatibility", {
@@ -884,11 +1623,13 @@ function CoupleResultContent() {
           <PersonSummaryCard
             result={person1Result}
             label={names.person1}
+            gender={genders.person1}
             timeUnknown={timeUnknown.person1}
           />
           <PersonSummaryCard
             result={person2Result}
             label={names.person2}
+            gender={genders.person2}
             timeUnknown={timeUnknown.person2}
           />
         </div>
@@ -912,6 +1653,38 @@ function CoupleResultContent() {
           person2={person2Result}
           name1={names.person1}
           name2={names.person2}
+        />
+
+        {/* 배우자궁 분석 */}
+        <SpousePalaceCard
+          person1={person1Result}
+          person2={person2Result}
+          name1={names.person1}
+          name2={names.person2}
+          gender1={genders.person1}
+          gender2={genders.person2}
+        />
+
+        {/* 십성 관계 분석 */}
+        <SipseongRelationCard
+          person1={person1Result}
+          person2={person2Result}
+          name1={names.person1}
+          name2={names.person2}
+          gender1={genders.person1}
+          gender2={genders.person2}
+        />
+
+        {/* 대운 흐름 비교 */}
+        <CoupleFortuneComparisonCard
+          fortunes1={majorFortunes.person1}
+          fortunes2={majorFortunes.person2}
+          name1={names.person1}
+          name2={names.person2}
+          birthYear1={birthYears.person1}
+          birthYear2={birthYears.person2}
+          yongsin1={person1Result.yongsin}
+          yongsin2={person2Result.yongsin}
         />
 
         {/* 궁합 이유 (왜 잘 맞는가/안 맞는가) */}

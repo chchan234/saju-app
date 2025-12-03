@@ -7,18 +7,130 @@
 
 import type { SajuApiResult } from "@/types/saju";
 
-// 오행 친근한 이름 매핑
-const OHENG_FRIENDLY_NAMES: Record<string, { name: string; friendlyName: string }> = {
-  목: { name: "목", friendlyName: "나무" },
-  화: { name: "화", friendlyName: "불" },
-  토: { name: "토", friendlyName: "흙" },
-  금: { name: "금", friendlyName: "쇠" },
-  수: { name: "수", friendlyName: "물" },
+// ============================================
+// 오행 상세 의미 데이터 (궁합 분석용)
+// ============================================
+
+interface OhengMeaning {
+  name: string;           // 한자명
+  friendlyName: string;   // 친근한 이름
+  emoji: string;          // 이모지
+  theme: string;          // 핵심 테마
+  lifeAspects: string[];  // 삶에서 의미하는 것들
+  lackingDescription: string;  // 부족할 때 어떤 점이 힘든지
+  partnerFillsDescription: string;  // 상대방이 채워주면 어떻게 좋은지
+  togetherBenefit: string;  // 함께하면 생기는 이점
+}
+
+const OHENG_MEANINGS: Record<string, OhengMeaning> = {
+  목: {
+    name: "목",
+    friendlyName: "나무",
+    emoji: "🌳",
+    theme: "추진력 · 성장",
+    lifeAspects: ["새로운 시작", "계획 수립", "도전 정신", "진취성", "창의적 아이디어"],
+    lackingDescription: "새로운 일을 시작하거나 계획을 추진하는 데 어려움을 느낄 수 있어요. 결정을 내리기까지 시간이 오래 걸리고, 변화 앞에서 주저하게 되기도 해요.",
+    partnerFillsDescription: "상대방의 진취적인 에너지가 함께 도전하고 성장할 용기를 불어넣어 줘요.",
+    togetherBenefit: "새로운 일에 함께 도전하고, 서로의 꿈을 향해 나아갈 수 있어요.",
+  },
+  화: {
+    name: "화",
+    friendlyName: "불",
+    emoji: "🔥",
+    theme: "열정 · 표현력",
+    lifeAspects: ["감정 표현", "적극성", "사교 활동", "열정", "활력"],
+    lackingDescription: "감정을 표현하거나 적극적으로 나서는 게 어려울 수 있어요. 소극적으로 보이거나, 사람들 앞에서 자신을 드러내기 힘들어해요.",
+    partnerFillsDescription: "상대방의 밝고 활발한 에너지가 삶에 활력을 불어넣어 줘요.",
+    togetherBenefit: "더 활기차고 즐거운 일상을 만들어가며, 사회적 활동도 함께 즐길 수 있어요.",
+  },
+  토: {
+    name: "토",
+    friendlyName: "흙",
+    emoji: "🏔️",
+    theme: "안정 · 신뢰",
+    lifeAspects: ["안정감", "현실 감각", "중심 잡기", "신뢰", "꾸준함"],
+    lackingDescription: "마음의 중심을 잡거나 안정감을 느끼기 어려울 수 있어요. 현실적인 판단보다 감정에 휘둘리거나, 불안함을 자주 느껴요.",
+    partnerFillsDescription: "상대방의 든든하고 현실적인 성향이 마음의 안정감을 줘요.",
+    togetherBenefit: "관계에 안정적인 기반이 생기고, 서로를 믿고 의지할 수 있어요.",
+  },
+  금: {
+    name: "금",
+    friendlyName: "쇠",
+    emoji: "⚔️",
+    theme: "결단력 · 실행력",
+    lifeAspects: ["결정력", "원칙", "정리 정돈", "실행력", "마무리"],
+    lackingDescription: "결정을 내리거나 일을 마무리하는 게 어려울 수 있어요. 이것저것 고민만 하다가 흐지부지되거나, 우선순위를 정하기 힘들어해요.",
+    partnerFillsDescription: "상대방의 명확하고 단호한 성향이 결정과 실행을 도와줘요.",
+    togetherBenefit: "계획을 세우고 실행하는 데 탄력이 붙고, 일을 끝까지 마무리할 수 있어요.",
+  },
+  수: {
+    name: "수",
+    friendlyName: "물",
+    emoji: "💧",
+    theme: "지혜 · 유연함",
+    lifeAspects: ["유연한 사고", "깊은 생각", "적응력", "지혜", "감정 이해"],
+    lackingDescription: "상황에 맞게 유연하게 대처하거나 깊이 생각하는 게 어려울 수 있어요. 고집이 세거나, 변화에 적응하는 데 시간이 오래 걸려요.",
+    partnerFillsDescription: "상대방의 유연하고 지혜로운 대처가 여유와 깊이를 더해줘요.",
+    togetherBenefit: "예상치 못한 상황에서도 함께 유연하게 대처하고, 서로의 감정을 깊이 이해할 수 있어요.",
+  },
+};
+
+// 오행 상극 관계별 갈등 설명
+interface SanggeukConflict {
+  element1: string;
+  element2: string;
+  theme: string;
+  description: string;
+  warning: string;
+  advice: string;
+}
+
+const SANGGEUK_CONFLICTS: Record<string, SanggeukConflict> = {
+  "목토": {
+    element1: "목",
+    element2: "토",
+    theme: "성장 vs 안정",
+    description: "한 분은 새로운 것을 시도하고 확장하려 하고, 다른 분은 현재에 만족하며 안정을 추구해요.",
+    warning: "도전하자는 쪽과 지키자는 쪽이 부딪힐 수 있어요.",
+    advice: "무엇을 도전하고 무엇을 지킬지 함께 정해보세요. 둘 다 옳은 방향이에요.",
+  },
+  "화금": {
+    element1: "화",
+    element2: "금",
+    theme: "열정 vs 원칙",
+    description: "한 분은 감정대로, 분위기대로 행동하고, 다른 분은 규칙과 계획을 중요시해요.",
+    warning: "즉흥적인 행동이 계획을 망친다고 느끼거나, 원칙이 답답하게 느껴질 수 있어요.",
+    advice: "'네 방식도 이유가 있구나'라고 인정하는 것부터 시작해보세요.",
+  },
+  "토수": {
+    element1: "토",
+    element2: "수",
+    theme: "고정 vs 변화",
+    description: "한 분은 안정과 일관성을 원하고, 다른 분은 흐름에 맡기며 변화를 즐겨요.",
+    warning: "변화를 거부하는 것처럼 보이거나, 너무 갈대 같다고 느낄 수 있어요.",
+    advice: "변하지 않아야 할 것과 변해도 괜찮은 것을 함께 정해보세요.",
+  },
+  "금목": {
+    element1: "금",
+    element2: "목",
+    theme: "정리 vs 확장",
+    description: "한 분은 정리하고 줄이려 하고, 다른 분은 키우고 늘리려 해요.",
+    warning: "비우자는 쪽과 채우자는 쪽이 부딪힐 수 있어요.",
+    advice: "각자의 영역을 정해서 한쪽은 정리, 한쪽은 확장을 맡아보세요.",
+  },
+  "수화": {
+    element1: "수",
+    element2: "화",
+    theme: "신중함 vs 열정",
+    description: "한 분은 깊이 생각하고 신중하게 행동하고, 다른 분은 뜨겁게 바로 움직여요.",
+    warning: "속도 차이로 답답하거나 성급하다고 느낄 수 있어요.",
+    advice: "큰 결정은 신중하게, 작은 일은 즉흥적으로 - 상황에 따라 번갈아 해보세요.",
+  },
 };
 
 // 오행 이름을 친근한 형식으로 변환 (예: "목" → "나무(목)")
 function getOhengFriendlyName(oheng: string): string {
-  const info = OHENG_FRIENDLY_NAMES[oheng];
+  const info = OHENG_MEANINGS[oheng];
   return info ? `${info.friendlyName}(${info.name})` : oheng;
 }
 
@@ -280,6 +392,29 @@ interface JijiRelationItem {
   description: string;    // 상세 설명
 }
 
+// 보완 관계 상세 정보 (export)
+export interface OhengComplementaryDetail {
+  element: string;
+  emoji: string;
+  theme: string;
+  whoLacks: "person1" | "person2";  // 누가 부족한지
+  title: string;           // 제목 (예: "열정 · 표현력 보완")
+  lackingText: string;     // 부족한 사람의 상황 설명
+  fillsText: string;       // 채워주는 효과 설명
+  benefitText: string;     // 함께하면 좋은 점
+}
+
+// 상극 관계 상세 정보 (export)
+export interface OhengConflictDetail {
+  elements: [string, string];
+  emojis: [string, string];
+  theme: string;
+  title: string;           // 제목 (예: "열정 vs 원칙")
+  description: string;     // 상황 설명
+  warning: string;         // 주의할 점
+  advice: string;          // 조언
+}
+
 export interface CompatibilityResult {
   totalScore: number;
   grade: string;
@@ -305,8 +440,10 @@ export interface CompatibilityResult {
     person1Weak: string[];
     person2Strong: string[];
     person2Weak: string[];
-    complementary: string[];  // 서로 보완되는 오행
-    conflict: string[];       // 서로 충돌하는 오행
+    complementary: string[];  // 서로 보완되는 오행 (기존 형식)
+    complementaryDetails: OhengComplementaryDetail[];  // 상세 정보
+    conflict: string[];       // 서로 충돌하는 오행 (기존 형식)
+    conflictDetails: OhengConflictDetail[];  // 상세 정보
   };
   summary: {
     strengths: string[];
@@ -407,7 +544,9 @@ function analyzeOhengRelation(oheng1: { 목: number; 화: number; 토: number; �
   person2Strong: string[];
   person2Weak: string[];
   complementary: string[];
+  complementaryDetails: OhengComplementaryDetail[];
   conflict: string[];
+  conflictDetails: OhengConflictDetail[];
 } {
   const getStrong = (oheng: { 목: number; 화: number; 토: number; 금: number; 수: number }) =>
     (Object.entries(oheng) as [string, number][]).filter(([_, v]) => v >= 2).map(([k]) => k);
@@ -421,34 +560,109 @@ function analyzeOhengRelation(oheng1: { 목: number; 화: number; 토: number; �
 
   // 보완 관계: 한쪽이 부족한 것을 다른 쪽이 가지고 있음
   const complementary: string[] = [];
+  const complementaryDetails: OhengComplementaryDetail[] = [];
   const processedWeak: string[] = [];
+
+  // person1이 부족하고 person2가 채워주는 경우
   for (const weak of person1Weak) {
     if (person2Strong.includes(weak)) {
-      complementary.push(`${getOhengFriendlyName(weak)}의 기운을 상대방이 채워줍니다`);
+      const meaning = OHENG_MEANINGS[weak];
+      if (meaning) {
+        // 기존 형식 (하위 호환)
+        complementary.push(`${meaning.emoji} ${meaning.theme} 보완: 본인에게 부족한 ${meaning.friendlyName}(${weak}) 기운을 상대방이 채워줍니다.`);
+
+        // 새로운 상세 형식
+        complementaryDetails.push({
+          element: weak,
+          emoji: meaning.emoji,
+          theme: meaning.theme,
+          whoLacks: "person1",
+          title: `${meaning.theme} 보완`,
+          lackingText: meaning.lackingDescription,
+          fillsText: meaning.partnerFillsDescription,
+          benefitText: meaning.togetherBenefit,
+        });
+      }
       processedWeak.push(weak);
     }
   }
+
+  // person2가 부족하고 person1이 채워주는 경우
   for (const weak of person2Weak) {
     if (person1Strong.includes(weak) && !processedWeak.includes(weak)) {
-      complementary.push(`${getOhengFriendlyName(weak)}의 기운을 본인이 채워줍니다`);
+      const meaning = OHENG_MEANINGS[weak];
+      if (meaning) {
+        // 기존 형식 (하위 호환)
+        complementary.push(`${meaning.emoji} ${meaning.theme} 보완: 상대방에게 부족한 ${meaning.friendlyName}(${weak}) 기운을 본인이 채워줍니다.`);
+
+        // 새로운 상세 형식
+        complementaryDetails.push({
+          element: weak,
+          emoji: meaning.emoji,
+          theme: meaning.theme,
+          whoLacks: "person2",
+          title: `${meaning.theme} 보완`,
+          lackingText: meaning.lackingDescription,
+          fillsText: meaning.partnerFillsDescription.replace("상대방", "본인"),
+          benefitText: meaning.togetherBenefit,
+        });
+      }
     }
   }
 
   // 상극 관계 체크
   const conflict: string[] = [];
+  const conflictDetails: OhengConflictDetail[] = [];
   const SANGGEUK: Record<string, string> = {
     목: "토", 화: "금", 토: "수", 금: "목", 수: "화"
   };
+  const processedConflicts: string[] = [];
 
   for (const s1 of person1Strong) {
     for (const s2 of person2Strong) {
       if (SANGGEUK[s1] === s2 || SANGGEUK[s2] === s1) {
-        conflict.push(`${getOhengFriendlyName(s1)}와 ${getOhengFriendlyName(s2)}의 기운이 부딪힐 수 있습니다`);
+        // 중복 방지
+        const conflictKey = [s1, s2].sort().join("");
+        if (processedConflicts.includes(conflictKey)) continue;
+        processedConflicts.push(conflictKey);
+
+        // 상극 데이터 찾기
+        const conflictData = SANGGEUK_CONFLICTS[conflictKey] || SANGGEUK_CONFLICTS[[s2, s1].sort().join("")];
+        const meaning1 = OHENG_MEANINGS[s1];
+        const meaning2 = OHENG_MEANINGS[s2];
+
+        if (conflictData && meaning1 && meaning2) {
+          // 기존 형식 (하위 호환)
+          conflict.push(`${meaning1.emoji}${meaning2.emoji} ${conflictData.theme}: ${conflictData.warning}`);
+
+          // 새로운 상세 형식
+          conflictDetails.push({
+            elements: [s1, s2],
+            emojis: [meaning1.emoji, meaning2.emoji],
+            theme: conflictData.theme,
+            title: conflictData.theme,
+            description: conflictData.description,
+            warning: conflictData.warning,
+            advice: conflictData.advice,
+          });
+        } else {
+          // 데이터가 없는 경우 기본 메시지
+          conflict.push(`${meaning1?.emoji || ""}${meaning2?.emoji || ""} ${getOhengFriendlyName(s1)}와 ${getOhengFriendlyName(s2)}의 기운이 부딪힐 수 있습니다`);
+        }
       }
     }
   }
 
-  return { person1Strong, person1Weak, person2Strong, person2Weak, complementary, conflict };
+  return {
+    person1Strong,
+    person1Weak,
+    person2Strong,
+    person2Weak,
+    complementary,
+    complementaryDetails,
+    conflict,
+    conflictDetails,
+  };
 }
 
 /**

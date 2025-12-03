@@ -15,7 +15,9 @@ import type {
   FamilyRole,
   RelationTypeAnalysis,
 } from "@/lib/saju-family";
-import { RELATION_LABELS } from "@/lib/saju-family";
+import { RELATION_LABELS, analyzeIlganRelationship, type IlganRelationship } from "@/lib/saju-family";
+import type { MajorFortuneInfo } from "@/lib/saju-calculator";
+import { DAEUN_OHENG_INTERPRETATION } from "@/lib/saju-fortune-data";
 import { ChevronDown, ChevronUp, Users, Sparkles, ArrowRight, Star, Heart } from "lucide-react";
 import {
   ILJU_SYMBOLS,
@@ -67,11 +69,13 @@ function getScoreBadgeVariant(score: number): "default" | "secondary" | "outline
 function FamilyMemberCard({
   saju,
   name,
+  gender,
   relation,
   timeUnknown,
 }: {
   saju: SajuApiResult;
   name: string;
+  gender: "male" | "female";
   relation: string;
   timeUnknown: boolean;
 }) {
@@ -82,6 +86,7 @@ function FamilyMemberCard({
     <Card className="flex-1 min-w-[200px] bg-white/50 dark:bg-stone-900/50 border-stone-200 dark:border-stone-800">
       <CardHeader className="pb-2 border-b border-stone-100 dark:border-stone-800">
         <CardTitle className="text-base flex items-center gap-2 font-serif text-[#5C544A] dark:text-[#D4C5B0]">
+          <span>{gender === "male" ? "👨" : "👩"}</span>
           <Badge variant="outline" className="bg-white dark:bg-black/20">{relationLabel}</Badge>
           <span className="text-sm font-medium">{name || "이름 없음"}</span>
         </CardTitle>
@@ -795,6 +800,445 @@ function RelationTypeCard({ analysis }: { analysis: RelationTypeAnalysis }) {
   );
 }
 
+// 십성 해석 데이터
+const SIPSEONG_DESCRIPTIONS: Record<string, { meaning: string; advice: string }> = {
+  "비견": { meaning: "같은 기운으로 동등한 관계", advice: "서로의 영역을 존중하고 협력하세요" },
+  "겁재": { meaning: "경쟁하는 관계로 자극을 주고받음", advice: "긍정적 경쟁으로 함께 성장하세요" },
+  "식신": { meaning: "내가 돌봐주는 관계, 표현의 대상", advice: "관심과 애정 표현을 아끼지 마세요" },
+  "상관": { meaning: "내가 다스리는 관계, 통제 욕구", advice: "잔소리보다 격려가 효과적입니다" },
+  "편재": { meaning: "내가 지배하는 관계, 실용적 교류", advice: "실질적 도움과 지원을 해주세요" },
+  "정재": { meaning: "내가 관리하는 관계, 안정적 유대", advice: "꾸준한 관심으로 신뢰를 쌓으세요" },
+  "편관": { meaning: "나를 다스리는 관계, 엄격함", advice: "상대의 기대에 부응하려 노력하세요" },
+  "정관": { meaning: "나를 이끄는 관계, 존경 대상", advice: "조언을 경청하고 따르세요" },
+  "편인": { meaning: "나를 도와주는 관계, 비공식적 후원", advice: "감사하는 마음을 표현하세요" },
+  "정인": { meaning: "나를 양육하는 관계, 헌신적 지원", advice: "그 사랑에 보답하세요" },
+};
+
+// 가족 십성 관계 분석 카드
+function FamilySipseongRelationCard({
+  members,
+}: {
+  members: { saju: SajuApiResult; name: string; gender: "male" | "female"; relation: string }[];
+}) {
+  // 모든 가족 쌍의 십성 관계 계산
+  const relationships: {
+    from: string;
+    fromRelation: string;
+    to: string;
+    toRelation: string;
+    sipseong: IlganRelationship;
+    reverseSipseong: IlganRelationship;
+  }[] = [];
+
+  for (let i = 0; i < members.length; i++) {
+    for (let j = i + 1; j < members.length; j++) {
+      const member1 = members[i];
+      const member2 = members[j];
+
+      const sipseong = analyzeIlganRelationship(
+        member1.saju.dayPillar.cheongan,
+        member2.saju.dayPillar.cheongan
+      );
+      const reverseSipseong = analyzeIlganRelationship(
+        member2.saju.dayPillar.cheongan,
+        member1.saju.dayPillar.cheongan
+      );
+
+      relationships.push({
+        from: member1.name,
+        fromRelation: member1.relation,
+        to: member2.name,
+        toRelation: member2.relation,
+        sipseong,
+        reverseSipseong,
+      });
+    }
+  }
+
+  // 십성 색상
+  const getSipseongColor = (sipseong: string) => {
+    const positive = ["비견", "식신", "정재", "정관", "정인"];
+    const neutral = ["겁재", "상관", "편재", "편관", "편인"];
+    if (positive.includes(sipseong)) return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 border-green-200 dark:border-green-800";
+    if (neutral.includes(sipseong)) return "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 border-amber-200 dark:border-amber-800";
+    return "bg-stone-100 text-stone-800 dark:bg-stone-800/50 dark:text-stone-300 border-stone-200 dark:border-stone-700";
+  };
+
+  return (
+    <Card className="border-stone-200 dark:border-stone-800 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 dark:from-indigo-950/20 dark:to-purple-950/20">
+      <CardHeader>
+        <CardTitle className="text-lg flex items-center gap-2 font-serif text-indigo-800 dark:text-indigo-300">
+          <span className="text-xl">🔗</span>
+          가족 십성 관계도
+        </CardTitle>
+        <p className="text-xs text-muted-foreground mt-1">
+          일간(日干) 기준 가족 간 에너지 관계
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* 십성 관계표 설명 */}
+        <div className="text-xs text-muted-foreground bg-white/50 dark:bg-black/20 p-3 rounded-lg">
+          <p>십성(十星)은 일간을 기준으로 상대방의 일간과의 관계를 나타내며, 가족 간의 에너지 흐름을 보여줍니다.</p>
+        </div>
+
+        {/* 관계 목록 */}
+        <div className="space-y-3">
+          {relationships.map((rel, index) => (
+            <div key={index} className="bg-white/60 dark:bg-black/20 rounded-lg p-4 border border-indigo-100 dark:border-indigo-900/30">
+              {/* 관계 헤더 */}
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2 text-sm">
+                  <Badge variant="outline" className="text-xs bg-white dark:bg-black/30">
+                    {RELATION_LABELS[rel.fromRelation] || rel.fromRelation}
+                  </Badge>
+                  <span className="font-medium font-serif">{rel.from}</span>
+                  <span className="text-muted-foreground">↔</span>
+                  <span className="font-medium font-serif">{rel.to}</span>
+                  <Badge variant="outline" className="text-xs bg-white dark:bg-black/30">
+                    {RELATION_LABELS[rel.toRelation] || rel.toRelation}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* 양방향 십성 관계 */}
+              <div className="grid grid-cols-2 gap-3">
+                {/* A → B */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground truncate">{rel.from}에게</span>
+                    <ArrowRight className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                    <span className="text-xs text-muted-foreground truncate">{rel.to}는</span>
+                  </div>
+                  <div className={`px-3 py-2 rounded-lg border ${getSipseongColor(rel.sipseong.type)}`}>
+                    <div className="font-semibold text-center">{rel.sipseong.type}</div>
+                    <div className="text-xs text-center mt-1 opacity-80">
+                      {SIPSEONG_DESCRIPTIONS[rel.sipseong.type]?.meaning || rel.sipseong.description}
+                    </div>
+                  </div>
+                </div>
+
+                {/* B → A */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground truncate">{rel.to}에게</span>
+                    <ArrowRight className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                    <span className="text-xs text-muted-foreground truncate">{rel.from}는</span>
+                  </div>
+                  <div className={`px-3 py-2 rounded-lg border ${getSipseongColor(rel.reverseSipseong.type)}`}>
+                    <div className="font-semibold text-center">{rel.reverseSipseong.type}</div>
+                    <div className="text-xs text-center mt-1 opacity-80">
+                      {SIPSEONG_DESCRIPTIONS[rel.reverseSipseong.type]?.meaning || rel.reverseSipseong.description}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 관계 조언 */}
+              <div className="mt-3 p-2 bg-indigo-50/50 dark:bg-indigo-900/20 rounded-lg">
+                <p className="text-xs text-indigo-700 dark:text-indigo-300">
+                  <span className="font-medium">💡 조언: </span>
+                  {SIPSEONG_DESCRIPTIONS[rel.sipseong.type]?.advice || rel.sipseong.advice || "서로의 다름을 인정하고 존중하세요."}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* 십성 관계 범례 */}
+        <div className="bg-white/50 dark:bg-black/20 rounded-lg p-3">
+          <h5 className="text-xs font-semibold text-muted-foreground mb-2">십성 관계 유형</h5>
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-green-500"></div>
+              <span className="text-muted-foreground">정(正) - 조화로운 관계</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+              <span className="text-muted-foreground">편(偏) - 역동적 관계</span>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// 가족 대운 캘린더 컴포넌트
+interface FamilyMemberFortune {
+  name: string;
+  relation: string;
+  birthYear: number;
+  yongsin: string;
+  fortunes: MajorFortuneInfo[];
+}
+
+function FamilyFortuneCalendarCard({
+  memberFortunes,
+}: {
+  memberFortunes: FamilyMemberFortune[];
+}) {
+  const currentYear = new Date().getFullYear();
+
+  // 현재 대운 찾기
+  const findCurrentFortune = (fortunes: MajorFortuneInfo[], birthYear: number): MajorFortuneInfo | null => {
+    const age = currentYear - birthYear + 1;
+    return fortunes.find(f => age >= f.startAge && age < f.startAge + 10) || null;
+  };
+
+  // 대운이 용신과 일치하는지 확인
+  const isGoldenPeriod = (fortune: MajorFortuneInfo | null, yongsin: string): boolean => {
+    if (!fortune) return false;
+    return fortune.cheonganOheng === yongsin || fortune.jijiOheng === yongsin;
+  };
+
+  // 오행 아이콘
+  const getOhengIcon = (oheng: string) => {
+    const icons: Record<string, string> = {
+      "목": "🌲", "화": "🔥", "토": "⛰️", "금": "⚪", "수": "💧"
+    };
+    return icons[oheng] || "✨";
+  };
+
+  // 10년 단위 타임라인 생성 (현재 ~ +30년)
+  const generateTimeline = () => {
+    const decades: { startYear: number; endYear: number }[] = [];
+    const startDecade = Math.floor(currentYear / 10) * 10;
+    for (let i = 0; i < 4; i++) {
+      decades.push({
+        startYear: startDecade + (i * 10),
+        endYear: startDecade + (i * 10) + 9,
+      });
+    }
+    return decades;
+  };
+
+  const timeline = generateTimeline();
+
+  // 특정 기간에 해당하는 대운 찾기
+  const getFortuneForPeriod = (fortunes: MajorFortuneInfo[], birthYear: number, periodStart: number): MajorFortuneInfo | null => {
+    const startAge = periodStart - birthYear + 1;
+    const endAge = startAge + 9;
+    return fortunes.find(f => {
+      const fortuneEndAge = f.startAge + 9;
+      return (f.startAge <= endAge && fortuneEndAge >= startAge);
+    }) || null;
+  };
+
+  // 가족 전체 황금기 분석
+  const goldenPeriodsAnalysis = () => {
+    const periods: { year: string; members: string[] }[] = [];
+    timeline.forEach(decade => {
+      const membersInGolden: string[] = [];
+      memberFortunes.forEach(member => {
+        const fortune = getFortuneForPeriod(member.fortunes, member.birthYear, decade.startYear);
+        if (isGoldenPeriod(fortune, member.yongsin)) {
+          membersInGolden.push(member.name);
+        }
+      });
+      if (membersInGolden.length > 0) {
+        periods.push({
+          year: `${decade.startYear}~${decade.endYear}`,
+          members: membersInGolden,
+        });
+      }
+    });
+    return periods;
+  };
+
+  const goldenPeriods = goldenPeriodsAnalysis();
+
+  if (memberFortunes.every(m => m.fortunes.length === 0)) {
+    return null;
+  }
+
+  return (
+    <Card className="border-stone-200 dark:border-stone-800 bg-gradient-to-br from-emerald-50/50 to-teal-50/50 dark:from-emerald-950/20 dark:to-teal-950/20">
+      <CardHeader>
+        <CardTitle className="text-lg flex items-center gap-2 font-serif text-emerald-800 dark:text-emerald-300">
+          <span className="text-xl">📅</span>
+          가족 대운 캘린더
+        </CardTitle>
+        <p className="text-xs text-muted-foreground mt-1">
+          가족 구성원별 대운 흐름과 황금기
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* 현재 대운 상태 */}
+        <div className="space-y-3">
+          <h5 className="text-sm font-semibold text-emerald-700 dark:text-emerald-300 flex items-center gap-2">
+            <span>🌟</span> 현재 대운 ({currentYear}년)
+          </h5>
+          <div className="grid gap-3">
+            {memberFortunes.map((member, index) => {
+              const currentFortune = findCurrentFortune(member.fortunes, member.birthYear);
+              const isGolden = isGoldenPeriod(currentFortune, member.yongsin);
+
+              return (
+                <div
+                  key={index}
+                  className={`p-3 rounded-lg border ${
+                    isGolden
+                      ? "bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800"
+                      : "bg-white/60 border-stone-200 dark:bg-black/20 dark:border-stone-700"
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="text-xs bg-white dark:bg-black/30">
+                        {RELATION_LABELS[member.relation] || member.relation}
+                      </Badge>
+                      <span className="font-medium text-sm">{member.name}</span>
+                      {isGolden && (
+                        <Badge className="bg-amber-500 text-white hover:bg-amber-500 text-xs">
+                          황금기
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <span>용신:</span>
+                      <span className="font-medium">{member.yongsin}</span>
+                      <span>{getOhengIcon(member.yongsin)}</span>
+                    </div>
+                  </div>
+                  {currentFortune ? (
+                    <div className="flex items-center gap-4">
+                      <div className="text-center">
+                        <div className="text-lg font-serif font-bold">{currentFortune.ganji}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {currentFortune.cheonganOheng} · {currentFortune.jijiOheng}
+                        </div>
+                      </div>
+                      <div className="flex-1 text-xs">
+                        <p className="text-stone-600 dark:text-stone-400">
+                          {DAEUN_OHENG_INTERPRETATION[currentFortune.cheonganOheng]?.keywords?.[0] || ""} /
+                          {DAEUN_OHENG_INTERPRETATION[currentFortune.jijiOheng]?.keywords?.[0] || ""}
+                        </p>
+                        <p className="text-muted-foreground mt-1">
+                          {member.birthYear + currentFortune.startAge - 1}년 ~{" "}
+                          {member.birthYear + currentFortune.startAge + 8}년
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">대운 정보 없음</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 가족 대운 타임라인 */}
+        <div className="space-y-3">
+          <h5 className="text-sm font-semibold text-emerald-700 dark:text-emerald-300 flex items-center gap-2">
+            <span>📊</span> 향후 대운 흐름
+          </h5>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-stone-200 dark:border-stone-700">
+                  <th className="text-left py-2 px-2 font-medium text-muted-foreground">구성원</th>
+                  {timeline.map((decade, i) => (
+                    <th key={i} className="text-center py-2 px-2 font-medium text-muted-foreground">
+                      {decade.startYear}~{decade.endYear.toString().slice(-2)}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {memberFortunes.map((member, mIndex) => (
+                  <tr key={mIndex} className="border-b border-stone-100 dark:border-stone-800">
+                    <td className="py-2 px-2">
+                      <div className="font-medium truncate max-w-[80px]">{member.name}</div>
+                      <div className="text-muted-foreground">{RELATION_LABELS[member.relation] || member.relation}</div>
+                    </td>
+                    {timeline.map((decade, dIndex) => {
+                      const fortune = getFortuneForPeriod(member.fortunes, member.birthYear, decade.startYear);
+                      const isGolden = isGoldenPeriod(fortune, member.yongsin);
+                      return (
+                        <td key={dIndex} className="text-center py-2 px-1">
+                          {fortune ? (
+                            <div
+                              className={`inline-block px-2 py-1 rounded ${
+                                isGolden
+                                  ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 ring-1 ring-amber-300"
+                                  : "bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300"
+                              }`}
+                            >
+                              {fortune.ganji}
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* 가족 황금기 분석 */}
+        {goldenPeriods.length > 0 && (
+          <div className="space-y-3">
+            <h5 className="text-sm font-semibold text-amber-700 dark:text-amber-300 flex items-center gap-2">
+              <span>✨</span> 가족 황금기 시기
+            </h5>
+            <div className="grid gap-2">
+              {goldenPeriods.map((period, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-3 p-3 bg-amber-50/50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800"
+                >
+                  <div className="text-sm font-medium text-amber-800 dark:text-amber-300 min-w-[100px]">
+                    {period.year}
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {period.members.map((name, i) => (
+                      <Badge key={i} variant="secondary" className="text-xs bg-amber-100 text-amber-800 dark:bg-amber-800 dark:text-amber-100">
+                        {name}
+                      </Badge>
+                    ))}
+                    {period.members.length >= Math.ceil(memberFortunes.length / 2) && (
+                      <Badge className="bg-amber-500 text-white text-xs ml-1">
+                        가족 황금기
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground text-center">
+              * 황금기: 대운의 오행이 용신과 일치하는 시기
+            </p>
+          </div>
+        )}
+
+        {/* 대운 캘린더 범례 */}
+        <div className="bg-white/50 dark:bg-black/20 rounded-lg p-3">
+          <h5 className="text-xs font-semibold text-muted-foreground mb-2">범례</h5>
+          <div className="flex flex-wrap gap-3 text-xs">
+            <div className="flex items-center gap-2">
+              <div className="px-2 py-1 rounded bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 ring-1 ring-amber-300">
+                甲子
+              </div>
+              <span className="text-muted-foreground">황금기 (용신 대운)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="px-2 py-1 rounded bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300">
+                甲子
+              </div>
+              <span className="text-muted-foreground">일반 대운</span>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 // 가족 전체 분석 결과 카드
 function FamilyAnalysisCard({ analysis }: { analysis: FamilyAnalysisResult }) {
   const {
@@ -1000,8 +1444,11 @@ function FamilyAnalysisCard({ analysis }: { analysis: FamilyAnalysisResult }) {
 interface MemberData {
   name: string;
   relation: string;
+  gender: "male" | "female";
   saju: SajuApiResult;
   timeUnknown: boolean;
+  majorFortunes: MajorFortuneInfo[];
+  birthYear: number;
 }
 
 function FamilyResultContent() {
@@ -1010,6 +1457,7 @@ function FamilyResultContent() {
   const [analysis, setAnalysis] = useState<FamilyAnalysisResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [memberFortunes, setMemberFortunes] = useState<FamilyMemberFortune[]>([]);
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -1041,6 +1489,7 @@ function FamilyResultContent() {
           const minute = parseInt(member.minute);
           const isLunar = member.lunar;
           const name = member.name || `구성원 ${i + 1}`;
+          const gender = member.gender || "female";
           const relation = member.relation || "other";
           const timeUnknown = member.timeUnknown;
 
@@ -1053,7 +1502,7 @@ function FamilyResultContent() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               year, month, day, hour, minute,
-              isLunar, timeUnknown,
+              isLunar, timeUnknown, gender,
             }),
           })
             .then(res => res.json())
@@ -1064,8 +1513,12 @@ function FamilyResultContent() {
               return {
                 name,
                 relation,
+                gender,
                 saju: data.data,
                 timeUnknown,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                majorFortunes: (data.data as any).majorFortunes || [],
+                birthYear: data.data.birthInfo?.solarYear || year,
               };
             });
 
@@ -1074,6 +1527,15 @@ function FamilyResultContent() {
 
         const memberResults = await Promise.all(memberPromises);
         setMembers(memberResults);
+
+        // 대운 데이터 저장
+        setMemberFortunes(memberResults.map(m => ({
+          name: m.name,
+          relation: m.relation,
+          birthYear: m.birthYear,
+          yongsin: m.saju.yongsin,
+          fortunes: m.majorFortunes,
+        })));
 
         // 가족 분석 API 호출
         const familyRes = await fetch("/api/saju/family", {
@@ -1166,6 +1628,7 @@ function FamilyResultContent() {
                   key={index}
                   saju={member.saju}
                   name={member.name}
+                  gender={member.gender}
                   relation={member.relation}
                   timeUnknown={member.timeUnknown}
                 />
@@ -1189,6 +1652,12 @@ function FamilyResultContent() {
 
         {/* 구성원 간 궁합 이유 요약 */}
         <PairCompatibilityReasonCard pairs={analysis.pairCompatibilities} />
+
+        {/* 가족 십성 관계도 */}
+        <FamilySipseongRelationCard members={members} />
+
+        {/* 가족 대운 캘린더 */}
+        <FamilyFortuneCalendarCard memberFortunes={memberFortunes} />
 
         {/* 가족 분석 결과 */}
         <FamilyAnalysisCard analysis={analysis} />
