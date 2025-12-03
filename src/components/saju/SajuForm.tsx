@@ -118,6 +118,7 @@ export function SajuForm() {
       minute: time.minute.toString(),
       lunar: person.calendarType === "lunar",
       name: person.name,
+      gender: person.gender,
       timeUnknown: isTimeUnknown,
     };
     sessionStorage.setItem("saju_individual", JSON.stringify(data));

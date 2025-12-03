@@ -11,6 +11,25 @@ import {
 } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronUp, Sparkles, Mountain, Flame, Droplets, Coins, TreeDeciduous, Scroll, User, Heart, Briefcase, Brain, MessageCircle } from "lucide-react";
 import type { SajuApiResult, Pillar, OhengCount } from "@/types/saju";
+import type { MajorFortuneInfo, YearlyFortuneInfo } from "@/lib/saju-calculator";
+import { DaeunTimelineCard, YearlyFortuneCard } from "@/components/saju/FortuneCards";
+import { SipsinDetailCard, WealthFortuneCard } from "@/components/saju/SipsinCards";
+import { GeokgukCard, HealthConstitutionCard } from "@/components/saju/AnalysisCards";
+import {
+  JohuCard,
+  SinsalCard,
+  RelationshipPatternCard,
+  CareerAptitudeCard,
+} from "@/components/saju/AdvancedAnalysisCards";
+import {
+  NatureProfileCard,
+  CoreKeywordsCard,
+  LifePhaseCard,
+  LifeJourneyTimeline,
+  OhengEmotionalMessage,
+} from "@/components/saju/StorytellingCards";
+import { analyzeSipsinDistribution } from "@/lib/saju-sipsin-data";
+import { determineGeokguk } from "@/lib/saju-analysis-extended";
 import { getIlganTraits, type IlganTraits, type OhengAdvice } from "@/lib/saju-traits";
 import {
   ILJU_SYMBOLS,
@@ -34,6 +53,9 @@ import {
 
 interface SajuResultProps {
   result: SajuApiResult & {
+    majorFortunes?: MajorFortuneInfo[];
+    yearlyFortunes?: YearlyFortuneInfo[];
+    gender?: "male" | "female";
     analysis?: {
       ilganTraits: IlganTraits | null;
       yongsinAdvice: OhengAdvice | null;
@@ -669,7 +691,7 @@ function IlganTraitsCard({ ilgan }: { ilgan: string }) {
 }
 
 export function SajuResult({ result, name, timeUnknown = false }: SajuResultProps) {
-  const { yearPillar, monthPillar, dayPillar, timePillar, ohengCount, yongsin, birthInfo, meta } = result;
+  const { yearPillar, monthPillar, dayPillar, timePillar, ohengCount, yongsin, birthInfo, meta, majorFortunes, yearlyFortunes } = result;
 
   // 오행 개수 정렬
   const sortedOheng = Object.entries(ohengCount).sort((a, b) => b[1] - a[1]);
@@ -696,10 +718,20 @@ export function SajuResult({ result, name, timeUnknown = false }: SajuResultProp
     ? [yearPillar, monthPillar, dayPillar]
     : [yearPillar, monthPillar, dayPillar, timePillar];
 
+  // 격국 계산 (Phase 4 키워드 추출에 필요)
+  const geokgukResult = determineGeokguk(monthPillar, dayPillar);
+  const geokgukName = geokgukResult.geokguk;
+
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
       {/* 스토리텔링 도입부 */}
       <StoryIntroCard ilju={ilju} dominantOheng={dominantOheng} name={name} />
+
+      {/* Phase 4: 자연 비유 프로필 */}
+      <NatureProfileCard ilgan={dayPillar.cheongan} name={name} />
+
+      {/* Phase 4: 오행 감성 메시지 */}
+      <OhengEmotionalMessage yongsin={yongsin} />
 
       {/* 기본 정보 */}
       <Card className="overflow-hidden border-none shadow-sm bg-white/50 dark:bg-stone-900/50">
@@ -754,6 +786,14 @@ export function SajuResult({ result, name, timeUnknown = false }: SajuResultProp
       {/* 일간 성향 분석 */}
       <IlganTraitsCard ilgan={dayPillar.cheongan} />
 
+      {/* Phase 4: 종합 키워드 */}
+      <CoreKeywordsCard
+        ilgan={dayPillar.cheongan}
+        yongsin={yongsin}
+        geokguk={geokgukName}
+        name={name}
+      />
+
       {/* 오행 분석 (Radar Chart) */}
       <Card>
         <CardHeader>
@@ -804,6 +844,70 @@ export function SajuResult({ result, name, timeUnknown = false }: SajuResultProp
 
       {/* 오행 보완법 */}
       {yongsin && <OhengBoosterDetailCard yongsin={yongsin} />}
+
+      {/* 십신 상세 분석 */}
+      <SipsinDetailCard pillars={pillars} timeUnknown={timeUnknown} />
+
+      {/* 격국 분석 */}
+      <GeokgukCard monthPillar={monthPillar} dayPillar={dayPillar} />
+
+      {/* 재물운 분석 */}
+      <WealthFortuneCard pillars={pillars.map(p => ({ ...p, ganji: p.cheongan + p.jiji }))} />
+
+      {/* 건강 체질 분석 */}
+      <HealthConstitutionCard ohengCount={ohengCount} />
+
+      {/* 조후(調候) 분석 */}
+      <JohuCard
+        monthJiji={monthPillar.jiji}
+        ohengCount={ohengCount}
+        yongsin={yongsin}
+      />
+
+      {/* 신살(神殺) 분석 */}
+      <SinsalCard
+        pillars={pillars}
+        dayCheongan={dayPillar.cheongan}
+        dayJiji={dayPillar.jiji}
+      />
+
+      {/* 인간관계 패턴 분석 */}
+      <RelationshipPatternCard
+        sipsinDistribution={analyzeSipsinDistribution(pillars).distribution}
+      />
+
+      {/* 직업 적성 심화 분석 */}
+      <CareerAptitudeCard
+        sipsinDistribution={analyzeSipsinDistribution(pillars).distribution}
+      />
+
+      {/* Phase 4: 현재 인생 단계 */}
+      <LifePhaseCard birthYear={birthInfo.solarYear} name={name} />
+
+      {/* 대운(大運) 타임라인 */}
+      {majorFortunes && majorFortunes.length > 0 && (
+        <DaeunTimelineCard
+          majorFortunes={majorFortunes}
+          birthYear={birthInfo.solarYear}
+        />
+      )}
+
+      {/* Phase 4: 인생 여정 타임라인 (대운 스토리 통합) */}
+      {majorFortunes && majorFortunes.length > 0 && (
+        <LifeJourneyTimeline
+          majorFortunes={majorFortunes}
+          birthYear={birthInfo.solarYear}
+        />
+      )}
+
+      {/* 연운(年運) 카드 */}
+      {yearlyFortunes && yearlyFortunes.length > 0 && (
+        <YearlyFortuneCard
+          yearlyFortunes={yearlyFortunes}
+          ilgan={dayPillar.cheongan}
+          yongsin={yongsin}
+        />
+      )}
 
       {/* 사주 기둥별 영역 설명 */}
       <PillarMeaningsCard timeUnknown={timeUnknown} />

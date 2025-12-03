@@ -222,6 +222,227 @@ function recommendYongsin(ohengCount: OhengCount): string {
 /**
  * 사주팔자 계산 메인 함수
  */
+// 60갑자 배열 (순서대로)
+const GAPJA_60 = [
+  "갑자", "을축", "병인", "정묘", "무진", "기사", "경오", "신미", "임신", "계유",
+  "갑술", "을해", "병자", "정축", "무인", "기묘", "경진", "신사", "임오", "계미",
+  "갑신", "을유", "병술", "정해", "무자", "기축", "경인", "신묘", "임진", "계사",
+  "갑오", "을미", "병신", "정유", "무술", "기해", "경자", "신축", "임인", "계묘",
+  "갑진", "을사", "병오", "정미", "무신", "기유", "경술", "신해", "임자", "계축",
+  "갑인", "을묘", "병진", "정사", "무오", "기미", "경신", "신유", "임술", "계해",
+];
+
+// 천간 합 관계
+const CHEONGAN_HAP: Record<string, string> = {
+  "갑": "기", "기": "갑",
+  "을": "경", "경": "을",
+  "병": "신", "신": "병",
+  "정": "임", "임": "정",
+  "무": "계", "계": "무",
+};
+
+// 천간 충 관계
+const CHEONGAN_CHUNG: Record<string, string> = {
+  "갑": "경", "경": "갑",
+  "을": "신", "신": "을",
+  "병": "임", "임": "병",
+  "정": "계", "계": "정",
+};
+
+// 절기 데이터 (월별 절기 일자 - 평균값)
+const SOLAR_TERMS: Record<number, { name: string; day: number }> = {
+  1: { name: "입춘", day: 4 },
+  2: { name: "경칩", day: 6 },
+  3: { name: "청명", day: 5 },
+  4: { name: "입하", day: 6 },
+  5: { name: "망종", day: 6 },
+  6: { name: "소서", day: 7 },
+  7: { name: "입추", day: 8 },
+  8: { name: "백로", day: 8 },
+  9: { name: "한로", day: 8 },
+  10: { name: "입동", day: 8 },
+  11: { name: "대설", day: 7 },
+  12: { name: "소한", day: 6 },
+};
+
+/**
+ * 대운 순행/역행 결정
+ * - 남자 + 년주 양간 → 순행
+ * - 남자 + 년주 음간 → 역행
+ * - 여자는 반대
+ */
+function isForwardDirection(yearCheongan: string, gender: "male" | "female"): boolean {
+  const isYangGan = CHEONGAN_YINYANG[yearCheongan] === "양";
+  const isMale = gender === "male";
+
+  // 남자+양간 또는 여자+음간이면 순행
+  return (isMale && isYangGan) || (!isMale && !isYangGan);
+}
+
+/**
+ * 다음 절기까지의 일수 계산
+ */
+function getDaysToNextTerm(birthMonth: number, birthDay: number, isForward: boolean): number {
+  if (isForward) {
+    // 순행: 다음 절기까지
+    const nextMonth = birthMonth === 12 ? 1 : birthMonth + 1;
+    const nextTermDay = SOLAR_TERMS[nextMonth]?.day || 6;
+
+    // 현재 월의 남은 일수 + 다음 월의 절기 일자
+    const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    const remainingDays = daysInMonth[birthMonth - 1] - birthDay;
+    return remainingDays + nextTermDay;
+  } else {
+    // 역행: 이전 절기까지
+    const currentTermDay = SOLAR_TERMS[birthMonth]?.day || 6;
+    return birthDay - currentTermDay;
+  }
+}
+
+/**
+ * 대운 시작 나이 계산
+ * 3일 = 1세로 환산
+ */
+function calculateDaeunStartAge(daysToTerm: number): number {
+  // 최소 1세부터 시작, 최대 10세
+  const startAge = Math.max(1, Math.min(10, Math.round(Math.abs(daysToTerm) / 3)));
+  return startAge;
+}
+
+/**
+ * 대운(大運) 계산
+ */
+export interface MajorFortuneInfo {
+  startAge: number;
+  endAge: number;
+  ganji: string;
+  cheongan: string;
+  jiji: string;
+  cheonganOheng: string;
+  jijiOheng: string;
+  element: string;  // 주요 오행 (천간 기준)
+  interpretation?: string;
+}
+
+export function calculateMajorFortunes(
+  calendaData: CalendaData,
+  yearCheongan: string,
+  monthGanji: string,
+  gender: "male" | "female",
+  birthYear: number,
+  birthMonth: number,
+  birthDay: number
+): MajorFortuneInfo[] {
+  const fortunes: MajorFortuneInfo[] = [];
+
+  // 순행/역행 결정
+  const isForward = isForwardDirection(yearCheongan, gender);
+
+  // 다음 절기까지 일수 계산
+  const daysToTerm = getDaysToNextTerm(birthMonth, birthDay, isForward);
+
+  // 대운 시작 나이
+  const startAge = calculateDaeunStartAge(daysToTerm);
+
+  // 월주 인덱스 찾기
+  const monthIndex = GAPJA_60.indexOf(monthGanji);
+  if (monthIndex === -1) {
+    console.error("Invalid month ganji:", monthGanji);
+    return fortunes;
+  }
+
+  // 8개의 대운 생성 (약 80년)
+  for (let i = 0; i < 8; i++) {
+    let daeunIndex: number;
+    if (isForward) {
+      daeunIndex = (monthIndex + i + 1) % 60;
+    } else {
+      daeunIndex = (monthIndex - i - 1 + 60) % 60;
+    }
+
+    const ganji = GAPJA_60[daeunIndex];
+    const cheongan = ganji[0];
+    const jiji = ganji[1];
+
+    fortunes.push({
+      startAge: startAge + (i * 10),
+      endAge: startAge + ((i + 1) * 10) - 1,
+      ganji,
+      cheongan,
+      jiji,
+      cheonganOheng: CHEONGAN_OHENG[cheongan] || "",
+      jijiOheng: JIJI_OHENG[jiji] || "",
+      element: CHEONGAN_OHENG[cheongan] || "",
+    });
+  }
+
+  return fortunes;
+}
+
+/**
+ * 연운(年運) 계산
+ */
+export interface YearlyFortuneInfo {
+  year: number;
+  ganji: string;
+  cheongan: string;
+  jiji: string;
+  cheonganOheng: string;
+  jijiOheng: string;
+  element: string;
+  isHap: boolean;      // 일간과 합
+  isChung: boolean;    // 일간과 충
+  isYongsinYear: boolean; // 용신 오행의 해
+  interpretation?: string;
+}
+
+/**
+ * 연도를 60갑자로 변환
+ */
+function yearToGapja(year: number): string {
+  const index = (year - 4) % 60;
+  return GAPJA_60[index >= 0 ? index : index + 60];
+}
+
+export function calculateYearlyFortunes(
+  startYear: number,
+  endYear: number,
+  ilgan: string,  // 일간
+  yongsin: string // 용신 오행
+): YearlyFortuneInfo[] {
+  const fortunes: YearlyFortuneInfo[] = [];
+
+  for (let year = startYear; year <= endYear; year++) {
+    const ganji = yearToGapja(year);
+    const cheongan = ganji[0];
+    const jiji = ganji[1];
+    const cheonganOheng = CHEONGAN_OHENG[cheongan] || "";
+    const jijiOheng = JIJI_OHENG[jiji] || "";
+
+    // 일간과의 합/충 관계
+    const isHap = CHEONGAN_HAP[ilgan] === cheongan;
+    const isChung = CHEONGAN_CHUNG[ilgan] === cheongan;
+
+    // 용신 오행의 해인지
+    const isYongsinYear = cheonganOheng === yongsin || jijiOheng === yongsin;
+
+    fortunes.push({
+      year,
+      ganji,
+      cheongan,
+      jiji,
+      cheonganOheng,
+      jijiOheng,
+      element: cheonganOheng,
+      isHap,
+      isChung,
+      isYongsinYear,
+    });
+  }
+
+  return fortunes;
+}
+
 export function calculateSaju(
   calendaData: CalendaData,
   birthHour: number,

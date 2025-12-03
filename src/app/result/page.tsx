@@ -29,6 +29,7 @@ function ResultContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [name, setName] = useState<string>("");
+  const [gender, setGender] = useState<string>("female");
   const [timeUnknown, setTimeUnknown] = useState(false);
 
   useEffect(() => {
@@ -50,10 +51,12 @@ function ResultContent() {
         const minute = parseInt(data.minute);
         const isLunar = data.lunar;
         const personName = data.name || "";
+        const personGender = data.gender || "female";
         const isTimeUnknown = data.timeUnknown;
 
         setName(personName);
         setTimeUnknown(isTimeUnknown);
+        setGender(personGender);
 
         if (!year || !month || !day) {
           setError("생년월일 정보가 없습니다.");
@@ -74,6 +77,7 @@ function ResultContent() {
             isLunar,
             isLeapMonth: false,
             timeUnknown: isTimeUnknown,
+            gender: personGender,
           }),
         });
 

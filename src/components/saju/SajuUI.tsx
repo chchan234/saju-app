@@ -195,7 +195,13 @@ export function BokbiModal() {
                                 {/* Flap Back (Visible when open) */}
                                 <div className="absolute inset-0 backface-hidden" style={{ transform: 'rotateX(180deg)' }}>
                                     <svg width="100%" height="100%" viewBox="0 0 100 55" preserveAspectRatio="none">
-                                        <path d="M0,0 L50,55 L100,0 Z" className="fill-[#BFA588] dark:fill-[#5C5044]" />
+                                        {/* Fixed Path: Upright Triangle (Base at bottom 55, Tip at top 0)
+                                            When rotated 180 (Back Face) -> Becomes Inverted (Base at top 0, Tip at bottom 55)
+                                            When rotated 180 (Container) -> Becomes Upright (Base at hinge, Tip pointing up)
+                                        */}
+                                        <path d="M0,55 L50,0 L100,55 Z" className="fill-[#BFA588] dark:fill-[#5C5044]" />
+                                        {/* Texture Overlay for Back Face */}
+                                        <path d="M0,55 L50,0 L100,55 Z" className="fill-black/5 mix-blend-multiply" />
                                     </svg>
                                 </div>
                             </div>

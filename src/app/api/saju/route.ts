@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { calculateSaju } from "@/lib/saju-calculator";
+import { calculateSaju, calculateMajorFortunes, calculateYearlyFortunes } from "@/lib/saju-calculator";
 import { getIlganTraits, getOhengAdvice, analyzeOhengBalance } from "@/lib/saju-traits";
 import type { CalendaData } from "@/types/saju";
 
@@ -22,12 +22,13 @@ interface SajuRequest {
   isLunar?: boolean;
   isLeapMonth?: boolean;
   timeUnknown?: boolean;
+  gender?: "male" | "female";
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body: SajuRequest = await request.json();
-    const { year, month, day, hour, minute, isLunar = false, isLeapMonth = false, timeUnknown = false } = body;
+    const { year, month, day, hour, minute, isLunar = false, isLeapMonth = false, timeUnknown = false, gender = "female" } = body;
 
     // 입력 검증
     if (!year || !month || !day || hour === undefined || minute === undefined) {
@@ -87,10 +88,33 @@ export async function POST(request: NextRequest) {
     // 오행 균형 분석
     const ohengBalance = analyzeOhengBalance(result.ohengCount);
 
+    // 대운 계산 (성별 필요)
+    const majorFortunes = calculateMajorFortunes(
+      calendaData,
+      result.yearPillar.cheongan,
+      result.monthPillar.ganji,
+      gender,
+      year,
+      month,
+      day
+    );
+
+    // 연운 계산 (현재년도 기준 ±5년)
+    const currentYear = new Date().getFullYear();
+    const yearlyFortunes = calculateYearlyFortunes(
+      currentYear - 1,
+      currentYear + 5,
+      result.dayPillar.cheongan,
+      result.yongsin
+    );
+
     return NextResponse.json({
       success: true,
       data: {
         ...result,
+        majorFortunes,
+        yearlyFortunes,
+        gender,
         analysis: {
           ilganTraits,
           yongsinAdvice,
