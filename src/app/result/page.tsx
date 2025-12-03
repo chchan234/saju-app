@@ -145,9 +145,6 @@ function ResultContent() {
           <BokbiModal />
         </div>
 
-        <footer className="mt-12 text-center text-sm text-muted-foreground">
-          <p>※ 본 결과는 참고용이며, 전문 역학인의 상담을 권장합니다.</p>
-        </footer>
       </div>
     </main>
   );

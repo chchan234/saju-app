@@ -747,9 +747,6 @@ function CoupleResultContent() {
           <BokbiModal />
         </div>
 
-        <footer className="mt-12 text-center text-sm text-muted-foreground">
-          <p>※ 본 결과는 참고용이며, 실제 관계는 서로의 노력에 따라 달라집니다.</p>
-        </footer>
       </div>
     </main>
   );

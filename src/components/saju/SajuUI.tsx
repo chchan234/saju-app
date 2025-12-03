@@ -38,9 +38,11 @@ import type { Pillar, OhengCount } from "@/types/saju";
 export function BokbiModal() {
     const [copied, setCopied] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
+    const [isEnvelopeOpen, setIsEnvelopeOpen] = useState(false);
     const accountNumber = "3333-01-5848626";
 
-    const handleCopy = async () => {
+    const handleCopy = async (e: React.MouseEvent) => {
+        e.stopPropagation(); // Prevent toggling envelope when clicking copy
         try {
             await navigator.clipboard.writeText(accountNumber);
             setCopied(true);
@@ -57,8 +59,15 @@ export function BokbiModal() {
         }
     };
 
+    const toggleEnvelope = () => {
+        setIsEnvelopeOpen(!isEnvelopeOpen);
+    };
+
     return (
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <Dialog open={isOpen} onOpenChange={(open) => {
+            setIsOpen(open);
+            if (!open) setIsEnvelopeOpen(false); // Reset on close
+        }}>
             <DialogTrigger asChild>
                 <Button
                     className="bg-[#BFA588] hover:bg-[#A89070] text-[#2C2824] font-serif border-none shadow-md hover:shadow-lg transition-all duration-300"
@@ -66,7 +75,7 @@ export function BokbiModal() {
                     <span className="mr-2">🧧</span> 복채 봉투 건네기
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md bg-[#F5F1E6] dark:bg-[#2C2824] border-[#D4C5B0] dark:border-[#5C544A] p-0 overflow-hidden">
+            <DialogContent className="sm:max-w-md bg-[#F5F1E6] dark:bg-[#2C2824] border-[#D4C5B0] dark:border-[#5C544A] p-0 overflow-visible">
                 <div className="relative p-6 pt-12 flex flex-col items-center text-center">
                     {/* Decorative Background */}
                     <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#BFA588] via-[#D4C5B0] to-[#BFA588]"></div>
@@ -74,7 +83,7 @@ export function BokbiModal() {
 
                     <DialogHeader className="mb-6 relative z-10">
                         <DialogTitle className="text-2xl font-serif font-bold text-[#5C544A] dark:text-[#D4C5B0] flex flex-col items-center gap-2">
-                            <span className="text-sm font-sans font-normal text-[#8E7F73] tracking-widest">ENERGY EXCHANGE</span>
+                            <span className="text-sm font-sans font-normal text-[#8E7F73] tracking-widest">에너지 교환</span>
                             복채(福債)를 건네다
                         </DialogTitle>
                     </DialogHeader>
@@ -87,37 +96,76 @@ export function BokbiModal() {
                         </p>
 
                         <p className="text-xs text-stone-500 dark:text-stone-500 mt-2">
-                            작은 정성으로 오늘 확인한<br />좋은 운세에 확신을 더하세요.
+                            봉투를 눌러 마음을 전하세요.
                         </p>
 
                         {/* Envelope UI */}
-                        <div className="relative group cursor-pointer perspective-1000" onClick={handleCopy}>
-                            <div className="w-full h-40 bg-[#D4C5B0] dark:bg-[#4A4036] rounded-lg shadow-lg relative overflow-hidden transition-all duration-500 transform group-hover:-translate-y-1">
-                                {/* Envelope Flap */}
-                                <div className="absolute top-0 left-0 w-full h-1/2 bg-[#C5B4A0] dark:bg-[#5C5044] origin-top transition-transform duration-500 z-20" style={{ clipPath: "polygon(0 0, 100% 0, 50% 100%)" }}></div>
-
-                                {/* Money/Bill inside */}
-                                <div className="absolute top-4 left-4 right-4 bottom-4 bg-white dark:bg-[#2C2824] border border-stone-200 dark:border-stone-700 rounded flex flex-col items-center justify-center p-4 transition-transform duration-500 transform translate-y-8 group-hover:translate-y-0 z-10">
-                                    <p className="text-xs text-stone-400 mb-1">카카오뱅크</p>
-                                    <p className="font-mono font-bold text-stone-700 dark:text-stone-300 text-lg tracking-wider">3333-01</p>
-                                    <p className="font-mono font-bold text-stone-700 dark:text-stone-300 text-lg tracking-wider">5848626</p>
-                                    <div className="mt-2 text-[10px] text-stone-400 flex items-center gap-1">
-                                        {copied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
-                                        {copied ? "복사완료!" : "터치하여 복사"}
-                                    </div>
-                                </div>
-
-                                {/* Envelope Body (Bottom) */}
-                                <div className="absolute bottom-0 left-0 w-full h-1/2 bg-[#BFA588] dark:bg-[#3E352C] z-30" style={{ clipPath: "polygon(0 0, 50% 40%, 100% 0, 100% 100%, 0 100%)" }}></div>
+                        <div
+                            className="relative h-72 w-full cursor-pointer perspective-1000 mt-8 mb-4 group"
+                            onClick={toggleEnvelope}
+                        >
+                            {/* Money/Bill inside - Slides up when open */}
+                            <div
+                                className={`absolute left-4 right-4 bg-white dark:bg-[#2C2824] border border-stone-200 dark:border-stone-700 rounded flex flex-col items-center justify-center p-4 transition-all duration-700 ease-in-out z-10 shadow-sm
+                                ${isEnvelopeOpen ? 'bottom-36' : 'bottom-4 group-hover:bottom-8'}`}
+                                style={{ height: '140px' }}
+                            >
+                                <p className="text-xs text-stone-400 mb-2">카카오뱅크</p>
+                                <p className="font-mono font-bold text-stone-700 dark:text-stone-300 text-lg tracking-wider">3333-01</p>
+                                <p className="font-mono font-bold text-stone-700 dark:text-stone-300 text-lg tracking-wider mb-3">5848626</p>
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-7 text-xs gap-1 bg-stone-50 hover:bg-stone-100 dark:bg-stone-800 dark:hover:bg-stone-700"
+                                    onClick={handleCopy}
+                                >
+                                    {copied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
+                                    {copied ? "복사완료" : "계좌 복사"}
+                                </Button>
                             </div>
 
+                            {/* Envelope Back */}
+                            <div className="absolute bottom-0 left-0 w-full h-32 bg-[#C5B4A0] dark:bg-[#4A4036] rounded-b-lg shadow-lg z-0"></div>
+
+                            {/* Envelope Flap - Rotates open */}
+                            <div
+                                className={`absolute bottom-0 left-0 w-full h-32 transition-all duration-700 ease-in-out origin-top
+                                ${isEnvelopeOpen ? 'z-1 delay-200' : 'z-20 delay-200'}`}
+                                style={{
+                                    transform: isEnvelopeOpen ? 'rotateX(180deg)' : 'rotateX(0deg)',
+                                    transformStyle: 'preserve-3d',
+                                    marginBottom: '128px' /* Positions the flap on top of the back (h-32 = 128px) */
+                                }}
+                            >
+                                {/* Flap Front (Closed state) */}
+                                <div
+                                    className="absolute top-0 left-0 w-full h-full bg-[#BFA588] dark:bg-[#5C5044] rounded-t-lg backface-hidden"
+                                    style={{ clipPath: "polygon(0 0, 100% 0, 50% 55%)", backfaceVisibility: 'hidden' }}
+                                ></div>
+
+                                {/* Flap Back (Open state - visible after rotation) */}
+                                <div
+                                    className="absolute top-0 left-0 w-full h-full bg-[#A89070] dark:bg-[#4A4036] rounded-t-lg"
+                                    style={{ clipPath: "polygon(0 0, 100% 0, 50% 55%)", transform: 'rotateX(180deg)', backfaceVisibility: 'hidden' }}
+                                ></div>
+                            </div>
+
+                            {/* Envelope Body (Front) */}
+                            <div
+                                className="absolute bottom-0 left-0 w-full h-32 bg-[#D4C5B0] dark:bg-[#5C5044] rounded-b-lg z-30 pointer-events-none"
+                                style={{ clipPath: "polygon(0 0, 50% 40%, 100% 0, 100% 100%, 0 100%)" }}
+                            ></div>
+
                             {/* Seal */}
-                            <div className="absolute top-[35%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-red-800 rounded-full border-2 border-red-900 shadow-md z-40 flex items-center justify-center text-white font-serif text-xs font-bold group-hover:opacity-0 transition-opacity duration-300">
+                            <div
+                                className={`absolute bottom-[82px] left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-red-800 rounded-full border-2 border-red-900 shadow-md z-40 flex items-center justify-center text-white font-serif text-sm font-bold transition-all duration-500
+                                ${isEnvelopeOpen ? 'opacity-0 scale-50' : 'opacity-100 scale-100'}`}
+                            >
                                 福
                             </div>
                         </div>
 
-                        <div className="text-[10px] text-stone-400 pt-4">
+                        <div className="text-[10px] text-stone-400 pt-2">
                             * 보내주신 복채는 서버 운영과 서비스 개선에 사용됩니다.
                         </div>
                     </div>

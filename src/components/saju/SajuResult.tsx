@@ -9,9 +9,9 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp, Sparkles, Mountain, Flame, Droplets, Coins, TreeDeciduous, Scroll } from "lucide-react";
+import { ChevronDown, ChevronUp, Sparkles, Mountain, Flame, Droplets, Coins, TreeDeciduous, Scroll, User, Heart, Briefcase, Brain, MessageCircle } from "lucide-react";
 import type { SajuApiResult, Pillar, OhengCount } from "@/types/saju";
-import type { IlganTraits, OhengAdvice } from "@/lib/saju-traits";
+import { getIlganTraits, type IlganTraits, type OhengAdvice } from "@/lib/saju-traits";
 import {
   ILJU_SYMBOLS,
   UNSEONG_INFO,
@@ -93,7 +93,7 @@ function IljuSymbolCard({ ilju, symbol }: { ilju: string; symbol: IljuSymbol }) 
       <div className="h-2 bg-gradient-to-r from-[#8E7F73] to-[#D4C5B0]"></div>
       <CardHeader>
         <CardTitle className="flex items-center gap-3 font-serif text-xl">
-          <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-stone-100 dark:bg-stone-800 text-2xl font-bold text-[#8E7F73]">
+          <span className="flex items-center justify-center w-12 h-10 rounded-lg bg-stone-100 dark:bg-stone-800 text-base font-bold text-[#8E7F73]">
             {symbol.hanja}
           </span>
           <div>
@@ -176,7 +176,7 @@ function PillarMeaningsCard({ timeUnknown }: { timeUnknown: boolean }) {
                       <Badge variant="secondary" className="bg-white dark:bg-stone-800">{pillar.ageRange}</Badge>
                     </div>
                     <p className="text-sm font-medium text-[#8E7F73] mb-1">{pillar.lifeArea}</p>
-                    <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{pillar.characteristics}</p>
+                    <p className="text-xs text-muted-foreground mb-2">{pillar.characteristics}</p>
                     <div className="flex flex-wrap gap-1">
                       {pillar.represents.slice(0, 3).map((item) => (
                         <Badge key={item} variant="outline" className="text-[10px] px-1.5 py-0 h-5 border-stone-200">{item}</Badge>
@@ -482,7 +482,7 @@ function PersonalPillarMeaningsCard({
                   <span className="font-serif font-medium">{label}</span>
                   <Badge variant="outline" className="text-xs bg-white dark:bg-black/20">{gapja}</Badge>
                 </div>
-                <p className="text-sm text-stone-700 dark:text-stone-300 line-clamp-2">{meaning.meaning}</p>
+                <p className="text-sm text-stone-700 dark:text-stone-300">{meaning.meaning}</p>
               </div>
             );
           })}
@@ -528,6 +528,141 @@ function PersonalPillarMeaningsCard({
             })}
           </CollapsibleContent>
         </Collapsible>
+      </CardContent>
+    </Card>
+  );
+}
+
+// 일간 성향 분석 카드
+function IlganTraitsCard({ ilgan }: { ilgan: string }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const traits = getIlganTraits(ilgan);
+
+  if (!traits) return null;
+
+  return (
+    <Card className="border-none shadow-md bg-white/80 dark:bg-stone-900/80 backdrop-blur-sm overflow-hidden">
+      <div className="h-2 bg-gradient-to-r from-[#5C544A] to-[#8E7F73]"></div>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-3 font-serif text-xl">
+          <span className="flex items-center justify-center w-10 h-10 rounded-full bg-[#F5F1E6] dark:bg-[#2C2824] text-lg">
+            <User className="w-5 h-5 text-[#8E7F73]" />
+          </span>
+          <div>
+            <span className="block text-sm text-muted-foreground font-sans font-normal">일간(日干) 성향</span>
+            <span className="text-[#5C544A] dark:text-[#D4C5B0]">{traits.type}</span>
+          </div>
+          <Badge className="ml-auto bg-[#8E7F73]/10 text-[#8E7F73] border-[#8E7F73]/20">
+            {traits.name}({traits.hanja}) · {traits.oheng} · {traits.yinyang}
+          </Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {/* 상징 & 키워드 */}
+          <div className="p-4 bg-[#F9F7F2] dark:bg-[#2C2824] rounded-xl border border-[#E8DCC4] dark:border-[#3E3832]">
+            <div className="flex items-start gap-3 mb-3">
+              <span className="text-2xl">🌟</span>
+              <div>
+                <p className="font-serif text-base font-medium text-[#5C544A] dark:text-[#D4C5B0] mb-1">
+                  상징: {traits.symbol}
+                </p>
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {traits.keywords.map((keyword) => (
+                    <Badge key={keyword} variant="secondary" className="bg-white/80 dark:bg-black/20 text-xs">
+                      {keyword}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 성격 설명 */}
+          <div className="p-4 border border-stone-200 dark:border-stone-800 rounded-lg">
+            <p className="text-sm text-stone-700 dark:text-stone-300 leading-relaxed">
+              {traits.personality}
+            </p>
+          </div>
+
+          {/* 강점/약점 요약 */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-900">
+              <p className="text-xs font-medium text-green-700 dark:text-green-400 mb-2">💪 강점</p>
+              <div className="flex flex-wrap gap-1">
+                {traits.strengths.slice(0, 3).map((s) => (
+                  <Badge key={s} variant="outline" className="text-[10px] bg-white/50 dark:bg-black/20 border-green-300">
+                    {s}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+            <div className="p-3 bg-orange-50 dark:bg-orange-950/20 rounded-lg border border-orange-200 dark:border-orange-900">
+              <p className="text-xs font-medium text-orange-700 dark:text-orange-400 mb-2">⚠️ 약점</p>
+              <div className="flex flex-wrap gap-1">
+                {traits.weaknesses.slice(0, 3).map((w) => (
+                  <Badge key={w} variant="outline" className="text-[10px] bg-white/50 dark:bg-black/20 border-orange-300">
+                    {w}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" className="w-full justify-between hover:bg-stone-100 dark:hover:bg-stone-800">
+                <span className="font-serif">상세 성향 분석 더보기</span>
+                {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-4 pt-4">
+              {/* 스타일 분석 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="p-4 border border-stone-200 dark:border-stone-800 rounded-lg">
+                  <h4 className="font-serif font-medium mb-2 flex items-center gap-2 text-sm">
+                    <Brain className="w-4 h-4 text-[#8E7F73]" />
+                    의사결정 스타일
+                  </h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{traits.decisionStyle}</p>
+                </div>
+                <div className="p-4 border border-stone-200 dark:border-stone-800 rounded-lg">
+                  <h4 className="font-serif font-medium mb-2 flex items-center gap-2 text-sm">
+                    <MessageCircle className="w-4 h-4 text-[#8E7F73]" />
+                    관계 스타일
+                  </h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{traits.relationStyle}</p>
+                </div>
+                <div className="p-4 border border-stone-200 dark:border-stone-800 rounded-lg">
+                  <h4 className="font-serif font-medium mb-2 flex items-center gap-2 text-sm">
+                    <Briefcase className="w-4 h-4 text-[#8E7F73]" />
+                    업무 스타일
+                  </h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{traits.workStyle}</p>
+                </div>
+                <div className="p-4 border border-stone-200 dark:border-stone-800 rounded-lg">
+                  <h4 className="font-serif font-medium mb-2 flex items-center gap-2 text-sm">
+                    <Heart className="w-4 h-4 text-[#8E7F73]" />
+                    연애 스타일
+                  </h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{traits.loveStyle}</p>
+                </div>
+              </div>
+
+              {/* 스트레스 패턴 */}
+              <div className="p-4 bg-red-50/50 dark:bg-red-950/10 border border-red-200 dark:border-red-900 rounded-lg">
+                <h4 className="font-medium mb-1 text-red-700 dark:text-red-400 text-sm">😰 스트레스 받는 상황</h4>
+                <p className="text-sm text-red-600 dark:text-red-300">{traits.stressPattern}</p>
+              </div>
+
+              {/* 조언 */}
+              <div className="p-4 bg-[#F5F1E6] dark:bg-[#2C2824] rounded-lg border border-[#E8DCC4] dark:border-[#3E3832]">
+                <h4 className="font-serif font-medium mb-2 text-[#8E7F73]">💡 당신을 위한 조언</h4>
+                <p className="text-sm text-stone-700 dark:text-stone-300 leading-relaxed">{traits.advice}</p>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        </div>
       </CardContent>
     </Card>
   );
@@ -615,6 +750,9 @@ export function SajuResult({ result, name, timeUnknown = false }: SajuResultProp
 
       {/* 일주 상징/별명 */}
       {iljuSymbol && <IljuSymbolCard ilju={ilju} symbol={iljuSymbol} />}
+
+      {/* 일간 성향 분석 */}
+      <IlganTraitsCard ilgan={dayPillar.cheongan} />
 
       {/* 오행 분석 (Radar Chart) */}
       <Card>
