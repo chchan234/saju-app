@@ -75,110 +75,141 @@ export function BokbiModal() {
                     <span className="mr-2">🧧</span> 복채 봉투 건네기
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md bg-[#F5F1E6] dark:bg-[#2C2824] border-[#D4C5B0] dark:border-[#5C544A] p-0 overflow-visible">
-                <div className="relative p-6 pt-12 flex flex-col items-center text-center">
-                    {/* Decorative Background */}
-                    <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#BFA588] via-[#D4C5B0] to-[#BFA588]"></div>
-                    <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/korean-paper.png')]"></div>
+            <DialogContent className="sm:max-w-md bg-[#F5F1E6] dark:bg-[#2C2824] border-[#D4C5B0] dark:border-[#5C544A] p-0 overflow-visible border-0 shadow-2xl">
+                <div className="relative p-8 pt-12 flex flex-col items-center text-center min-h-[500px]">
+                    {/* Background Texture */}
+                    <div className="absolute inset-0 bg-[#F5F1E6] dark:bg-[#2C2824] rounded-lg overflow-hidden">
+                        <div className="absolute inset-0 opacity-30 bg-[url('https://www.transparenttextures.com/patterns/korean-paper.png')] mix-blend-multiply"></div>
+                        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#BFA588] via-[#D4C5B0] to-[#BFA588]"></div>
+                    </div>
 
-                    <DialogHeader className="mb-6 relative z-10">
-                        <DialogTitle className="text-2xl font-serif font-bold text-[#5C544A] dark:text-[#D4C5B0] flex flex-col items-center gap-2">
-                            <span className="text-sm font-sans font-normal text-[#8E7F73] tracking-widest">에너지 교환</span>
-                            복채(福債)를 건네다
+                    <DialogHeader className="mb-8 relative z-10">
+                        <DialogTitle className="text-2xl font-serif font-bold text-[#5C544A] dark:text-[#D4C5B0] flex flex-col items-center gap-3">
+                            <span className="text-xs font-sans font-medium text-[#8E7F73] tracking-[0.3em] uppercase">Energy Exchange</span>
+                            <span className="text-3xl">복채(福債)를 건네다</span>
                         </DialogTitle>
                     </DialogHeader>
 
-                    <div className="relative z-10 space-y-6 w-full max-w-xs mx-auto">
-                        <p className="text-sm text-stone-600 dark:text-stone-400 leading-relaxed break-keep">
+                    <div className="relative z-10 w-full max-w-[280px] mx-auto flex flex-col items-center">
+                        <p className="text-sm text-stone-600 dark:text-stone-400 leading-7 break-keep mb-8 font-medium">
                             "복비는 단순한 비용이 아니라,<br />
                             당신의 운명을 긍정적으로 바꾸는<br />
-                            <span className="font-bold text-[#BFA588]">에너지의 교환</span>입니다."
+                            <span className="font-bold text-[#BFA588] underline decoration-[#BFA588]/50 underline-offset-4">에너지의 교환</span>입니다."
                         </p>
 
-                        <p className="text-xs text-stone-500 dark:text-stone-500 mt-2">
-                            봉투를 눌러 마음을 전하세요.
-                        </p>
-
-                        {/* Envelope UI - 3D 회전 애니메이션 */}
+                        {/* --- REALISTIC ENVELOPE COMPONENT --- */}
                         <div
-                            className="relative w-full cursor-pointer mt-6 mb-4"
-                            style={{ aspectRatio: '3/2', perspective: '1000px' }}
+                            className="relative w-full h-40 cursor-pointer group perspective-1000"
                             onClick={toggleEnvelope}
                         >
-                            {/* 봉투 본체 */}
-                            <div className="absolute bottom-0 left-0 w-full h-[60%] bg-[#D4C5B0] dark:bg-[#5C5044] rounded-lg shadow-lg overflow-hidden">
-                                {/* 봉투 안쪽 상단 그림자 */}
-                                <div className="absolute top-0 left-0 w-full h-4 bg-gradient-to-b from-[#B8A894] dark:from-[#4A4036] to-transparent"></div>
+                            {/* 1. LAYER: BACK (Inside of Envelope) */}
+                            {/* This is the dark inside part visible when opened */}
+                            <div className="absolute inset-0 bg-[#8E7F73] dark:bg-[#3E3832] rounded-b-lg shadow-inner overflow-hidden">
+                                <div className="absolute inset-0 opacity-20 bg-black/20"></div>
+                            </div>
 
-                                {/* 계좌 카드 - 플랩 열린 후 슬라이드 업 */}
-                                <div
-                                    className={`absolute left-[8%] right-[8%] bg-white dark:bg-[#2C2824] rounded-lg flex flex-col items-center justify-center p-3 shadow-md border border-stone-200 dark:border-stone-600 transition-all ease-out`}
-                                    style={{
-                                        height: '80%',
-                                        bottom: isEnvelopeOpen ? '10%' : '-85%',
-                                        opacity: isEnvelopeOpen ? 1 : 0,
-                                        transitionDuration: '400ms',
-                                        transitionDelay: isEnvelopeOpen ? '350ms' : '0ms'
-                                    }}
-                                >
-                                    <p className="text-[10px] sm:text-xs text-stone-400 mb-1">카카오뱅크</p>
-                                    <p className="font-mono font-bold text-stone-700 dark:text-stone-300 text-sm sm:text-base tracking-wider">
-                                        3333-01-5848626
-                                    </p>
+                            {/* 2. LAYER: CONTENT (Money/Card) */}
+                            {/* Slides UP from BEHIND the Front layer, but IN FRONT of the Back layer */}
+                            <div
+                                className={`absolute left-3 right-3 h-32 bg-white dark:bg-[#1a1a1a] rounded shadow-md flex flex-col items-center justify-center p-4 transition-all duration-700 cubic-bezier(0.34, 1.56, 0.64, 1) z-10 border border-stone-100 dark:border-stone-700
+                                ${isEnvelopeOpen ? 'bottom-24' : 'bottom-2'}`}
+                                style={{
+                                    transitionDelay: isEnvelopeOpen ? '300ms' : '0ms' // Wait for flap to open
+                                }}
+                            >
+                                <div className="w-full h-full border border-stone-200 dark:border-stone-600 rounded flex flex-col items-center justify-center relative overflow-hidden">
+                                    {/* Watermark/Pattern on money */}
+                                    <div className="absolute inset-0 opacity-5 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-stone-400 to-transparent"></div>
+
+                                    <p className="text-[10px] text-stone-400 mb-1 uppercase tracking-wider">KakaoBank</p>
+                                    <p className="font-mono font-bold text-stone-700 dark:text-stone-300 text-lg tracking-wider z-10">3333-01-5848626</p>
+
                                     <Button
                                         size="sm"
-                                        variant="outline"
-                                        className="h-6 sm:h-7 text-[10px] sm:text-xs gap-1 bg-stone-50 hover:bg-stone-100 dark:bg-stone-800 dark:hover:bg-stone-700 mt-2"
+                                        variant="ghost"
+                                        className="mt-3 h-8 text-xs gap-1.5 bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 transition-colors"
                                         onClick={handleCopy}
                                     >
-                                        {copied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
-                                        {copied ? "복사완료" : "계좌 복사"}
+                                        {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5 text-stone-500" />}
+                                        <span className={copied ? "text-green-700 font-medium" : "text-stone-600"}>
+                                            {copied ? "복사완료" : "계좌번호 복사"}
+                                        </span>
                                     </Button>
                                 </div>
                             </div>
 
-                            {/* 봉투 플랩 - 뒤로 젖혀지는 3D 회전 */}
+                            {/* 3. LAYER: FRONT (The Pocket) */}
+                            {/* Covers the bottom of the content. Highest Z-index for body parts. */}
                             <div
-                                className="absolute left-0 w-full origin-top transition-transform duration-500 ease-out"
+                                className="absolute inset-0 z-20 pointer-events-none"
+                            >
+                                {/* Using SVG for precise envelope shape with V-cut */}
+                                <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" className="drop-shadow-md">
+                                    <defs>
+                                        <filter id="paper-texture" x="0%" y="0%" width="100%" height="100%">
+                                            <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" result="noise" />
+                                            <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.1 0" in="noise" result="coloredNoise" />
+                                            <feComposite operator="in" in="coloredNoise" in2="SourceGraphic" result="composite" />
+                                            <feBlend mode="multiply" in="composite" in2="SourceGraphic" />
+                                        </filter>
+                                    </defs>
+                                    {/* Main Body Path */}
+                                    <path
+                                        d="M0,0 L50,55 L100,0 L100,100 L0,100 Z"
+                                        className="fill-[#D4C5B0] dark:fill-[#5C5044]"
+                                    />
+                                    {/* Left Fold Shadow (Subtle) */}
+                                    <path d="M0,0 L50,55 L0,100 Z" className="fill-black/5 mix-blend-multiply" />
+                                    {/* Right Fold Shadow (Subtle) */}
+                                    <path d="M100,0 L50,55 L100,100 Z" className="fill-black/10 mix-blend-multiply" />
+                                </svg>
+
+                                {/* Seal (Stays on the front body when open? No, seal usually breaks or is on flap. Let's put it on the flap for realism, or just decorative on body) */}
+                                {/* Actually, if the seal is "locking" the flap, it should move with the flap or break. 
+                                    Let's keep it simple: A seal on the flap is better. Removing from here. */}
+                            </div>
+
+                            {/* 4. LAYER: FLAP (The Lid) */}
+                            {/* Rotates from the top. */}
+                            <div
+                                className="absolute top-0 left-0 w-full h-[55%] z-30 origin-top transition-transform duration-500 ease-in-out"
                                 style={{
-                                    height: '40%',
-                                    bottom: '20%',
-                                    transform: isEnvelopeOpen ? 'rotateX(-180deg)' : 'rotateX(0deg)',
+                                    transform: isEnvelopeOpen ? 'rotateX(180deg)' : 'rotateX(0deg)',
                                     transformStyle: 'preserve-3d',
-                                    zIndex: isEnvelopeOpen ? 5 : 20
                                 }}
                             >
-                                {/* 플랩 앞면 (닫혔을 때 보임) */}
-                                <div
-                                    className="absolute inset-0 bg-[#BFA588] dark:bg-[#5C5044]"
-                                    style={{
-                                        clipPath: "polygon(0 0, 100% 0, 50% 100%)",
-                                        backfaceVisibility: 'hidden'
-                                    }}
-                                >
-                                    {/* 福 봉인 - 플랩 끝(삼각형 꼭지점)에 위치 */}
-                                    <div
-                                        className="absolute left-1/2 -translate-x-1/2 bottom-0 translate-y-1/2 w-9 h-9 sm:w-11 sm:h-11 bg-gradient-to-br from-red-600 to-red-800 rounded-full border-2 border-red-900 shadow-md flex items-center justify-center text-yellow-100 font-serif text-sm sm:text-base font-bold"
-                                    >
-                                        福
+                                {/* Flap Front (Visible when closed) */}
+                                <div className="absolute inset-0 backface-hidden">
+                                    <svg width="100%" height="100%" viewBox="0 0 100 55" preserveAspectRatio="none" className="drop-shadow-lg">
+                                        <path d="M0,0 L50,55 L100,0 Z" className="fill-[#C5B4A0] dark:fill-[#4A4036]" />
+                                        {/* Texture Overlay */}
+                                        <path d="M0,0 L50,55 L100,0 Z" className="fill-black/5 mix-blend-multiply" />
+                                    </svg>
+
+                                    {/* Seal - Attached to Flap Front */}
+                                    <div className="absolute bottom-[10%] left-1/2 transform -translate-x-1/2 translate-y-1/2 w-10 h-10 bg-[#8B0000] rounded-full shadow-lg flex items-center justify-center border-2 border-[#A52A2A]">
+                                        <span className="text-[#D4AF37] font-serif font-bold text-lg">福</span>
                                     </div>
                                 </div>
 
-                                {/* 플랩 뒷면 (열렸을 때 보임) */}
-                                <div
-                                    className="absolute inset-0 bg-[#A89070] dark:bg-[#4A4036]"
-                                    style={{
-                                        clipPath: "polygon(0 0, 100% 0, 50% 100%)",
-                                        transform: 'rotateX(180deg)',
-                                        backfaceVisibility: 'hidden'
-                                    }}
-                                ></div>
+                                {/* Flap Back (Visible when open) */}
+                                <div className="absolute inset-0 backface-hidden" style={{ transform: 'rotateX(180deg)' }}>
+                                    <svg width="100%" height="100%" viewBox="0 0 100 55" preserveAspectRatio="none">
+                                        <path d="M0,0 L50,55 L100,0 Z" className="fill-[#BFA588] dark:fill-[#5C5044]" />
+                                    </svg>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="text-[10px] text-stone-400 pt-2">
+                        <p className={`text-xs text-stone-400 mt-8 transition-opacity duration-500 ${isEnvelopeOpen ? 'opacity-100' : 'opacity-0'}`}>
                             * 보내주신 복채는 서버 운영과 서비스 개선에 사용됩니다.
-                        </div>
+                        </p>
+
+                        {!isEnvelopeOpen && (
+                            <p className="text-xs text-stone-500 animate-pulse mt-8">
+                                봉투를 터치하여 열어보세요
+                            </p>
+                        )}
                     </div>
                 </div>
             </DialogContent>
