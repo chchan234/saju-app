@@ -106,17 +106,16 @@ export function BokbiModal() {
                         >
                             {/* Money/Bill inside - Slides up when open */}
                             <div
-                                className={`absolute left-4 right-4 bg-white dark:bg-[#2C2824] border border-stone-200 dark:border-stone-700 rounded flex flex-col items-center justify-center p-4 transition-all duration-700 ease-in-out z-10 shadow-sm
-                                ${isEnvelopeOpen ? 'bottom-36' : 'bottom-4 group-hover:bottom-8'}`}
-                                style={{ height: '140px' }}
+                                className={`absolute left-4 right-4 bg-white dark:bg-[#2C2824] border border-stone-200 dark:border-stone-700 rounded-lg flex flex-col items-center justify-center p-4 transition-all duration-700 ease-in-out shadow-md
+                                ${isEnvelopeOpen ? 'bottom-40 z-50' : 'bottom-[-30px] z-10'}`}
+                                style={{ height: '130px' }}
                             >
                                 <p className="text-xs text-stone-400 mb-2">카카오뱅크</p>
-                                <p className="font-mono font-bold text-stone-700 dark:text-stone-300 text-lg tracking-wider">3333-01</p>
-                                <p className="font-mono font-bold text-stone-700 dark:text-stone-300 text-lg tracking-wider mb-3">5848626</p>
+                                <p className="font-mono font-bold text-stone-700 dark:text-stone-300 text-lg tracking-wider">3333-01-5848626</p>
                                 <Button
                                     size="sm"
                                     variant="outline"
-                                    className="h-7 text-xs gap-1 bg-stone-50 hover:bg-stone-100 dark:bg-stone-800 dark:hover:bg-stone-700"
+                                    className="h-7 text-xs gap-1 bg-stone-50 hover:bg-stone-100 dark:bg-stone-800 dark:hover:bg-stone-700 mt-3"
                                     onClick={handleCopy}
                                 >
                                     {copied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
@@ -156,10 +155,10 @@ export function BokbiModal() {
                                 style={{ clipPath: "polygon(0 0, 50% 40%, 100% 0, 100% 100%, 0 100%)" }}
                             ></div>
 
-                            {/* Seal */}
+                            {/* Seal - positioned at envelope flap junction */}
                             <div
-                                className={`absolute bottom-[82px] left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-red-800 rounded-full border-2 border-red-900 shadow-md z-40 flex items-center justify-center text-white font-serif text-sm font-bold transition-all duration-500
-                                ${isEnvelopeOpen ? 'opacity-0 scale-50' : 'opacity-100 scale-100'}`}
+                                className={`absolute bottom-[180px] left-1/2 transform -translate-x-1/2 w-12 h-12 bg-gradient-to-br from-red-700 to-red-900 rounded-full border-2 border-red-950 shadow-lg z-40 flex items-center justify-center text-yellow-100 font-serif text-lg font-bold transition-all duration-500
+                                ${isEnvelopeOpen ? 'opacity-0 scale-50 rotate-45' : 'opacity-100 scale-100 rotate-0'}`}
                             >
                                 福
                             </div>
