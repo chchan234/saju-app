@@ -110,7 +110,7 @@ export function BokbiModal() {
                                 {/* 계좌 카드 - 봉투 안에 숨겨져 있다가 위로 튀어나옴 */}
                                 <div
                                     className={`absolute left-[10%] right-[10%] bg-white dark:bg-[#2C2824] border border-stone-200 dark:border-stone-700 rounded-xl flex flex-col items-center justify-center p-4 shadow-lg transition-all duration-700 ease-out
-                                    ${isEnvelopeOpen ? 'bottom-[55%] z-50 opacity-100' : 'bottom-[5%] z-10 opacity-90'}`}
+                                    ${isEnvelopeOpen ? 'bottom-[55%] z-50 opacity-100' : 'bottom-[-35%] z-10 opacity-90'}`}
                                     style={{ height: '40%' }}
                                 >
                                     <p className="text-xs text-stone-400 mb-1">카카오뱅크</p>
