@@ -352,11 +352,11 @@ export function analyzeSipsinDistribution(
   let analysis = "";
   if (dominant) {
     const dominantInfo = SIPSIN_CATEGORY_INFO[dominant];
-    analysis = `${dominantInfo.friendlyName} 성향이 두드러집니다. ${dominantInfo.friendlyDescription}`;
+    analysis = `${dominantInfo.name}(${dominantInfo.friendlyName}) 성향이 두드러집니다. ${dominantInfo.friendlyDescription}`;
   }
   if (weak) {
     const weakInfo = SIPSIN_CATEGORY_INFO[weak];
-    analysis += ` 다만, ${weakInfo.friendlyName} 영역에서 보완이 필요합니다.`;
+    analysis += ` 다만, ${weakInfo.name}(${weakInfo.friendlyName}) 영역에서 보완이 필요합니다.`;
   }
 
   return { distribution, dominant, weak, analysis };

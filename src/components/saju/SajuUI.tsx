@@ -113,10 +113,11 @@ export function BokbiModal() {
                             {/* 2. LAYER: CONTENT (Money/Card) */}
                             {/* Slides UP from BEHIND the Front layer, but IN FRONT of the Back layer */}
                             <div
-                                className={`absolute left-3 right-3 h-32 bg-white dark:bg-[#1a1a1a] rounded shadow-md flex flex-col items-center justify-center p-4 transition-all duration-700 cubic-bezier(0.34, 1.56, 0.64, 1) z-10 border border-stone-100 dark:border-stone-700
-                                ${isEnvelopeOpen ? 'bottom-24' : 'bottom-2'}`}
+                                className={`absolute left-3 right-3 h-32 bg-white dark:bg-[#1a1a1a] rounded shadow-md flex flex-col items-center justify-center p-4 transition-all duration-700 cubic-bezier(0.34, 1.56, 0.64, 1) border border-stone-100 dark:border-stone-700
+                                ${isEnvelopeOpen ? 'bottom-24 z-30' : 'bottom-2 z-10'}`}
                                 style={{
-                                    transitionDelay: isEnvelopeOpen ? '300ms' : '0ms' // Wait for flap to open
+                                    transitionDelay: isEnvelopeOpen ? '300ms' : '0ms', // Wait for flap to open
+                                    pointerEvents: isEnvelopeOpen ? 'auto' : 'none'
                                 }}
                             >
                                 <div className="w-full h-full border border-stone-200 dark:border-stone-600 rounded flex flex-col items-center justify-center relative overflow-hidden">

@@ -652,11 +652,11 @@ function PairCompatibilityReasonCard({ pairs }: { pairs: PairCompatibility[] }) 
           // 긍정적/부정적 이유 통합
           const positiveReasons = [
             ...ilganAnalysis.positive,
-            ...ohengAnalysis.complementary.map(c => `${c} 오행이 서로를 보완`),
+            ...ohengAnalysis.complementary,
           ];
           const negativeReasons = [
             ...ilganAnalysis.negative,
-            ...ohengAnalysis.conflict.map(c => `${c} 오행에서 충돌`),
+            ...ohengAnalysis.conflict,
           ];
 
           return (

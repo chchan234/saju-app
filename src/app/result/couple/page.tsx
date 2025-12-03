@@ -354,13 +354,13 @@ function CompatibilityReasonCard({ compatibility, name1, name2 }: {
   // 긍정적 요소들 통합
   const positiveReasons = [
     ...ilganAnalysis.positive.map(p => ({ text: p, source: "일간 관계" })),
-    ...ohengAnalysis.complementary.map(c => ({ text: `${c} 오행이 서로를 보완합니다`, source: "오행 조화" })),
+    ...ohengAnalysis.complementary.map(c => ({ text: c, source: "오행 조화" })),
   ];
 
   // 부정적 요소들 통합
   const negativeReasons = [
     ...ilganAnalysis.negative.map(n => ({ text: n, source: "일간 관계" })),
-    ...ohengAnalysis.conflict.map(c => ({ text: `${c} 오행에서 충돌이 있습니다`, source: "오행 충돌" })),
+    ...ohengAnalysis.conflict.map(c => ({ text: c, source: "오행 상극" })),
   ];
 
   return (
@@ -472,7 +472,7 @@ function CompatibilityReasonCard({ compatibility, name1, name2 }: {
               {ohengAnalysis.complementary.length > 0 && (
                 <div className="mt-3 p-3 bg-green-50/50 dark:bg-green-950/10 rounded border border-green-100 dark:border-green-900/30">
                   <p className="text-sm text-green-700 dark:text-green-400">
-                    <span className="font-medium">✨ 보완 관계:</span> {ohengAnalysis.complementary.join(", ")} 오행에서 서로를 보완해줍니다.
+                    <span className="font-medium">✨ 보완 관계:</span> {ohengAnalysis.complementary.join(" / ")}
                   </p>
                 </div>
               )}
@@ -481,7 +481,7 @@ function CompatibilityReasonCard({ compatibility, name1, name2 }: {
               {ohengAnalysis.conflict.length > 0 && (
                 <div className="mt-2 p-3 bg-orange-50/50 dark:bg-orange-950/10 rounded border border-orange-100 dark:border-orange-900/30">
                   <p className="text-sm text-orange-700 dark:text-orange-400">
-                    <span className="font-medium">⚡ 충돌 관계:</span> {ohengAnalysis.conflict.join(", ")} 오행에서 충돌이 있어 조절이 필요합니다.
+                    <span className="font-medium">⚡ 상극 관계:</span> {ohengAnalysis.conflict.join(" / ")}
                   </p>
                 </div>
               )}

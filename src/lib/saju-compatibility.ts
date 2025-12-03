@@ -7,6 +7,21 @@
 
 import type { SajuApiResult } from "@/types/saju";
 
+// 오행 친근한 이름 매핑
+const OHENG_FRIENDLY_NAMES: Record<string, { name: string; friendlyName: string }> = {
+  목: { name: "목", friendlyName: "나무" },
+  화: { name: "화", friendlyName: "불" },
+  토: { name: "토", friendlyName: "흙" },
+  금: { name: "금", friendlyName: "쇠" },
+  수: { name: "수", friendlyName: "물" },
+};
+
+// 오행 이름을 친근한 형식으로 변환 (예: "목" → "나무(목)")
+function getOhengFriendlyName(oheng: string): string {
+  const info = OHENG_FRIENDLY_NAMES[oheng];
+  return info ? `${info.friendlyName}(${info.name})` : oheng;
+}
+
 // 십신(十神) 상세 설명
 const SIPSIN_DESCRIPTIONS: Record<string, string> = {
   비견: "비견(比肩)은 나와 같은 오행으로, 친구나 동료 같은 관계입니다. 서로 대등한 위치에서 경쟁하기도 하고 협력하기도 합니다. 비슷한 성향이라 이해는 빠르지만, 주도권 다툼이 생길 수 있습니다.",
@@ -400,14 +415,16 @@ function analyzeOhengRelation(oheng1: { 목: number; 화: number; 토: number; �
 
   // 보완 관계: 한쪽이 부족한 것을 다른 쪽이 가지고 있음
   const complementary: string[] = [];
+  const processedWeak: string[] = [];
   for (const weak of person1Weak) {
     if (person2Strong.includes(weak)) {
-      complementary.push(`${weak} (상대방이 보완)`);
+      complementary.push(`${getOhengFriendlyName(weak)}의 기운을 상대방이 채워줍니다`);
+      processedWeak.push(weak);
     }
   }
   for (const weak of person2Weak) {
-    if (person1Strong.includes(weak) && !complementary.some(c => c.startsWith(weak))) {
-      complementary.push(`${weak} (본인이 보완)`);
+    if (person1Strong.includes(weak) && !processedWeak.includes(weak)) {
+      complementary.push(`${getOhengFriendlyName(weak)}의 기운을 본인이 채워줍니다`);
     }
   }
 
@@ -420,7 +437,7 @@ function analyzeOhengRelation(oheng1: { 목: number; 화: number; 토: number; �
   for (const s1 of person1Strong) {
     for (const s2 of person2Strong) {
       if (SANGGEUK[s1] === s2 || SANGGEUK[s2] === s1) {
-        conflict.push(`${s1}↔${s2} 상극`);
+        conflict.push(`${getOhengFriendlyName(s1)}와 ${getOhengFriendlyName(s2)}의 기운이 부딪힐 수 있습니다`);
       }
     }
   }
@@ -480,11 +497,11 @@ function generateSummary(
 
   // 오행 분석 반영 - 더 자세하게
   if (ohengAnalysis.complementary.length > 0) {
-    strengths.push(`오행의 상생(相生) 보완: ${ohengAnalysis.complementary.join(", ")}의 기운이 서로를 보완해줍니다. 한 분에게 부족한 오행을 다른 분이 채워주어, 함께 있을 때 더 균형 잡힌 에너지를 느끼실 수 있습니다.`);
+    strengths.push(`오행의 상생(相生) 보완: ${ohengAnalysis.complementary.join(" / ")} 한 분에게 부족한 오행을 다른 분이 채워주어, 함께 있을 때 더 균형 잡힌 에너지를 느끼실 수 있습니다.`);
   }
 
   if (ohengAnalysis.conflict.length > 0) {
-    weaknesses.push(`오행의 상극(相剋) 충돌: ${ohengAnalysis.conflict.join(", ")} 관계가 있어 근본적인 기질 차이가 있을 수 있습니다. 서로의 성향이 다르다는 것을 인정하고, 그 차이를 보완점으로 활용하려는 노력이 필요합니다.`);
+    weaknesses.push(`오행의 상극(相剋): ${ohengAnalysis.conflict.join(" / ")} 근본적인 기질 차이가 있을 수 있지만, 서로의 성향이 다르다는 것을 인정하고 그 차이를 보완점으로 활용하려는 노력이 필요합니다.`);
   }
 
   // 종합 조언 생성 - 점수와 분석 결과를 바탕으로 구체적인 조언
