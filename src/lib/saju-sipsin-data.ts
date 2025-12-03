@@ -263,7 +263,7 @@ export const SIPSIN_DETAIL: Record<string, SipsinInfo> = {
     meaning: "사주의 중심인 일간(日干)으로, 나 자신을 의미합니다. 모든 십신 관계의 기준점이 됩니다.",
     personality: "일간은 그 사람의 본질적인 성격과 자아를 나타냅니다. 천간의 오행과 음양에 따라 성향이 결정됩니다.",
     strengths: ["주체성", "정체성", "자기 인식", "중심 역할"],
-    weaknesses: [],
+    weaknesses: ["자기 객관화의 어려움", "타인 관점 수용 필요", "과도한 자의식 주의"],
     inCareer: "일간의 오행 특성에 따라 적합한 진로가 달라집니다.",
     inRelationship: "일간은 관계의 주체로서 다른 십신들과의 조화를 통해 관계 양상이 결정됩니다.",
     inWealth: "일간의 강약에 따라 재물을 다루는 역량이 달라집니다.",
