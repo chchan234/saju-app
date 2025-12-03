@@ -283,6 +283,7 @@ export const SIPSIN_CATEGORY_INFO: Record<SipsinCategory, {
   hanja: string;
   description: string;
   friendlyDescription: string;
+  weakDescription: string;
   members: string[];
   element: string;
   color: string;
@@ -293,6 +294,7 @@ export const SIPSIN_CATEGORY_INFO: Record<SipsinCategory, {
     hanja: "比劫",
     description: "나와 같은 오행으로, 형제자매, 동료, 경쟁자를 의미합니다.",
     friendlyDescription: "자신만의 길을 가려는 독립심이 강합니다. 주체적이고 당당하며, 경쟁에서 지지 않으려는 성향이 있습니다.",
+    weakDescription: "주체성이나 독립심이 부족할 수 있습니다. 자신감을 키우고 스스로 결정하는 연습을 해보세요.",
     members: ["비견", "겁재"],
     element: "같은 오행",
     color: "#6B7280",  // gray
@@ -303,6 +305,7 @@ export const SIPSIN_CATEGORY_INFO: Record<SipsinCategory, {
     hanja: "食傷",
     description: "내가 생(生)해주는 오행으로, 표현력, 창의력, 자녀를 의미합니다.",
     friendlyDescription: "아이디어가 풍부하고 자기표현을 잘합니다. 예술적 감각과 말재주가 뛰어나며, 새로운 것을 만들어내는 능력이 있습니다.",
+    weakDescription: "자기표현이나 창의적 발상이 부족할 수 있습니다. 글쓰기, 예술 활동 등으로 표현력을 키워보세요.",
     members: ["식신", "상관"],
     element: "내가 생",
     color: "#10B981",  // green
@@ -313,6 +316,7 @@ export const SIPSIN_CATEGORY_INFO: Record<SipsinCategory, {
     hanja: "財星",
     description: "내가 극(克)하는 오행으로, 재물, 아버지, 아내(남자의 경우)를 의미합니다.",
     friendlyDescription: "돈과 물질에 대한 감각이 뛰어납니다. 실용적이고 현실적이며, 재물을 모으고 관리하는 능력이 있습니다.",
+    weakDescription: "재물 관리나 현실 감각이 부족할 수 있습니다. 가계부 작성이나 재테크 공부로 경제 관념을 키워보세요.",
     members: ["편재", "정재"],
     element: "내가 극",
     color: "#F59E0B",  // amber
@@ -323,6 +327,7 @@ export const SIPSIN_CATEGORY_INFO: Record<SipsinCategory, {
     hanja: "官星",
     description: "나를 극(克)하는 오행으로, 직업, 명예, 남편(여자의 경우)을 의미합니다.",
     friendlyDescription: "사회적 책임감과 명예를 중시합니다. 규율을 잘 지키고, 조직에서 인정받으려는 성향이 강합니다.",
+    weakDescription: "사회적 책임감이나 조직 적응력이 부족할 수 있습니다. 작은 약속부터 지키는 연습으로 신뢰를 쌓아보세요.",
     members: ["편관", "정관"],
     element: "나를 극",
     color: "#EF4444",  // red
@@ -333,6 +338,7 @@ export const SIPSIN_CATEGORY_INFO: Record<SipsinCategory, {
     hanja: "印星",
     description: "나를 생(生)해주는 오행으로, 학문, 어머니, 보호를 의미합니다.",
     friendlyDescription: "배우고 익히는 것을 좋아합니다. 안정을 추구하고, 지식과 지혜를 쌓아가는 성향이 있습니다.",
+    weakDescription: "학습 의욕이나 안정감이 부족할 수 있습니다. 독서나 자기계발 활동으로 내면을 채워보세요.",
     members: ["편인", "정인"],
     element: "나를 생",
     color: "#3B82F6",  // blue
@@ -343,6 +349,7 @@ export const SIPSIN_CATEGORY_INFO: Record<SipsinCategory, {
     hanja: "日主",
     description: "사주의 중심인 일간(日干)으로, 모든 십신 관계의 기준점입니다.",
     friendlyDescription: "일주는 사주에서 '나'를 의미합니다. 다른 모든 십신은 이 일간을 기준으로 관계가 결정됩니다.",
+    weakDescription: "",
     members: ["본인"],
     element: "자기 자신",
     color: "#8B5CF6",  // violet

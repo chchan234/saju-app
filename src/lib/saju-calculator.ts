@@ -145,7 +145,7 @@ function parseGanji(ganji: string): { cheongan: string; jiji: string } | null {
 /**
  * 기둥(Pillar) 생성
  */
-function createPillar(ganji: string, ilgan?: string): Pillar {
+function createPillar(ganji: string, ilgan?: string, pillarType?: "year" | "month" | "day" | "hour"): Pillar {
   const parsed = parseGanji(ganji);
   if (!parsed) {
     return {
@@ -171,9 +171,12 @@ function createPillar(ganji: string, ilgan?: string): Pillar {
 
   // 십신 계산 (일간 기준)
   if (ilgan) {
-    // 일간 자신은 "본인(日主)"으로 표시 (비견이 아님)
-    if (parsed.cheongan === ilgan) {
+    // 일주의 천간만 "본인(日主)"으로 표시
+    // 다른 기둥에서 일간과 같은 천간이 나오면 "비견"으로 처리
+    if (pillarType === "day") {
       result.cheonganSipsin = "본인";
+    } else if (parsed.cheongan === ilgan) {
+      result.cheonganSipsin = "비견";
     } else {
       result.cheonganSipsin = SIPSIN_MAP[ilgan]?.[parsed.cheongan];
     }
@@ -469,13 +472,13 @@ export function calculateSaju(
   const siJiji = JIJI_LIST[timeIndex];
   const timeGanji = siCheongan + siJiji;
 
-  // 각 기둥 생성
-  const yearPillar = createPillar(yearGanji, ilgan);
-  const monthPillar = createPillar(monthGanji, ilgan);
-  const dayPillar = createPillar(dayGanji, ilgan);  // 일주도 십신 계산 필요
+  // 각 기둥 생성 (pillarType을 전달하여 일주만 "본인"으로 표시)
+  const yearPillar = createPillar(yearGanji, ilgan, "year");
+  const monthPillar = createPillar(monthGanji, ilgan, "month");
+  const dayPillar = createPillar(dayGanji, ilgan, "day");  // 일주의 천간만 "본인"
   const timePillar = timeUnknown
-    ? createPillar("", ilgan)  // 시간 모름이면 빈 기둥
-    : createPillar(timeGanji, ilgan);
+    ? createPillar("", ilgan, "hour")  // 시간 모름이면 빈 기둥
+    : createPillar(timeGanji, ilgan, "hour");
 
   // 오행 카운트 (시간 입력 시 8글자 전체, 미입력 시 6글자만 사용)
   const pillarsForCount = timeUnknown

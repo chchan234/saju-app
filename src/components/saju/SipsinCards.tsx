@@ -256,7 +256,7 @@ export function SipsinDetailCard({ pillars, timeUnknown = false }: SipsinDetailC
                   ⚠️ 보완이 필요한 영역: {SIPSIN_CATEGORY_INFO[weak].name}({SIPSIN_CATEGORY_INFO[weak].friendlyName})
                 </p>
                 <p className="text-xs text-orange-600 dark:text-orange-300">
-                  {SIPSIN_CATEGORY_INFO[weak].friendlyDescription}
+                  {SIPSIN_CATEGORY_INFO[weak].weakDescription}
                 </p>
               </div>
             )}

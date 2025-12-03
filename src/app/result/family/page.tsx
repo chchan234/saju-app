@@ -1076,11 +1076,10 @@ function FamilyFortuneCalendarCard({
               return (
                 <div
                   key={index}
-                  className={`p-3 rounded-lg border ${
-                    isGolden
+                  className={`p-3 rounded-lg border ${isGolden
                       ? "bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800"
                       : "bg-white/60 border-stone-200 dark:bg-black/20 dark:border-stone-700"
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
@@ -1159,11 +1158,10 @@ function FamilyFortuneCalendarCard({
                         <td key={dIndex} className="text-center py-2 px-1">
                           {fortune ? (
                             <div
-                              className={`inline-block px-2 py-1 rounded ${
-                                isGolden
+                              className={`inline-block px-2 py-1 rounded ${isGolden
                                   ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 ring-1 ring-amber-300"
                                   : "bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300"
-                              }`}
+                                }`}
                             >
                               {fortune.ganji}
                             </div>
