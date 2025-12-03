@@ -101,7 +101,7 @@ export function BokbiModal() {
 
                         {/* --- REALISTIC ENVELOPE COMPONENT --- */}
                         <div
-                            className="relative w-full h-40 cursor-pointer group perspective-1000"
+                            className={`relative w-full cursor-pointer group perspective-1000 transition-all duration-500 ${isEnvelopeOpen ? 'h-56' : 'h-40'}`}
                             onClick={openEnvelope}
                         >
                             {/* 1. LAYER: BACK (Inside of Envelope) */}
@@ -130,7 +130,7 @@ export function BokbiModal() {
                                     <Button
                                         size="sm"
                                         variant="ghost"
-                                        className="mt-3 h-8 text-xs gap-1.5 bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 transition-colors"
+                                        className="relative z-50 mt-3 h-8 text-xs gap-1.5 bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 transition-colors"
                                         onClick={handleCopy}
                                     >
                                         {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5 text-stone-500" />}
