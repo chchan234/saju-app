@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { SajuResult } from "@/components/saju/SajuResult";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -24,7 +24,6 @@ function LoadingCard() {
 }
 
 function ResultContent() {
-  const searchParams = useSearchParams();
   const router = useRouter();
   const [result, setResult] = useState<SajuApiResult | null>(null);
   const [loading, setLoading] = useState(true);
@@ -35,16 +34,23 @@ function ResultContent() {
   useEffect(() => {
     const fetchResult = async () => {
       try {
-        // URL 파라미터에서 데이터 추출
-        const year = parseInt(searchParams.get("year") || "0");
-        const month = parseInt(searchParams.get("month") || "0");
-        const day = parseInt(searchParams.get("day") || "0");
-        const hour = parseInt(searchParams.get("hour") || "0");
-        const minute = parseInt(searchParams.get("minute") || "0");
-        const isLunar = searchParams.get("lunar") === "true";
-        const isLeapMonth = searchParams.get("leap") === "true";
-        const personName = searchParams.get("name") || "";
-        const isTimeUnknown = searchParams.get("timeUnknown") === "true";
+        // sessionStorage에서 데이터 읽기
+        const stored = sessionStorage.getItem("saju_individual");
+        if (!stored) {
+          setError("분석할 데이터가 없습니다. 다시 입력해주세요.");
+          setLoading(false);
+          return;
+        }
+
+        const data = JSON.parse(stored);
+        const year = parseInt(data.year);
+        const month = parseInt(data.month);
+        const day = parseInt(data.day);
+        const hour = parseInt(data.hour);
+        const minute = parseInt(data.minute);
+        const isLunar = data.lunar;
+        const personName = data.name || "";
+        const isTimeUnknown = data.timeUnknown;
 
         setName(personName);
         setTimeUnknown(isTimeUnknown);
@@ -66,18 +72,18 @@ function ResultContent() {
             hour,
             minute,
             isLunar,
-            isLeapMonth,
+            isLeapMonth: false,
             timeUnknown: isTimeUnknown,
           }),
         });
 
-        const data = await response.json();
+        const responseData = await response.json();
 
         if (!response.ok) {
-          throw new Error(data.error || "사주 계산 중 오류가 발생했습니다.");
+          throw new Error(responseData.error || "사주 계산 중 오류가 발생했습니다.");
         }
 
-        setResult(data.data);
+        setResult(responseData.data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다.");
       } finally {
@@ -86,7 +92,7 @@ function ResultContent() {
     };
 
     fetchResult();
-  }, [searchParams]);
+  }, []);
 
   if (loading) {
     return (

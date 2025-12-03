@@ -110,17 +110,18 @@ export function SajuForm() {
   const navigateToResult = (person: PersonData) => {
     const isTimeUnknown = person.hour === "unknown";
     const time = parseHourToTime(person.hour);
-    const params = new URLSearchParams({
+    const data = {
       year: person.year,
       month: person.month,
       day: person.day,
       hour: time.hour.toString(),
       minute: time.minute.toString(),
-      lunar: (person.calendarType === "lunar").toString(),
+      lunar: person.calendarType === "lunar",
       name: person.name,
-      ...(isTimeUnknown && { timeUnknown: "true" }),
-    });
-    router.push(`/result?${params.toString()}`);
+      timeUnknown: isTimeUnknown,
+    };
+    sessionStorage.setItem("saju_individual", JSON.stringify(data));
+    router.push("/result");
   };
 
   // 커플 궁합 결과 페이지로 이동
@@ -130,53 +131,51 @@ export function SajuForm() {
     const time1 = parseHourToTime(person1.hour);
     const time2 = parseHourToTime(person2.hour);
 
-    const params = new URLSearchParams({
-      // Person 1
-      p1_year: person1.year,
-      p1_month: person1.month,
-      p1_day: person1.day,
-      p1_hour: time1.hour.toString(),
-      p1_minute: time1.minute.toString(),
-      p1_lunar: (person1.calendarType === "lunar").toString(),
-      p1_name: person1.name || "나",
-      ...(p1TimeUnknown && { p1_timeUnknown: "true" }),
-      // Person 2
-      p2_year: person2.year,
-      p2_month: person2.month,
-      p2_day: person2.day,
-      p2_hour: time2.hour.toString(),
-      p2_minute: time2.minute.toString(),
-      p2_lunar: (person2.calendarType === "lunar").toString(),
-      p2_name: person2.name || "상대방",
-      ...(p2TimeUnknown && { p2_timeUnknown: "true" }),
-    });
-    router.push(`/result/couple?${params.toString()}`);
+    const data = {
+      person1: {
+        year: person1.year,
+        month: person1.month,
+        day: person1.day,
+        hour: time1.hour.toString(),
+        minute: time1.minute.toString(),
+        lunar: person1.calendarType === "lunar",
+        name: person1.name || "나",
+        timeUnknown: p1TimeUnknown,
+      },
+      person2: {
+        year: person2.year,
+        month: person2.month,
+        day: person2.day,
+        hour: time2.hour.toString(),
+        minute: time2.minute.toString(),
+        lunar: person2.calendarType === "lunar",
+        name: person2.name || "상대방",
+        timeUnknown: p2TimeUnknown,
+      },
+    };
+    sessionStorage.setItem("saju_couple", JSON.stringify(data));
+    router.push("/result/couple");
   };
 
   // 가족 통합 결과 페이지로 이동
   const navigateToFamilyResult = (members: FamilyMemberData[]) => {
-    const params = new URLSearchParams({
-      count: members.length.toString(),
-    });
-
-    members.forEach((member, index) => {
+    const data = members.map((member, index) => {
       const timeUnknown = member.hour === "unknown";
       const time = parseHourToTime(member.hour);
-
-      params.append(`m${index}_year`, member.year);
-      params.append(`m${index}_month`, member.month);
-      params.append(`m${index}_day`, member.day);
-      params.append(`m${index}_hour`, time.hour.toString());
-      params.append(`m${index}_minute`, time.minute.toString());
-      params.append(`m${index}_lunar`, (member.calendarType === "lunar").toString());
-      params.append(`m${index}_name`, member.name || `구성원 ${index + 1}`);
-      params.append(`m${index}_relation`, member.relation || "other");
-      if (timeUnknown) {
-        params.append(`m${index}_timeUnknown`, "true");
-      }
+      return {
+        year: member.year,
+        month: member.month,
+        day: member.day,
+        hour: time.hour.toString(),
+        minute: time.minute.toString(),
+        lunar: member.calendarType === "lunar",
+        name: member.name || `구성원 ${index + 1}`,
+        relation: member.relation || "other",
+        timeUnknown,
+      };
     });
-
-    router.push(`/result/family?${params.toString()}`);
+    sessionStorage.setItem("saju_family", JSON.stringify(data));
+    router.push("/result/family");
   };
 
   // 폼 제출

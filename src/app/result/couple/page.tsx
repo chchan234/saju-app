@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -555,7 +555,6 @@ function CompatibilityCard({ compatibility, person1, person2, name1, name2 }: {
 }
 
 function CoupleResultContent() {
-  const searchParams = useSearchParams();
   const router = useRouter();
   const [person1Result, setPerson1Result] = useState<SajuApiResult | null>(null);
   const [person2Result, setPerson2Result] = useState<SajuApiResult | null>(null);
@@ -568,25 +567,36 @@ function CoupleResultContent() {
   useEffect(() => {
     const fetchResults = async () => {
       try {
+        // sessionStorage에서 데이터 읽기
+        const stored = sessionStorage.getItem("saju_couple");
+        if (!stored) {
+          setError("분석할 데이터가 없습니다. 다시 입력해주세요.");
+          setLoading(false);
+          return;
+        }
+
+        const data = JSON.parse(stored);
+        const { person1, person2 } = data;
+
         // Person 1 데이터
-        const p1Year = parseInt(searchParams.get("p1_year") || "0");
-        const p1Month = parseInt(searchParams.get("p1_month") || "0");
-        const p1Day = parseInt(searchParams.get("p1_day") || "0");
-        const p1Hour = parseInt(searchParams.get("p1_hour") || "0");
-        const p1Minute = parseInt(searchParams.get("p1_minute") || "0");
-        const p1Lunar = searchParams.get("p1_lunar") === "true";
-        const p1Name = searchParams.get("p1_name") || "나";
-        const p1TimeUnknown = searchParams.get("p1_timeUnknown") === "true";
+        const p1Year = parseInt(person1.year);
+        const p1Month = parseInt(person1.month);
+        const p1Day = parseInt(person1.day);
+        const p1Hour = parseInt(person1.hour);
+        const p1Minute = parseInt(person1.minute);
+        const p1Lunar = person1.lunar;
+        const p1Name = person1.name || "나";
+        const p1TimeUnknown = person1.timeUnknown;
 
         // Person 2 데이터
-        const p2Year = parseInt(searchParams.get("p2_year") || "0");
-        const p2Month = parseInt(searchParams.get("p2_month") || "0");
-        const p2Day = parseInt(searchParams.get("p2_day") || "0");
-        const p2Hour = parseInt(searchParams.get("p2_hour") || "0");
-        const p2Minute = parseInt(searchParams.get("p2_minute") || "0");
-        const p2Lunar = searchParams.get("p2_lunar") === "true";
-        const p2Name = searchParams.get("p2_name") || "상대방";
-        const p2TimeUnknown = searchParams.get("p2_timeUnknown") === "true";
+        const p2Year = parseInt(person2.year);
+        const p2Month = parseInt(person2.month);
+        const p2Day = parseInt(person2.day);
+        const p2Hour = parseInt(person2.hour);
+        const p2Minute = parseInt(person2.minute);
+        const p2Lunar = person2.lunar;
+        const p2Name = person2.name || "상대방";
+        const p2TimeUnknown = person2.timeUnknown;
 
         setNames({ person1: p1Name, person2: p2Name });
         setTimeUnknown({ person1: p1TimeUnknown, person2: p2TimeUnknown });
@@ -652,7 +662,7 @@ function CoupleResultContent() {
     };
 
     fetchResults();
-  }, [searchParams]);
+  }, []);
 
   if (loading) {
     return <LoadingCard />;

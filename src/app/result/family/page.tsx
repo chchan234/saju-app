@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -870,7 +870,6 @@ interface MemberData {
 }
 
 function FamilyResultContent() {
-  const searchParams = useSearchParams();
   const router = useRouter();
   const [members, setMembers] = useState<MemberData[]>([]);
   const [analysis, setAnalysis] = useState<FamilyAnalysisResult | null>(null);
@@ -880,9 +879,16 @@ function FamilyResultContent() {
   useEffect(() => {
     const fetchResults = async () => {
       try {
-        // 가족 구성원 수 확인
-        const memberCount = parseInt(searchParams.get("count") || "0");
-        if (memberCount < 2) {
+        // sessionStorage에서 데이터 읽기
+        const stored = sessionStorage.getItem("saju_family");
+        if (!stored) {
+          setError("분석할 데이터가 없습니다. 다시 입력해주세요.");
+          setLoading(false);
+          return;
+        }
+
+        const familyMembers = JSON.parse(stored);
+        if (familyMembers.length < 2) {
           setError("가족 분석을 위해 최소 2명의 구성원이 필요합니다.");
           setLoading(false);
           return;
@@ -891,16 +897,17 @@ function FamilyResultContent() {
         // 각 구성원의 사주 계산
         const memberPromises: Promise<MemberData>[] = [];
 
-        for (let i = 0; i < memberCount; i++) {
-          const year = parseInt(searchParams.get(`m${i}_year`) || "0");
-          const month = parseInt(searchParams.get(`m${i}_month`) || "0");
-          const day = parseInt(searchParams.get(`m${i}_day`) || "0");
-          const hour = parseInt(searchParams.get(`m${i}_hour`) || "12");
-          const minute = parseInt(searchParams.get(`m${i}_minute`) || "0");
-          const isLunar = searchParams.get(`m${i}_lunar`) === "true";
-          const name = searchParams.get(`m${i}_name`) || `구성원 ${i + 1}`;
-          const relation = searchParams.get(`m${i}_relation`) || "other";
-          const timeUnknown = searchParams.get(`m${i}_timeUnknown`) === "true";
+        for (let i = 0; i < familyMembers.length; i++) {
+          const member = familyMembers[i];
+          const year = parseInt(member.year);
+          const month = parseInt(member.month);
+          const day = parseInt(member.day);
+          const hour = parseInt(member.hour);
+          const minute = parseInt(member.minute);
+          const isLunar = member.lunar;
+          const name = member.name || `구성원 ${i + 1}`;
+          const relation = member.relation || "other";
+          const timeUnknown = member.timeUnknown;
 
           if (!year || !month || !day) {
             throw new Error(`${name}의 생년월일 정보가 부족합니다.`);
@@ -961,7 +968,7 @@ function FamilyResultContent() {
     };
 
     fetchResults();
-  }, [searchParams]);
+  }, []);
 
   if (loading) {
     return <LoadingCard />;
