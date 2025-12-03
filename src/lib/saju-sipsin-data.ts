@@ -3,8 +3,8 @@
  * 일간을 기준으로 다른 천간/지지와의 관계를 나타내는 10가지 신
  */
 
-// 십신 카테고리
-export type SipsinCategory = "비겁" | "식상" | "재성" | "관성" | "인성";
+// 십신 카테고리 (일주는 본인을 나타내는 특수 카테고리)
+export type SipsinCategory = "비겁" | "식상" | "재성" | "관성" | "인성" | "일주";
 
 // 십신 상세 정보
 export interface SipsinInfo {
@@ -251,6 +251,29 @@ export const SIPSIN_DETAIL: Record<string, SipsinInfo> = {
     inDay: "배우자가 교육적이거나, 가정 내 배움의 분위기가 있습니다.",
     inHour: "말년에 후학을 양성하거나, 자녀의 학업이 뛰어납니다.",
   },
+
+  // 일간(日主) - 본인 자신을 나타내는 특수 항목
+  본인: {
+    name: "본인",
+    hanja: "日主",
+    category: "일주",
+    yinyang: "양",  // 실제로는 일간에 따라 다르지만 표시용
+    keyword: "자아, 정체성, 주체",
+    emoji: "👤",
+    meaning: "사주의 중심인 일간(日干)으로, 나 자신을 의미합니다. 모든 십신 관계의 기준점이 됩니다.",
+    personality: "일간은 그 사람의 본질적인 성격과 자아를 나타냅니다. 천간의 오행과 음양에 따라 성향이 결정됩니다.",
+    strengths: ["주체성", "정체성", "자기 인식", "중심 역할"],
+    weaknesses: [],
+    inCareer: "일간의 오행 특성에 따라 적합한 진로가 달라집니다.",
+    inRelationship: "일간은 관계의 주체로서 다른 십신들과의 조화를 통해 관계 양상이 결정됩니다.",
+    inWealth: "일간의 강약에 따라 재물을 다루는 역량이 달라집니다.",
+    inHealth: "일간이 약하면 전반적인 체력 관리가 필요합니다.",
+    advice: "일간은 사주 해석의 기준점입니다. 다른 십신들과의 관계를 통해 자신을 더 깊이 이해해보세요.",
+    inYear: "년주의 천간이 일간과 같으면 조상이나 어린 시절의 환경이 자신과 잘 맞습니다.",
+    inMonth: "월주의 천간이 일간과 같으면 부모나 사회 환경이 자신의 성향과 비슷합니다.",
+    inDay: "일주의 천간은 바로 자기 자신입니다. 사주 해석의 중심이 됩니다.",
+    inHour: "시주의 천간이 일간과 같으면 자녀나 말년의 환경이 자신과 잘 맞습니다.",
+  },
 };
 
 // 십신 카테고리별 정보
@@ -314,35 +337,52 @@ export const SIPSIN_CATEGORY_INFO: Record<SipsinCategory, {
     element: "나를 생",
     color: "#3B82F6",  // blue
   },
+  일주: {
+    name: "일주",
+    friendlyName: "나 자신",
+    hanja: "日主",
+    description: "사주의 중심인 일간(日干)으로, 모든 십신 관계의 기준점입니다.",
+    friendlyDescription: "일주는 사주에서 '나'를 의미합니다. 다른 모든 십신은 이 일간을 기준으로 관계가 결정됩니다.",
+    members: ["본인"],
+    element: "자기 자신",
+    color: "#8B5CF6",  // violet
+  },
 };
+
+// 전통 십신 카테고리 (5가지) - 분포 분석용
+export type TraditionalSipsinCategory = "비겁" | "식상" | "재성" | "관성" | "인성";
 
 // 십신 분포 분석 함수
 export function analyzeSipsinDistribution(
   pillars: { cheonganSipsin?: string; jijiSipsin?: string }[]
 ): {
-  distribution: Record<SipsinCategory, number>;
-  dominant: SipsinCategory | null;
-  weak: SipsinCategory | null;
+  distribution: Record<TraditionalSipsinCategory, number>;
+  dominant: TraditionalSipsinCategory | null;
+  weak: TraditionalSipsinCategory | null;
   analysis: string;
 } {
-  const distribution: Record<SipsinCategory, number> = {
+  const distribution: Record<TraditionalSipsinCategory, number> = {
     비겁: 0, 식상: 0, 재성: 0, 관성: 0, 인성: 0
   };
 
-  // 십신 개수 세기
+  // 십신 개수 세기 (일주 카테고리는 제외)
   for (const pillar of pillars) {
     if (pillar.cheonganSipsin) {
       const info = SIPSIN_DETAIL[pillar.cheonganSipsin];
-      if (info) distribution[info.category]++;
+      if (info && info.category !== "일주") {
+        distribution[info.category as TraditionalSipsinCategory]++;
+      }
     }
     if (pillar.jijiSipsin) {
       const info = SIPSIN_DETAIL[pillar.jijiSipsin];
-      if (info) distribution[info.category]++;
+      if (info && info.category !== "일주") {
+        distribution[info.category as TraditionalSipsinCategory]++;
+      }
     }
   }
 
   // 가장 많은/적은 카테고리 찾기
-  const entries = Object.entries(distribution) as [SipsinCategory, number][];
+  const entries = Object.entries(distribution) as [TraditionalSipsinCategory, number][];
   const sorted = [...entries].sort((a, b) => b[1] - a[1]);
 
   const dominant = sorted[0][1] > 0 ? sorted[0][0] : null;

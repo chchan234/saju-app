@@ -31,6 +31,7 @@ import {
   OHENG_ICONS,
   BokbiModal,
 } from "@/components/saju/SajuUI";
+import { getScoreColorClass } from "@/lib/utils";
 
 function LoadingCard() {
   return (
@@ -54,15 +55,6 @@ const OHENG_BG_LIGHT: Record<string, string> = {
   금: "bg-stone-50/50 border-stone-200 dark:bg-stone-800/50 dark:border-stone-700",
   수: "bg-blue-50/50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800",
 };
-
-// 점수에 따른 색상
-function getScoreColor(score: number): string {
-  if (score >= 85) return "text-amber-600 dark:text-amber-400";
-  if (score >= 75) return "text-blue-600 dark:text-blue-400";
-  if (score >= 65) return "text-yellow-600 dark:text-yellow-400";
-  if (score >= 55) return "text-orange-600 dark:text-orange-400";
-  return "text-stone-500 dark:text-stone-400";
-}
 
 // 점수에 따른 배지 색상
 function getScoreBadgeVariant(score: number): "default" | "secondary" | "outline" | "destructive" {
@@ -102,6 +94,13 @@ function FamilyMemberCard({
           <PillarCard pillar={dayPillar} label="일" size="small" />
           {!timeUnknown && <PillarCard pillar={timePillar} label="시" size="small" />}
         </div>
+
+        {/* 시간 미상 안내 */}
+        {timeUnknown && (
+          <p className="text-center text-[10px] text-orange-600/80 dark:text-orange-400/80 bg-orange-50/50 dark:bg-orange-950/20 py-1 rounded">
+            ※ 시간 미상
+          </p>
+        )}
 
         {/* 일간 정보 */}
         <div className="text-center text-xs bg-stone-50 dark:bg-stone-900 rounded p-2">
@@ -527,7 +526,30 @@ function FamilyOhengAdviceCard({ members }: { members: MemberData[] }) {
     }
   });
 
-  if (weakOhengs.length === 0) return null;
+  // 오행이 균형 잡혀 있는 경우 긍정적인 메시지 표시
+  if (weakOhengs.length === 0) {
+    return (
+      <Card className="border-stone-200 dark:border-stone-800">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg flex items-center gap-2 font-serif text-[#5C544A] dark:text-[#D4C5B0]">
+            <Heart className="h-5 w-5 text-green-500" />
+            가족 오행 균형
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
+            <p className="text-sm text-green-700 dark:text-green-300">
+              ✨ 가족 전체의 오행이 균형 있게 분포되어 있습니다!
+            </p>
+            <p className="text-xs text-green-600 dark:text-green-400 mt-2">
+              특별히 보완이 필요한 오행이 없어 가족 간의 조화가 잘 이루어질 수 있습니다.
+              현재의 좋은 기운을 유지하며 함께 시간을 보내세요.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="border-stone-200 dark:border-stone-800">
@@ -802,7 +824,7 @@ function FamilyAnalysisCard({ analysis }: { analysis: FamilyAnalysisResult }) {
         <CardContent className="space-y-6">
           {/* 총점 및 등급 */}
           <div className="text-center space-y-2">
-            <div className={`text-6xl font-serif font-bold ${getScoreColor(familyScore)}`}>
+            <div className={`text-6xl font-serif font-bold ${getScoreColorClass(familyScore)}`}>
               {familyScore}<span className="text-2xl text-muted-foreground ml-1">점</span>
             </div>
             <Badge variant="secondary" className="text-lg px-4 py-1 font-serif bg-stone-100 dark:bg-stone-800">
@@ -1137,7 +1159,7 @@ function FamilyResultContent() {
           <CardHeader>
             <CardTitle className="text-lg font-serif text-[#5C544A] dark:text-[#D4C5B0]">가족 구성원</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             <div className="flex flex-wrap gap-4">
               {members.map((member, index) => (
                 <FamilyMemberCard
@@ -1149,6 +1171,19 @@ function FamilyResultContent() {
                 />
               ))}
             </div>
+            {/* 시간 미입력 안내 */}
+            {members.some(m => m.timeUnknown) && (
+              <div className="text-center text-xs text-blue-600/80 bg-blue-50/50 dark:bg-blue-950/30 py-2 px-3 rounded-lg">
+                {members.every(m => m.timeUnknown) ? (
+                  <>※ 모든 가족 구성원의 태어난 시간 미입력으로 년/월/일주(6글자) 기준으로 분석했습니다.</>
+                ) : (
+                  <>
+                    ※ {members.filter(m => m.timeUnknown).map(m => m.name || "구성원").join(", ")}님의 시간 미입력으로
+                    궁합 비교 시 해당 구성원과의 분석은 년/월/일주(6글자) 기준으로 진행했습니다.
+                  </>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -1190,7 +1225,7 @@ function FamilyResultContent() {
             {/* 가족 점수 */}
             <div className="text-center py-3 bg-white/60 dark:bg-black/20 rounded-lg">
               <div className="text-sm text-muted-foreground mb-1">가족 조화 점수</div>
-              <div className={`text-3xl font-bold font-serif ${getScoreColor(analysis.familyScore)}`}>
+              <div className={`text-3xl font-bold font-serif ${getScoreColorClass(analysis.familyScore)}`}>
                 {analysis.familyScore}점
               </div>
               <Badge className="mt-2">{analysis.familyGrade}</Badge>

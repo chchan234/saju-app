@@ -18,6 +18,7 @@ import {
   getSipsinPillarMeaning,
   analyzeWealthFromSipsin,
   type SipsinCategory,
+  type TraditionalSipsinCategory,
   type SipsinInfo,
 } from "@/lib/saju-sipsin-data";
 import {
@@ -38,10 +39,10 @@ interface SipsinDetailCardProps {
 function SipsinDistributionChart({
   distribution,
 }: {
-  distribution: Record<SipsinCategory, number>;
+  distribution: Record<TraditionalSipsinCategory, number>;
 }) {
   const chartData = Object.entries(distribution).map(([category, count]) => {
-    const info = SIPSIN_CATEGORY_INFO[category as SipsinCategory];
+    const info = SIPSIN_CATEGORY_INFO[category as TraditionalSipsinCategory];
     return {
       category: `${info.name}(${info.friendlyName})`,
       value: count,
@@ -223,7 +224,7 @@ export function SipsinDetailCard({ pillars, timeUnknown = false }: SipsinDetailC
             {/* 카테고리별 개수 */}
             <div className="flex flex-wrap gap-2">
               {Object.entries(distribution).map(([cat, count]) => {
-                const catInfo = SIPSIN_CATEGORY_INFO[cat as SipsinCategory];
+                const catInfo = SIPSIN_CATEGORY_INFO[cat as TraditionalSipsinCategory];
                 return (
                   <Badge
                     key={cat}

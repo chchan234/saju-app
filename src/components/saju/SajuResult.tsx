@@ -691,7 +691,7 @@ function IlganTraitsCard({ ilgan }: { ilgan: string }) {
 }
 
 export function SajuResult({ result, name, timeUnknown = false }: SajuResultProps) {
-  const { yearPillar, monthPillar, dayPillar, timePillar, ohengCount, yongsin, birthInfo, meta, majorFortunes, yearlyFortunes } = result;
+  const { yearPillar, monthPillar, dayPillar, timePillar, ohengCount, yongsin, birthInfo, meta, majorFortunes, yearlyFortunes, gender } = result;
 
   // 오행 개수 정렬
   const sortedOheng = Object.entries(ohengCount).sort((a, b) => b[1] - a[1]);
@@ -748,6 +748,11 @@ export function SajuResult({ result, name, timeUnknown = false }: SajuResultProp
             <div className="flex items-center gap-1">
               <span>🐯</span>
               <span>{meta.ddiLunar}띠</span>
+            </div>
+            <div className="w-px h-3 bg-stone-300"></div>
+            <div className="flex items-center gap-1">
+              <span>{gender === "male" ? "👨" : "👩"}</span>
+              <span>{gender === "male" ? "남성" : "여성"}</span>
             </div>
           </div>
         </CardContent>
@@ -841,6 +846,11 @@ export function SajuResult({ result, name, timeUnknown = false }: SajuResultProp
               </div>
             </div>
           </div>
+          {timeUnknown && (
+            <p className="text-center text-xs text-blue-600/80 bg-blue-50/50 dark:bg-blue-950/30 py-2 px-3 rounded-lg mt-4">
+              ※ 태어난 시간 미입력으로 시주(時柱)가 제외된 오행 분포입니다. 더 정확한 분석을 원하시면 태어난 시간을 입력해주세요.
+            </p>
+          )}
         </CardContent>
       </Card>
 
@@ -908,6 +918,9 @@ export function SajuResult({ result, name, timeUnknown = false }: SajuResultProp
         <LifeJourneyTimeline
           majorFortunes={majorFortunes}
           birthYear={birthInfo.solarYear}
+          ilgan={dayPillar.cheongan}
+          yongsin={yongsin}
+          name={name}
         />
       )}
 

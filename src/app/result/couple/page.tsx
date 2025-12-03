@@ -19,6 +19,7 @@ import {
   generateGroupStoryIntro,
 } from "@/lib/saju-analysis-data";
 import { analyzeIljuCompatibility } from "@/lib/saju-family";
+import { getScoreColorClass } from "@/lib/utils";
 import {
   PillarCard,
   MysticalIntroCard,
@@ -43,24 +44,13 @@ function LoadingCard() {
   );
 }
 
-// 점수에 따른 색상
-function getScoreColor(score: number): string {
-  if (score >= 85) return "text-pink-600 dark:text-pink-400";
-  if (score >= 75) return "text-blue-600 dark:text-blue-400";
-  if (score >= 65) return "text-yellow-600 dark:text-yellow-400";
-  if (score >= 55) return "text-orange-600 dark:text-orange-400";
-  return "text-stone-500 dark:text-stone-400";
-}
-
 // 개인 사주 요약 카드
 function PersonSummaryCard({
   result,
-  name,
   label,
   timeUnknown
 }: {
   result: SajuApiResult;
-  name: string;
   label: string;
   timeUnknown: boolean;
 }) {
@@ -69,12 +59,9 @@ function PersonSummaryCard({
   return (
     <Card className="bg-white/50 dark:bg-stone-900/50 border-stone-200 dark:border-stone-800 shadow-sm">
       <CardHeader className="pb-2 border-b border-stone-100 dark:border-stone-800">
-        <CardTitle className="text-lg flex items-center justify-between font-serif text-[#5C544A] dark:text-[#D4C5B0]">
-          <div className="flex items-center gap-2">
-            <User className="w-4 h-4" />
-            {label}
-          </div>
-          {name && <Badge variant="secondary" className="font-sans">{name}</Badge>}
+        <CardTitle className="text-lg flex items-center gap-2 font-serif text-[#5C544A] dark:text-[#D4C5B0]">
+          <User className="w-4 h-4" />
+          {label}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4 pt-4">
@@ -85,6 +72,13 @@ function PersonSummaryCard({
           <PillarCard pillar={dayPillar} label="일" size="small" />
           {!timeUnknown && <PillarCard pillar={timePillar} label="시" size="small" />}
         </div>
+
+        {/* 시간 미상 안내 */}
+        {timeUnknown && (
+          <p className="text-center text-xs text-orange-600/80 dark:text-orange-400/80 bg-orange-50/50 dark:bg-orange-950/20 py-1.5 rounded-lg">
+            ※ 태어난 시간 미상
+          </p>
+        )}
 
         {/* 일간 정보 */}
         <div className="text-center text-sm bg-stone-50 dark:bg-stone-900 rounded-lg p-2">
@@ -555,7 +549,7 @@ function CompatibilityCard({ compatibility, person1, person2, name1, name2 }: {
       <CardContent className="space-y-6">
         {/* 총점 및 등급 */}
         <div className="text-center space-y-2">
-          <div className={`text-6xl font-serif font-bold ${getScoreColor(totalScore)}`}>
+          <div className={`text-6xl font-serif font-bold ${getScoreColorClass(totalScore)}`}>
             {totalScore}<span className="text-2xl text-muted-foreground ml-1">점</span>
           </div>
           <Badge variant="secondary" className="text-lg px-4 py-1 font-serif bg-stone-100 dark:bg-stone-800">
@@ -762,7 +756,7 @@ function CoupleResultContent() {
         const p1Hour = parseInt(person1.hour);
         const p1Minute = parseInt(person1.minute);
         const p1Lunar = person1.lunar;
-        const p1Name = person1.name || "나";
+        const p1Name = person1.name || "첫 번째 분";
         const p1TimeUnknown = person1.timeUnknown;
 
         // Person 2 데이터
@@ -772,7 +766,7 @@ function CoupleResultContent() {
         const p2Hour = parseInt(person2.hour);
         const p2Minute = parseInt(person2.minute);
         const p2Lunar = person2.lunar;
-        const p2Name = person2.name || "상대방";
+        const p2Name = person2.name || "두 번째 분";
         const p2TimeUnknown = person2.timeUnknown;
 
         setNames({ person1: p1Name, person2: p2Name });
@@ -889,17 +883,28 @@ function CoupleResultContent() {
         <div className="grid md:grid-cols-2 gap-4">
           <PersonSummaryCard
             result={person1Result}
-            name={names.person1}
-            label="나"
+            label={names.person1}
             timeUnknown={timeUnknown.person1}
           />
           <PersonSummaryCard
             result={person2Result}
-            name={names.person2}
-            label="상대방"
+            label={names.person2}
             timeUnknown={timeUnknown.person2}
           />
         </div>
+
+        {/* 시간 미입력 안내 */}
+        {compatibility.timeInfo?.usingReducedPillars && (
+          <div className="text-center text-xs text-blue-600/80 bg-blue-50/50 dark:bg-blue-950/30 py-2 px-3 rounded-lg">
+            {compatibility.timeInfo.person1TimeUnknown && compatibility.timeInfo.person2TimeUnknown ? (
+              <>※ 두 분 모두 태어난 시간 미입력으로 년/월/일주(6글자) 기준으로 분석했습니다.</>
+            ) : compatibility.timeInfo.person1TimeUnknown ? (
+              <>※ {names.person1}님의 시간 미입력으로 두 분 모두 년/월/일주(6글자) 기준으로 분석했습니다.</>
+            ) : (
+              <>※ {names.person2}님의 시간 미입력으로 두 분 모두 년/월/일주(6글자) 기준으로 분석했습니다.</>
+            )}
+          </div>
+        )}
 
         {/* 일주 상징 비교 */}
         <CoupleIljuCard
@@ -971,7 +976,7 @@ function CoupleResultContent() {
             {/* 궁합 점수 */}
             <div className="text-center py-3 bg-white/60 dark:bg-black/20 rounded-lg">
               <div className="text-sm text-muted-foreground mb-1">궁합 점수</div>
-              <div className={`text-3xl font-bold font-serif ${getScoreColor(compatibility.totalScore)}`}>
+              <div className={`text-3xl font-bold font-serif ${getScoreColorClass(compatibility.totalScore)}`}>
                 {compatibility.totalScore}점
               </div>
               <Badge className="mt-2">{compatibility.grade}</Badge>

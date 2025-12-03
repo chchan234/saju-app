@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronUp, Clock, Calendar, Star, Zap, Heart, Cloud, TrendingUp } from "lucide-react";
 import type { MajorFortuneInfo, YearlyFortuneInfo } from "@/lib/saju-calculator";
+import { getScoreColorHex } from "@/lib/utils";
 import {
   Line,
   XAxis,
@@ -160,95 +161,101 @@ export function DaeunTimelineCard({ majorFortunes, birthYear }: DaeunTimelineCar
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="pt-4">
+              {/* 안내 문구 */}
+              <p className="text-xs text-muted-foreground text-center mb-4">
+                💡 각 대운을 클릭하면 상세 설명을 볼 수 있습니다
+              </p>
+
               <div className="relative">
                 {/* 타임라인 선 */}
                 <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gradient-to-b from-purple-300 via-indigo-300 to-blue-300"></div>
 
                 {/* 대운 항목들 */}
-                <div className="space-y-4">
+                <div className="space-y-2">
                   {majorFortunes.map((fortune, index) => {
                     const isCurrent = currentDaeun?.ganji === fortune.ganji;
                     const isPast = currentAge > fortune.endAge;
                     const ageMeaning = getDaeunAgeMeaning(fortune.startAge);
+                    const isSelected = selectedDaeun?.ganji === fortune.ganji;
 
                     return (
-                      <div
-                        key={index}
-                        className={`relative pl-14 py-3 pr-4 rounded-lg cursor-pointer transition-all ${
-                          isCurrent
-                            ? "bg-purple-100 dark:bg-purple-900/30 border-2 border-purple-400"
-                            : isPast
-                            ? "opacity-60"
-                            : "hover:bg-stone-50 dark:hover:bg-stone-800/50"
-                        }`}
-                        onClick={() => setSelectedDaeun(fortune)}
-                      >
-                        {/* 타임라인 점 */}
+                      <div key={index}>
                         <div
-                          className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full border-2 ${
+                          className={`relative pl-14 py-3 pr-4 rounded-lg cursor-pointer transition-all ${
                             isCurrent
-                              ? "bg-purple-500 border-purple-300"
+                              ? "bg-purple-100 dark:bg-purple-900/30 border-2 border-purple-400"
+                              : isSelected
+                              ? "bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-300"
                               : isPast
-                              ? "bg-stone-300 border-stone-200"
-                              : `${OHENG_COLORS[fortune.element]} border-white`
+                              ? "opacity-60"
+                              : "hover:bg-stone-50 dark:hover:bg-stone-800/50"
                           }`}
-                        ></div>
+                          onClick={() => setSelectedDaeun(isSelected ? null : fortune)}
+                        >
+                          {/* 타임라인 점 */}
+                          <div
+                            className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full border-2 ${
+                              isCurrent
+                                ? "bg-purple-500 border-purple-300"
+                                : isPast
+                                ? "bg-stone-300 border-stone-200"
+                                : `${OHENG_COLORS[fortune.element]} border-white`
+                            }`}
+                          ></div>
 
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <span className={`font-serif font-bold text-xl ${isCurrent ? "text-purple-700 dark:text-purple-300" : ""}`}>
-                              {fortune.ganji}
-                            </span>
-                            <Badge className={`${OHENG_LIGHT_COLORS[fortune.element]} border`}>
-                              {fortune.element}
-                            </Badge>
-                            {isCurrent && (
-                              <Badge className="bg-purple-500 text-white text-xs">현재</Badge>
-                            )}
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm font-medium">{fortune.startAge}세 ~ {fortune.endAge}세</p>
-                            <p className="text-xs text-muted-foreground">{ageMeaning.period}</p>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <span className={`font-serif font-bold text-xl ${isCurrent ? "text-purple-700 dark:text-purple-300" : ""}`}>
+                                {fortune.ganji}
+                              </span>
+                              <Badge className={`${OHENG_LIGHT_COLORS[fortune.element]} border`}>
+                                {fortune.element}
+                              </Badge>
+                              {isCurrent && (
+                                <Badge className="bg-purple-500 text-white text-xs">현재</Badge>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="text-right">
+                                <p className="text-sm font-medium">{fortune.startAge}세 ~ {fortune.endAge}세</p>
+                                <p className="text-xs text-muted-foreground">{ageMeaning.period}</p>
+                              </div>
+                              <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isSelected ? "rotate-180" : ""}`} />
+                            </div>
                           </div>
                         </div>
+
+                        {/* 선택된 대운 상세 - 클릭한 항목 바로 아래에 표시 */}
+                        {isSelected && DAEUN_OHENG_INTERPRETATION[fortune.element] && (
+                          <div className="ml-14 mt-2 mb-4 p-4 bg-stone-50 dark:bg-stone-800/50 rounded-lg border-l-4 border-indigo-400 animate-in slide-in-from-top-2 duration-200">
+                            <div className="space-y-3">
+                              <p className="font-medium text-[#8E7F73] dark:text-[#D4C5B0]">
+                                {DAEUN_OHENG_INTERPRETATION[fortune.element].theme}
+                              </p>
+                              <p className="text-sm text-stone-600 dark:text-stone-400">
+                                {DAEUN_OHENG_INTERPRETATION[fortune.element].fortune}
+                              </p>
+                              <div className="p-3 bg-white dark:bg-stone-900 rounded border">
+                                <p className="text-sm font-medium text-[#5C544A] dark:text-[#D4C5B0] mb-1">💬 조언</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {DAEUN_OHENG_INTERPRETATION[fortune.element].advice}
+                                </p>
+                              </div>
+                              <div className="flex flex-wrap gap-1">
+                                {DAEUN_OHENG_INTERPRETATION[fortune.element].keywords.map((kw) => (
+                                  <Badge key={kw} variant="secondary" className="text-xs">
+                                    {kw}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
                 </div>
               </div>
-
-              {/* 선택된 대운 상세 */}
-              {selectedDaeun && (
-                <div className="mt-6 p-4 bg-stone-50 dark:bg-stone-800/50 rounded-lg">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-serif font-bold text-lg">
-                      {selectedDaeun.ganji} 대운 상세
-                    </h4>
-                    <button
-                      className="text-muted-foreground hover:text-foreground"
-                      onClick={() => setSelectedDaeun(null)}
-                    >
-                      ✕
-                    </button>
-                  </div>
-                  {DAEUN_OHENG_INTERPRETATION[selectedDaeun.element] && (
-                    <div className="space-y-3">
-                      <p className="font-medium text-[#8E7F73]">
-                        {DAEUN_OHENG_INTERPRETATION[selectedDaeun.element].theme}
-                      </p>
-                      <p className="text-sm text-stone-600 dark:text-stone-400">
-                        {DAEUN_OHENG_INTERPRETATION[selectedDaeun.element].fortune}
-                      </p>
-                      <div className="p-3 bg-white dark:bg-stone-900 rounded border">
-                        <p className="text-sm font-medium text-[#5C544A] dark:text-[#D4C5B0] mb-1">조언</p>
-                        <p className="text-sm text-muted-foreground">
-                          {DAEUN_OHENG_INTERPRETATION[selectedDaeun.element].advice}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
             </CollapsibleContent>
           </Collapsible>
         </div>
@@ -563,14 +570,6 @@ export function FortuneFlowChart({
     };
   });
 
-  // 운세 점수에 따른 색상
-  const getScoreColor = (score: number) => {
-    if (score >= 85) return "#22c55e"; // green-500
-    if (score >= 70) return "#3b82f6"; // blue-500
-    if (score >= 55) return "#eab308"; // yellow-500
-    return "#f97316"; // orange-500
-  };
-
   // 커스텀 툴팁
   const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ payload: typeof chartData[0] }> }) => {
     if (!active || !payload?.length) return null;
@@ -640,7 +639,7 @@ export function FortuneFlowChart({
                 <>
                   <div className="p-3 bg-stone-50 dark:bg-stone-800/50 rounded-lg text-center">
                     <p className="text-xs text-muted-foreground mb-1">올해 운세</p>
-                    <p className="text-2xl font-bold" style={{ color: getScoreColor(currentData?.totalScore || 0) }}>
+                    <p className="text-2xl font-bold" style={{ color: getScoreColorHex(currentData?.totalScore || 0) }}>
                       {currentData?.totalScore || "-"}점
                     </p>
                   </div>
@@ -658,6 +657,11 @@ export function FortuneFlowChart({
               );
             })()}
           </div>
+
+          {/* 그래프 안내 */}
+          <p className="text-xs text-muted-foreground text-center">
+            💡 그래프의 점 위에 마우스를 올리면 해당 연도의 상세 정보를 볼 수 있습니다
+          </p>
 
           {/* 그래프 */}
           <div className="h-64 w-full">
@@ -711,7 +715,7 @@ export function FortuneFlowChart({
                         cx={cx}
                         cy={cy}
                         r={3}
-                        fill={getScoreColor(payload.totalScore)}
+                        fill={getScoreColorHex(payload.totalScore)}
                         stroke="#fff"
                         strokeWidth={1}
                       />

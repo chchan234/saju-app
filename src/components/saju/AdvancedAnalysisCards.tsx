@@ -139,6 +139,20 @@ export function JohuCard({ monthJiji, ohengCount, yongsin }: JohuCardProps) {
         {/* 종합 조언 */}
         <p className="text-sm text-stone-700 dark:text-stone-300">{analysis.advice}</p>
 
+        {/* 용신과 조후 비교 설명 */}
+        {yongsin !== analysis.neededElement && (
+          <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <p className="text-xs text-blue-700 dark:text-blue-300">
+              ℹ️ <strong>용신({yongsin})과 조후({analysis.neededElement})가 다릅니다.</strong>
+              <br />
+              <span className="text-muted-foreground">
+                용신은 사주 전체의 오행 균형을 맞추는 기운이고, 조후는 태어난 계절을 조절하는 기운입니다.
+                두 기운이 다를 경우, 상황에 따라 적절히 활용하면 됩니다.
+              </span>
+            </p>
+          </div>
+        )}
+
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
           <CollapsibleTrigger asChild>
             <Button variant="ghost" className="w-full justify-between hover:bg-orange-50 dark:hover:bg-orange-950/20">

@@ -18,9 +18,11 @@ import {
   extractCoreKeywords,
   getDaeunStoryPhase,
   generatePersonalityStory,
+  enrichDaeunInfo,
   type NatureProfile,
   type DaeunStoryPhase,
   type CoreKeywords,
+  type EnrichedDaeunInfo,
 } from "@/lib/saju-storytelling";
 
 // 일간에 해당하는 아이콘
@@ -369,22 +371,66 @@ export function LifePhaseCard({ birthYear, name }: LifePhaseCardProps) {
 // 인생 여정 타임라인 (대운 스토리 통합)
 // ============================================
 
+// 오행별 색상
+const OHENG_COLORS: Record<string, { bg: string; border: string; text: string; darkBg: string }> = {
+  목: { bg: "bg-green-50", border: "border-green-300", text: "text-green-700", darkBg: "dark:bg-green-950/30" },
+  화: { bg: "bg-red-50", border: "border-red-300", text: "text-red-700", darkBg: "dark:bg-red-950/30" },
+  토: { bg: "bg-yellow-50", border: "border-yellow-300", text: "text-yellow-700", darkBg: "dark:bg-yellow-950/30" },
+  금: { bg: "bg-slate-50", border: "border-slate-300", text: "text-slate-700", darkBg: "dark:bg-slate-950/30" },
+  수: { bg: "bg-blue-50", border: "border-blue-300", text: "text-blue-700", darkBg: "dark:bg-blue-950/30" },
+};
+
+// 길흉별 배지 스타일
+const FORTUNE_BADGE_STYLES: Record<string, string> = {
+  최길: "bg-gradient-to-r from-yellow-400 to-amber-500 text-white",
+  길: "bg-gradient-to-r from-green-400 to-emerald-500 text-white",
+  평: "bg-gradient-to-r from-slate-300 to-slate-400 text-slate-800",
+  흉: "bg-gradient-to-r from-orange-400 to-orange-500 text-white",
+  최흉: "bg-gradient-to-r from-red-500 to-red-600 text-white",
+};
+
 interface LifeJourneyTimelineProps {
   majorFortunes: MajorFortuneInfo[];
   birthYear: number;
+  ilgan?: string;
+  yongsin?: string;
+  name?: string;
 }
 
-export function LifeJourneyTimeline({ majorFortunes, birthYear }: LifeJourneyTimelineProps) {
+export function LifeJourneyTimeline({ majorFortunes, birthYear, ilgan, yongsin, name }: LifeJourneyTimelineProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const currentYear = new Date().getFullYear();
   const currentAge = currentYear - birthYear + 1;
 
-  // 대운에 스토리 정보 추가
-  const fortunesWithStory = majorFortunes.map((fortune) => ({
-    ...fortune,
-    story: getDaeunStoryPhase(fortune.startAge),
-    isCurrent: currentAge >= fortune.startAge && currentAge <= fortune.endAge,
-  }));
+  // 대운에 상세 분석 정보 추가
+  const enrichedFortunes: EnrichedDaeunInfo[] = majorFortunes.map((fortune) =>
+    enrichDaeunInfo(fortune, ilgan || "갑", yongsin || "목", currentAge, birthYear)
+  );
+
+  // 현재 대운 찾기
+  const currentFortune = enrichedFortunes.find(f => f.timeStatus === "current");
+
+  // 시점별 해석 가져오기
+  const getInterpretation = (fortune: EnrichedDaeunInfo) => {
+    switch (fortune.timeStatus) {
+      case "past":
+        return fortune.sipseongInfo.pastInterpretation;
+      case "current":
+        return fortune.sipseongInfo.currentInterpretation;
+      case "future":
+        return fortune.sipseongInfo.futureInterpretation;
+    }
+  };
+
+  // 시점별 라벨
+  const getTimeLabel = (timeStatus: "past" | "current" | "future") => {
+    switch (timeStatus) {
+      case "past": return { text: "지나온 시기", color: "bg-slate-500" };
+      case "current": return { text: "현재", color: "bg-green-600" };
+      case "future": return { text: "다가올 시기", color: "bg-blue-500" };
+    }
+  };
 
   return (
     <Card className="border-none shadow-md bg-white/80 dark:bg-stone-900/80 backdrop-blur-sm overflow-hidden">
@@ -399,15 +445,41 @@ export function LifeJourneyTimeline({ majorFortunes, birthYear }: LifeJourneyTim
               Life Journey
             </span>
             <span className="text-[#5C544A] dark:text-[#D4C5B0]">
-              인생의 여정 이야기
+              {name ? `${name}님의` : ""} 인생의 여정 이야기
             </span>
           </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p className="text-sm text-muted-foreground text-center">
-          대운(大運)의 흐름 속에서 펼쳐지는 당신만의 인생 이야기
-        </p>
+        {/* 현재 대운 요약 */}
+        {currentFortune && (
+          <div className={`p-4 rounded-xl border-2 ${OHENG_COLORS[currentFortune.element]?.border || "border-stone-300"} ${OHENG_COLORS[currentFortune.element]?.bg || "bg-stone-50"} ${OHENG_COLORS[currentFortune.element]?.darkBg || ""}`}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Badge className="bg-green-600 text-white text-xs">현재 대운</Badge>
+                <span className="font-serif font-bold text-lg">{currentFortune.ganji}</span>
+                <span className="text-lg">{currentFortune.ohengInfo.emoji}</span>
+              </div>
+              <Badge className={FORTUNE_BADGE_STYLES[currentFortune.fortuneLevel]}>
+                {currentFortune.fortuneEmoji} {currentFortune.fortuneLevel}
+              </Badge>
+            </div>
+            <div className="flex items-center gap-2 mb-2">
+              <Badge variant="outline" className="text-xs">
+                {currentFortune.sipseongInfo.emoji} {currentFortune.sipseongInfo.name}
+              </Badge>
+              <span className="text-xs text-muted-foreground">
+                {currentFortune.startAge}~{currentFortune.endAge}세 ({currentFortune.startYear}~{currentFortune.endYear}년)
+              </span>
+            </div>
+            <p className="text-sm text-stone-700 dark:text-stone-300 leading-relaxed">
+              {currentFortune.sipseongInfo.currentInterpretation}
+            </p>
+            <p className="text-xs text-muted-foreground mt-2 italic">
+              {currentFortune.fortuneDescription}
+            </p>
+          </div>
+        )}
 
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
           <CollapsibleTrigger asChild>
@@ -421,55 +493,160 @@ export function LifeJourneyTimeline({ majorFortunes, birthYear }: LifeJourneyTim
           </CollapsibleTrigger>
           <CollapsibleContent className="pt-4">
             <div className="space-y-4">
-              {fortunesWithStory.map((fortune, idx) => (
-                <div
-                  key={idx}
-                  className={`relative pl-8 pb-6 border-l-2 ${
-                    fortune.isCurrent
-                      ? "border-[#8E7F73]"
-                      : "border-stone-200 dark:border-stone-700"
-                  } last:border-transparent last:pb-0`}
-                >
-                  {/* 타임라인 마커 */}
-                  <div
-                    className={`absolute left-[-9px] w-4 h-4 rounded-full ${
-                      fortune.isCurrent
-                        ? "bg-[#8E7F73] ring-4 ring-[#8E7F73]/20"
-                        : "bg-stone-300 dark:bg-stone-600"
-                    }`}
-                  />
+              {enrichedFortunes.map((fortune, idx) => {
+                const timeLabel = getTimeLabel(fortune.timeStatus);
+                const ohengColor = OHENG_COLORS[fortune.element] || OHENG_COLORS["토"];
+                const isExpanded = expandedIndex === idx;
+                const isCurrent = fortune.timeStatus === "current";
 
-                  <div className={`p-4 rounded-xl ${
-                    fortune.isCurrent
-                      ? "bg-gradient-to-br from-[#F9F7F2] to-[#EDE8DC] dark:from-[#2C2824] dark:to-[#1E1A17] border border-[#8E7F73]/30"
-                      : "bg-stone-50 dark:bg-stone-900/50"
-                  }`}>
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-xl">{fortune.story.emoji}</span>
-                      <span className="font-serif font-bold text-[#5C544A] dark:text-[#D4C5B0]">
-                        {fortune.story.phaseName}
-                      </span>
-                      <Badge
-                        variant="outline"
-                        className={fortune.isCurrent ? "bg-[#8E7F73] text-white border-none" : ""}
+                return (
+                  <div
+                    key={idx}
+                    className={`relative pl-8 pb-6 border-l-2 ${
+                      isCurrent
+                        ? "border-[#8E7F73]"
+                        : fortune.timeStatus === "past"
+                        ? "border-stone-300 dark:border-stone-600"
+                        : "border-blue-300 dark:border-blue-700"
+                    } last:border-transparent last:pb-0`}
+                  >
+                    {/* 타임라인 마커 */}
+                    <div
+                      className={`absolute left-[-9px] w-4 h-4 rounded-full ${
+                        isCurrent
+                          ? "bg-[#8E7F73] ring-4 ring-[#8E7F73]/20"
+                          : fortune.timeStatus === "past"
+                          ? "bg-stone-400 dark:bg-stone-500"
+                          : "bg-blue-400 dark:bg-blue-500"
+                      }`}
+                    />
+
+                    <div
+                      className={`rounded-xl overflow-hidden border ${
+                        isCurrent
+                          ? `${ohengColor.border} ${ohengColor.bg} ${ohengColor.darkBg}`
+                          : fortune.timeStatus === "past"
+                          ? "border-stone-200 dark:border-stone-700 bg-stone-50/50 dark:bg-stone-900/30 opacity-80"
+                          : "border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20"
+                      }`}
+                    >
+                      {/* 헤더 영역 */}
+                      <div
+                        className="p-4 cursor-pointer"
+                        onClick={() => setExpandedIndex(isExpanded ? null : idx)}
                       >
-                        {fortune.startAge}~{fortune.endAge}세
-                      </Badge>
-                      {fortune.isCurrent && (
-                        <Badge className="ml-auto bg-green-600 text-white text-xs">현재</Badge>
+                        <div className="flex items-center gap-2 mb-2 flex-wrap">
+                          <span className="text-xl">{fortune.sipseongInfo.emoji}</span>
+                          <span className="font-serif font-bold text-[#5C544A] dark:text-[#D4C5B0]">
+                            {fortune.sipseongInfo.name}
+                          </span>
+                          <Badge variant="outline" className="text-xs">
+                            {fortune.ganji} ({fortune.ohengInfo.emoji}{fortune.element})
+                          </Badge>
+                          <Badge
+                            variant="outline"
+                            className={isCurrent ? "bg-[#8E7F73] text-white border-none" : ""}
+                          >
+                            {fortune.startAge}~{fortune.endAge}세
+                          </Badge>
+                          <Badge className={`ml-auto text-xs ${FORTUNE_BADGE_STYLES[fortune.fortuneLevel]}`}>
+                            {fortune.fortuneEmoji} {fortune.fortuneLevel}
+                          </Badge>
+                        </div>
+
+                        <div className="flex items-center gap-2 mb-2">
+                          <Badge className={`text-xs ${timeLabel.color} text-white`}>
+                            {timeLabel.text}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">
+                            {fortune.startYear}~{fortune.endYear}년
+                          </span>
+                        </div>
+
+                        <p className="text-sm text-stone-700 dark:text-stone-300">
+                          <span className="font-medium">{fortune.sipseongInfo.theme}</span> - {fortune.sipseongInfo.shortDesc}
+                        </p>
+
+                        <div className="flex items-center justify-center mt-2">
+                          {isExpanded ? (
+                            <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                          )}
+                        </div>
+                      </div>
+
+                      {/* 확장 영역 */}
+                      {isExpanded && (
+                        <div className="px-4 pb-4 space-y-3 border-t border-stone-200 dark:border-stone-700 pt-3">
+                          {/* 시점별 해석 */}
+                          <div className="p-3 bg-white/60 dark:bg-black/20 rounded-lg">
+                            <p className="text-sm text-stone-700 dark:text-stone-300 leading-relaxed">
+                              {getInterpretation(fortune)}
+                            </p>
+                          </div>
+
+                          {/* 용신 관계 */}
+                          <div className="p-3 bg-white/60 dark:bg-black/20 rounded-lg">
+                            <p className="text-xs font-medium text-muted-foreground mb-1">용신과의 관계</p>
+                            <p className="text-sm text-stone-600 dark:text-stone-400">
+                              {fortune.fortuneDescription}
+                            </p>
+                          </div>
+
+                          {/* 오행 특성 */}
+                          <div className="p-3 bg-white/60 dark:bg-black/20 rounded-lg">
+                            <p className="text-xs font-medium text-muted-foreground mb-1">
+                              {fortune.ohengInfo.name}의 특성
+                            </p>
+                            <p className="text-sm text-stone-600 dark:text-stone-400">
+                              {fortune.ohengInfo.interpretation}
+                            </p>
+                          </div>
+
+                          {/* 기회와 도전 */}
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="p-3 bg-green-50/80 dark:bg-green-950/20 rounded-lg">
+                              <p className="text-xs font-medium text-green-700 dark:text-green-400 mb-1">🌟 기회</p>
+                              <ul className="text-xs text-green-600 dark:text-green-300 space-y-1">
+                                {fortune.sipseongInfo.opportunities.slice(0, 2).map((opp, i) => (
+                                  <li key={i}>• {opp}</li>
+                                ))}
+                              </ul>
+                            </div>
+                            <div className="p-3 bg-orange-50/80 dark:bg-orange-950/20 rounded-lg">
+                              <p className="text-xs font-medium text-orange-700 dark:text-orange-400 mb-1">⚡ 주의</p>
+                              <ul className="text-xs text-orange-600 dark:text-orange-300 space-y-1">
+                                {fortune.sipseongInfo.challenges.slice(0, 2).map((ch, i) => (
+                                  <li key={i}>• {ch}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+
+                          {/* 실천 조언 */}
+                          <div className="p-3 bg-blue-50/80 dark:bg-blue-950/20 rounded-lg">
+                            <p className="text-xs font-medium text-blue-700 dark:text-blue-400 mb-1">💡 실천 조언</p>
+                            <ul className="text-xs text-blue-600 dark:text-blue-300 space-y-1">
+                              {fortune.sipseongInfo.actionTips.map((tip, i) => (
+                                <li key={i}>• {tip}</li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          {/* 건강 주의 */}
+                          <div className="p-3 bg-purple-50/80 dark:bg-purple-950/20 rounded-lg">
+                            <p className="text-xs font-medium text-purple-700 dark:text-purple-400 mb-1">🩺 건강 포인트</p>
+                            <p className="text-xs text-purple-600 dark:text-purple-300">
+                              {fortune.ohengInfo.healthFocus}
+                            </p>
+                          </div>
+                        </div>
                       )}
                     </div>
-
-                    <p className="text-xs text-muted-foreground mb-2">
-                      대운: {fortune.ganji} ({fortune.element})
-                    </p>
-
-                    <p className="text-sm text-stone-600 dark:text-stone-400">
-                      {fortune.story.description}
-                    </p>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </CollapsibleContent>
         </Collapsible>

@@ -503,3 +503,495 @@ export const OHENG_EMOTIONAL_MESSAGES: Record<string, { emoji: string; message: 
     message: "물처럼 유연하게, 어디든 스며들어 생명을 전하세요.",
   },
 };
+
+// ============================================
+// 4.4 대운 십성별 해석 데이터
+// ============================================
+
+export type DaeunSipseongType =
+  | "비견" | "겁재"
+  | "식신" | "상관"
+  | "편재" | "정재"
+  | "편관" | "정관"
+  | "편인" | "정인";
+
+export interface DaeunSipseongInfo {
+  name: string;
+  hanja: string;
+  emoji: string;
+  shortDesc: string;           // 한 줄 설명
+  theme: string;               // 이 대운의 주제
+  // 시점별 해석
+  pastInterpretation: string;  // 과거 대운일 때 (배운 것)
+  currentInterpretation: string; // 현재 대운일 때 (지금 일어나는 일)
+  futureInterpretation: string;  // 미래 대운일 때 (준비할 것)
+  // 구체적 조언
+  opportunities: string[];     // 기회
+  challenges: string[];        // 주의할 점
+  actionTips: string[];        // 실천 조언
+  // 관계/직업
+  relationships: string;       // 인간관계 특성
+  career: string;              // 직업/재물 특성
+}
+
+export const DAEUN_SIPSEONG_INFO: Record<DaeunSipseongType, DaeunSipseongInfo> = {
+  비견: {
+    name: "비견운",
+    hanja: "比肩運",
+    emoji: "🤝",
+    shortDesc: "나와 같은 기운, 동료와 경쟁의 시기",
+    theme: "자아 확립과 독립",
+    pastInterpretation: "형제자매나 친구들과의 관계에서 경쟁과 협력을 배운 시기입니다. 자신만의 정체성을 확립하려 노력했을 것입니다.",
+    currentInterpretation: "자신감이 높아지고 독립심이 강해지는 시기입니다. 동료나 친구와 함께하는 활동에서 시너지가 납니다. 다만 경쟁 상황도 늘어날 수 있습니다.",
+    futureInterpretation: "독립적인 활동이 좋은 결과를 가져올 시기가 옵니다. 협력할 파트너를 미리 만들어두고, 경쟁에서 이길 수 있는 실력을 키우세요.",
+    opportunities: ["동업 및 파트너십", "자기 브랜딩", "네트워킹 확장", "독립/창업"],
+    challenges: ["경쟁으로 인한 스트레스", "재물 분산", "고집으로 인한 갈등"],
+    actionTips: ["협력할 동료를 만드세요", "경쟁보다 협력에 초점을", "자기만의 영역을 확보하세요"],
+    relationships: "친구, 동료와의 관계가 활발해집니다. 비슷한 사람들과 어울리며 자극받습니다.",
+    career: "동업, 프리랜서, 독립 사업에 유리합니다. 경쟁이 치열한 분야에서 두각을 나타낼 수 있습니다.",
+  },
+  겁재: {
+    name: "겁재운",
+    hanja: "劫財運",
+    emoji: "⚡",
+    shortDesc: "역동적인 에너지, 도전과 변화의 시기",
+    theme: "적극적 행동과 변화",
+    pastInterpretation: "역동적이고 변화가 많았던 시기입니다. 재물이 들어오고 나감이 잦았고, 과감한 결정을 내렸을 것입니다.",
+    currentInterpretation: "활동적이고 적극적인 에너지가 넘칩니다. 새로운 도전을 두려워하지 않게 됩니다. 단, 재정 관리에 주의가 필요합니다.",
+    futureInterpretation: "변화와 도전의 시기가 옵니다. 리스크 관리 능력을 키우고, 충동적인 투자는 피할 수 있도록 준비하세요.",
+    opportunities: ["새로운 도전", "적극적인 투자", "변화를 통한 성장", "스포츠/액티비티"],
+    challenges: ["재물 손실 가능성", "충동적 결정", "다툼이나 소송"],
+    actionTips: ["큰 투자 전 신중히 검토", "저축 습관 유지", "분쟁은 피하세요"],
+    relationships: "경쟁적이지만 활력 있는 관계입니다. 라이벌이 친구가 되기도 합니다.",
+    career: "영업, 스포츠, 투자 분야에서 활약할 수 있습니다. 변동성이 큰 업종에 적합합니다.",
+  },
+  식신: {
+    name: "식신운",
+    hanja: "食神運",
+    emoji: "🍀",
+    shortDesc: "여유와 표현력, 즐거움의 시기",
+    theme: "창의적 표현과 풍요",
+    pastInterpretation: "편안하고 여유로운 시기였습니다. 먹고 즐기는 것에 관심이 많았고, 재능을 발휘하며 인정받았을 것입니다.",
+    currentInterpretation: "표현력과 창의력이 살아나는 시기입니다. 예술, 요리, 콘텐츠 제작 등에서 빛을 발합니다. 건강하고 여유로운 에너지가 흐릅니다.",
+    futureInterpretation: "재능을 꽃피울 시기가 옵니다. 창작 활동이나 표현할 수 있는 채널을 미리 준비해두면 좋습니다.",
+    opportunities: ["창작 활동", "맛집/요리 관련", "콘텐츠 제작", "교육/강의"],
+    challenges: ["게으름과 나태", "체중 증가", "너무 편한 것만 추구"],
+    actionTips: ["창의적 취미를 시작하세요", "표현하는 활동을 늘리세요", "적당한 운동을 병행하세요"],
+    relationships: "편안하고 즐거운 관계를 맺습니다. 함께 맛있는 것을 먹으며 친해집니다.",
+    career: "요식업, 예술, 교육, 콘텐츠 분야에서 성과를 낼 수 있습니다.",
+  },
+  상관: {
+    name: "상관운",
+    hanja: "傷官運",
+    emoji: "🎨",
+    shortDesc: "창의와 혁신, 기존 틀을 깨는 시기",
+    theme: "혁신과 자기표현",
+    pastInterpretation: "기존의 틀을 깨고 새로운 시도를 했던 시기입니다. 창의적이었지만 윗사람과 갈등도 있었을 수 있습니다.",
+    currentInterpretation: "독창적인 아이디어가 넘치고 표현 욕구가 강해집니다. 기존 방식에 반기를 들고 혁신을 추구합니다. 말과 글로 영향력을 발휘합니다.",
+    futureInterpretation: "창의력이 폭발하는 시기가 옵니다. 자기 표현 채널(블로그, 유튜브, 창작 등)을 미리 준비하세요. 윗사람과의 관계도 신경 쓰세요.",
+    opportunities: ["창의적 사업", "예술/디자인", "1인 미디어", "프리랜서"],
+    challenges: ["윗사람과 갈등", "너무 날카로운 언행", "조직 부적응"],
+    actionTips: ["표현하되 상대를 배려하세요", "독립적인 영역을 만드세요", "날카로운 말은 자제"],
+    relationships: "솔직하고 직설적인 소통을 합니다. 가식 없는 관계를 추구합니다.",
+    career: "작가, 디자이너, 유튜버, 프리랜서 등 창의적이고 독립적인 직종에 유리합니다.",
+  },
+  편재: {
+    name: "편재운",
+    hanja: "偏財運",
+    emoji: "💰",
+    shortDesc: "재물과 사교, 활동적인 시기",
+    theme: "재물 활동과 사교",
+    pastInterpretation: "돈이 들어오고 나감이 활발했던 시기입니다. 사교 활동이 많았고, 아버지나 남성 어른의 영향이 있었을 수 있습니다.",
+    currentInterpretation: "재물 활동이 활발해지고 사교력이 좋아집니다. 투자, 사업, 부업 등에서 기회가 생깁니다. 이성 관계도 활발해질 수 있습니다.",
+    futureInterpretation: "재테크나 사업의 기회가 오는 시기입니다. 인맥을 넓혀두고, 투자 공부를 미리 해두면 좋습니다.",
+    opportunities: ["투자 수익", "사업 확장", "이성 만남", "넓은 인맥"],
+    challenges: ["돈이 새기 쉬움", "바람기 주의", "충동 구매"],
+    actionTips: ["수입의 일부는 반드시 저축", "장기 투자 위주로", "유흥비 관리"],
+    relationships: "사교적이고 넓은 인맥을 형성합니다. 이성에게 인기가 있습니다.",
+    career: "영업, 무역, 투자, 유통 등 돈이 오가는 분야에서 능력을 발휘합니다.",
+  },
+  정재: {
+    name: "정재운",
+    hanja: "正財運",
+    emoji: "🏦",
+    shortDesc: "안정적 재물, 성실함의 시기",
+    theme: "안정적 축적과 성실",
+    pastInterpretation: "꾸준히 모으고 저축했던 시기입니다. 성실하게 일하며 안정적인 기반을 다졌을 것입니다.",
+    currentInterpretation: "정당한 노력에 대한 보상이 주어지는 시기입니다. 월급, 저축, 부동산 등 안정적인 재물이 쌓입니다. 성실함이 빛을 발합니다.",
+    futureInterpretation: "안정적인 수입이 예상되는 시기가 옵니다. 저축 계획을 세우고, 부동산 등 장기 자산을 준비해두면 좋습니다.",
+    opportunities: ["안정적 수입", "부동산 투자", "승진/연봉 인상", "결혼"],
+    challenges: ["재미없고 지루함", "융통성 부족", "기회비용"],
+    actionTips: ["장기 재테크 계획 수립", "안정적인 투자 위주로", "작은 사치도 허용하세요"],
+    relationships: "안정적이고 책임감 있는 관계를 형성합니다. 결혼에 유리한 시기입니다.",
+    career: "공무원, 대기업, 금융, 부동산 등 안정적인 직종에서 성과를 냅니다.",
+  },
+  편관: {
+    name: "편관운",
+    hanja: "偏官運",
+    emoji: "⚔️",
+    shortDesc: "도전과 시련, 성장의 시기",
+    theme: "시련을 통한 성장",
+    pastInterpretation: "도전과 시련이 많았던 시기입니다. 힘들었지만 그만큼 강해졌고, 위기 대처 능력을 키웠을 것입니다.",
+    currentInterpretation: "압박감과 도전이 동시에 오는 시기입니다. 경쟁이 치열하고 스트레스가 있지만, 이를 이겨내면 크게 성장합니다. 리더십이 발휘됩니다.",
+    futureInterpretation: "도전적인 시기가 옵니다. 체력과 정신력을 미리 키워두고, 위기 대처 능력을 갖추세요. 힘든 만큼 성장합니다.",
+    opportunities: ["승진/권력", "리더 역할", "경쟁에서 승리", "위기 극복 후 도약"],
+    challenges: ["스트레스/압박", "건강 문제", "사고/부상 주의", "관재구설"],
+    actionTips: ["건강 관리 철저히", "무리하지 말 것", "법적 문제 조심", "스트레스 해소법 마련"],
+    relationships: "긴장감 있는 관계가 많습니다. 경쟁자가 생기지만 서로 성장시킵니다.",
+    career: "군인, 경찰, 외과의사, 운동선수 등 강인함이 필요한 분야에서 두각을 나타냅니다.",
+  },
+  정관: {
+    name: "정관운",
+    hanja: "正官運",
+    emoji: "👔",
+    shortDesc: "명예와 책임, 안정의 시기",
+    theme: "사회적 인정과 책임",
+    pastInterpretation: "사회적으로 인정받고 안정된 시기였습니다. 조직에서 역할을 맡았거나, 사회적 지위가 올랐을 것입니다.",
+    currentInterpretation: "명예와 지위가 상승하는 시기입니다. 조직에서 인정받고 승진 기회가 옵니다. 사회적 책임도 늘어나지만 보람 있습니다.",
+    futureInterpretation: "사회적 인정을 받을 시기가 옵니다. 자격증, 직위, 역할을 준비해두면 좋습니다. 책임질 수 있는 준비를 하세요.",
+    opportunities: ["승진", "사회적 인정", "결혼(여성)", "안정적 직장"],
+    challenges: ["책임감 부담", "자유 제한", "틀에 박힌 생활"],
+    actionTips: ["맡은 바 책임을 다하세요", "신뢰를 쌓으세요", "규칙을 존중하되 유연성도"],
+    relationships: "예의 바르고 격식 있는 관계를 형성합니다. 윗사람과의 관계가 좋아집니다.",
+    career: "공무원, 대기업 임원, 관리자, 교사 등 사회적 지위와 책임이 따르는 직종에 유리합니다.",
+  },
+  편인: {
+    name: "편인운",
+    hanja: "偏印運",
+    emoji: "🔮",
+    shortDesc: "독특한 지혜, 영적 성장의 시기",
+    theme: "비전통적 학습과 통찰",
+    pastInterpretation: "독특하고 비전통적인 것에 관심을 가졌던 시기입니다. 특별한 기술이나 지식을 습득했을 수 있습니다.",
+    currentInterpretation: "직관력과 통찰력이 높아지는 시기입니다. 특별한 기술, 자격증, 전문 분야에서 두각을 나타냅니다. 영적/철학적 관심도 높아집니다.",
+    futureInterpretation: "특별한 재능이 빛을 발할 시기가 옵니다. 전문 기술이나 자격증을 준비해두세요. 명상, 철학 공부도 좋습니다.",
+    opportunities: ["전문 기술 습득", "자격증", "영적 성장", "독특한 분야 성공"],
+    challenges: ["고독감", "의심병", "현실과 괴리", "건강(소화기)"],
+    actionTips: ["전문성을 키우세요", "명상/요가 추천", "현실 감각을 유지하세요"],
+    relationships: "깊고 독특한 관계를 추구합니다. 소수의 사람과 깊이 교류합니다.",
+    career: "IT, 연구원, 의료, 상담, 종교, 예술 등 전문성이 필요한 분야에서 성과를 냅니다.",
+  },
+  정인: {
+    name: "정인운",
+    hanja: "正印運",
+    emoji: "📚",
+    shortDesc: "학습과 지혜, 보호의 시기",
+    theme: "배움과 지혜의 성장",
+    pastInterpretation: "공부하고 배우는 것이 즐거웠던 시기입니다. 어머니나 스승의 도움을 받았을 수 있습니다.",
+    currentInterpretation: "학습 능력이 극대화되는 시기입니다. 공부, 자격증, 학위 취득에 유리합니다. 지혜로운 사람들의 도움을 받습니다.",
+    futureInterpretation: "배움의 기회가 오는 시기입니다. 공부하고 싶은 것, 얻고 싶은 자격증을 미리 정해두세요. 멘토를 찾아두면 좋습니다.",
+    opportunities: ["학위/자격증 취득", "멘토와의 만남", "지혜 성장", "문서 관련 이득"],
+    challenges: ["행동력 부족", "우유부단", "과보호 경향"],
+    actionTips: ["배우고 싶은 것을 시작하세요", "독서를 늘리세요", "배운 것을 실천하세요"],
+    relationships: "지적이고 따뜻한 관계를 형성합니다. 어른들의 도움을 잘 받습니다.",
+    career: "교육, 학계, 연구, 출판, 상담 등 지식과 관련된 분야에서 빛을 발합니다.",
+  },
+};
+
+// ============================================
+// 4.5 대운 오행별 의미 데이터
+// ============================================
+
+export interface DaeunOhengInfo {
+  name: string;
+  hanja: string;
+  emoji: string;
+  theme: string;
+  energy: string;
+  interpretation: string;
+  yongsinMatch: string;      // 용신과 일치할 때
+  yongsinConflict: string;   // 용신과 상극일 때
+  healthFocus: string;       // 건강 주의사항
+  luckyAreas: string[];      // 좋은 분야
+}
+
+export const DAEUN_OHENG_INFO: Record<string, DaeunOhengInfo> = {
+  목: {
+    name: "목운",
+    hanja: "木運",
+    emoji: "🌳",
+    theme: "성장과 시작",
+    energy: "위로 뻗어나가는 상승 에너지",
+    interpretation: "새로운 시작, 성장, 도전의 시기입니다. 계획을 세우고 추진하기 좋습니다. 봄처럼 싹이 트는 때입니다.",
+    yongsinMatch: "용신과 일치! 모든 일이 순조롭고 건강하며 발전하는 최고의 시기입니다.",
+    yongsinConflict: "용신과 상충됩니다. 무리한 확장은 피하고 현상 유지에 집중하세요.",
+    healthFocus: "간, 담, 눈, 근육에 주의하세요.",
+    luckyAreas: ["창업", "교육", "출판", "의류", "농업", "가구"],
+  },
+  화: {
+    name: "화운",
+    hanja: "火運",
+    emoji: "🔥",
+    theme: "열정과 표현",
+    energy: "위로 타오르는 확산 에너지",
+    interpretation: "열정이 넘치고 표현력이 강해지는 시기입니다. 인간관계가 활발해지고 인기가 상승합니다. 적극적으로 나서면 좋습니다.",
+    yongsinMatch: "용신과 일치! 열정이 성과로 이어지고, 인기와 명예가 상승합니다.",
+    yongsinConflict: "용신과 상충됩니다. 과한 열정이 화를 부를 수 있으니 차분함을 유지하세요.",
+    healthFocus: "심장, 혈압, 눈, 소장에 주의하세요.",
+    luckyAreas: ["엔터테인먼트", "마케팅", "요식업", "뷰티", "조명", "에너지"],
+  },
+  토: {
+    name: "토운",
+    hanja: "土運",
+    emoji: "🏔️",
+    theme: "안정과 중심",
+    energy: "중심을 잡아주는 안정 에너지",
+    interpretation: "안정적인 시기입니다. 기반을 다지고 내실을 키우기 좋습니다. 급한 변화보다 꾸준함이 빛을 발합니다.",
+    yongsinMatch: "용신과 일치! 안정 속에서 착실한 성장을 이루는 좋은 시기입니다.",
+    yongsinConflict: "용신과 상충됩니다. 지나친 보수적 태도가 기회를 놓칠 수 있으니 적당한 변화도 수용하세요.",
+    healthFocus: "비장, 위장, 피부, 근육에 주의하세요.",
+    luckyAreas: ["부동산", "건설", "농업", "창고", "중개", "요식업"],
+  },
+  금: {
+    name: "금운",
+    hanja: "金運",
+    emoji: "⚔️",
+    theme: "결단과 정리",
+    energy: "수렴하고 정리하는 에너지",
+    interpretation: "결단력이 생기고 정리정돈의 시기입니다. 불필요한 것을 버리고 핵심에 집중하세요. 원칙과 정의가 중요해집니다.",
+    yongsinMatch: "용신과 일치! 명확한 판단력으로 좋은 성과를 내는 시기입니다.",
+    yongsinConflict: "용신과 상충됩니다. 너무 냉정하면 관계가 상할 수 있으니 유연함도 필요합니다.",
+    healthFocus: "폐, 대장, 피부, 호흡기에 주의하세요.",
+    luckyAreas: ["금융", "법률", "군경", "금속", "기계", "자동차"],
+  },
+  수: {
+    name: "수운",
+    hanja: "水運",
+    emoji: "💧",
+    theme: "지혜와 유연함",
+    energy: "아래로 스며드는 유연 에너지",
+    interpretation: "지혜롭고 유연해지는 시기입니다. 깊이 생각하고 내면을 성찰하기 좋습니다. 흐르는 물처럼 상황에 적응하세요.",
+    yongsinMatch: "용신과 일치! 지혜가 빛나고 모든 것이 순리대로 흘러가는 좋은 시기입니다.",
+    yongsinConflict: "용신과 상충됩니다. 우유부단함을 경계하고 때로는 결단도 필요합니다.",
+    healthFocus: "신장, 방광, 생식기, 귀에 주의하세요.",
+    luckyAreas: ["IT", "물류", "유통", "수산업", "음료", "여행"],
+  },
+};
+
+// ============================================
+// 4.6 대운 분석 함수들
+// ============================================
+
+// 천간 정보 (오행, 음양)
+const CHEONGAN_INFO: Record<string, { element: string; yin: boolean }> = {
+  갑: { element: "목", yin: false },
+  을: { element: "목", yin: true },
+  병: { element: "화", yin: false },
+  정: { element: "화", yin: true },
+  무: { element: "토", yin: false },
+  기: { element: "토", yin: true },
+  경: { element: "금", yin: false },
+  신: { element: "금", yin: true },
+  임: { element: "수", yin: false },
+  계: { element: "수", yin: true },
+};
+
+// 오행 상생 관계
+const OHENG_GENERATE: Record<string, string> = {
+  목: "화", 화: "토", 토: "금", 금: "수", 수: "목"
+};
+
+// 오행 상극 관계
+const OHENG_CONTROL: Record<string, string> = {
+  목: "토", 토: "수", 수: "화", 화: "금", 금: "목"
+};
+
+// 나를 생하는 오행
+const OHENG_GENERATED_BY: Record<string, string> = {
+  목: "수", 화: "목", 토: "화", 금: "토", 수: "금"
+};
+
+// 나를 극하는 오행
+const OHENG_CONTROLLED_BY: Record<string, string> = {
+  목: "금", 화: "수", 토: "목", 금: "화", 수: "토"
+};
+
+/**
+ * 일간과 대운 천간의 십성 관계 계산
+ */
+export function calculateDaeunSipseong(ilgan: string, daeunCheongan: string): DaeunSipseongType {
+  const ilganInfo = CHEONGAN_INFO[ilgan];
+  const daeunInfo = CHEONGAN_INFO[daeunCheongan];
+
+  if (!ilganInfo || !daeunInfo) return "비견";
+
+  const sameYin = ilganInfo.yin === daeunInfo.yin;
+
+  // 같은 오행
+  if (ilganInfo.element === daeunInfo.element) {
+    return sameYin ? "비견" : "겁재";
+  }
+
+  // 내가 생하는 오행
+  if (OHENG_GENERATE[ilganInfo.element] === daeunInfo.element) {
+    return sameYin ? "식신" : "상관";
+  }
+
+  // 내가 극하는 오행
+  if (OHENG_CONTROL[ilganInfo.element] === daeunInfo.element) {
+    return sameYin ? "편재" : "정재";
+  }
+
+  // 나를 극하는 오행
+  if (OHENG_CONTROLLED_BY[ilganInfo.element] === daeunInfo.element) {
+    return sameYin ? "편관" : "정관";
+  }
+
+  // 나를 생하는 오행
+  if (OHENG_GENERATED_BY[ilganInfo.element] === daeunInfo.element) {
+    return sameYin ? "편인" : "정인";
+  }
+
+  return "비견";
+}
+
+/**
+ * 용신과 대운 오행의 관계 판단
+ */
+export type DaeunFortuneLevel = "최길" | "길" | "평" | "흉" | "최흉";
+
+export function evaluateDaeunFortune(yongsin: string, daeunElement: string): {
+  level: DaeunFortuneLevel;
+  emoji: string;
+  description: string;
+} {
+  // 용신과 같은 오행
+  if (yongsin === daeunElement) {
+    return {
+      level: "최길",
+      emoji: "⭐",
+      description: "용신 대운! 가장 좋은 시기입니다."
+    };
+  }
+
+  // 용신을 생하는 오행
+  if (OHENG_GENERATE[daeunElement] === yongsin) {
+    return {
+      level: "길",
+      emoji: "🍀",
+      description: "용신을 도와주는 좋은 시기입니다."
+    };
+  }
+
+  // 용신이 생하는 오행 (설기)
+  if (OHENG_GENERATE[yongsin] === daeunElement) {
+    return {
+      level: "평",
+      emoji: "😐",
+      description: "무난한 시기입니다. 에너지 분산에 주의하세요."
+    };
+  }
+
+  // 용신을 극하는 오행
+  if (OHENG_CONTROL[daeunElement] === yongsin) {
+    return {
+      level: "흉",
+      emoji: "⚠️",
+      description: "용신과 충돌합니다. 주의가 필요한 시기입니다."
+    };
+  }
+
+  // 용신에게 극을 당하는 오행
+  if (OHENG_CONTROL[yongsin] === daeunElement) {
+    return {
+      level: "평",
+      emoji: "😐",
+      description: "큰 문제는 없지만 적극적인 추진은 피하세요."
+    };
+  }
+
+  return {
+    level: "평",
+    emoji: "😐",
+    description: "평범한 시기입니다."
+  };
+}
+
+/**
+ * 대운 종합 분석 결과 인터페이스
+ */
+export interface EnrichedDaeunInfo {
+  // 기본 대운 정보
+  ganji: string;
+  cheongan: string;
+  jiji: string;
+  element: string;
+  startAge: number;
+  endAge: number;
+  startYear: number;
+  endYear: number;
+  // 십성 분석
+  sipseong: DaeunSipseongType;
+  sipseongInfo: DaeunSipseongInfo;
+  // 오행 분석
+  ohengInfo: DaeunOhengInfo;
+  // 용신 관계
+  fortuneLevel: DaeunFortuneLevel;
+  fortuneEmoji: string;
+  fortuneDescription: string;
+  // 시점
+  timeStatus: "past" | "current" | "future";
+  // 일반 스토리
+  story: DaeunStoryPhase;
+}
+
+/**
+ * 대운에 상세 분석 정보 추가
+ */
+export function enrichDaeunInfo(
+  daeun: MajorFortuneInfo,
+  ilgan: string,
+  yongsin: string,
+  currentAge: number,
+  birthYear?: number
+): EnrichedDaeunInfo {
+  const cheongan = daeun.ganji.charAt(0);
+  const jiji = daeun.ganji.charAt(1);
+
+  // 십성 계산
+  const sipseong = calculateDaeunSipseong(ilgan, cheongan);
+  const sipseongInfo = DAEUN_SIPSEONG_INFO[sipseong];
+
+  // 오행 정보
+  const ohengInfo = DAEUN_OHENG_INFO[daeun.element] || DAEUN_OHENG_INFO["토"];
+
+  // 용신과의 관계
+  const fortune = evaluateDaeunFortune(yongsin, daeun.element);
+
+  // 시점 판단
+  let timeStatus: "past" | "current" | "future";
+  if (currentAge > daeun.endAge) {
+    timeStatus = "past";
+  } else if (currentAge >= daeun.startAge && currentAge <= daeun.endAge) {
+    timeStatus = "current";
+  } else {
+    timeStatus = "future";
+  }
+
+  // 일반 스토리
+  const story = getDaeunStoryPhase(daeun.startAge);
+
+  // 연도 계산 (birthYear가 제공된 경우)
+  const currentYear = new Date().getFullYear();
+  const calculatedBirthYear = birthYear || (currentYear - currentAge + 1);
+  const startYear = calculatedBirthYear + daeun.startAge - 1;
+  const endYear = calculatedBirthYear + daeun.endAge - 1;
+
+  return {
+    ganji: daeun.ganji,
+    cheongan,
+    jiji,
+    element: daeun.element,
+    startAge: daeun.startAge,
+    endAge: daeun.endAge,
+    startYear,
+    endYear,
+    sipseong,
+    sipseongInfo,
+    ohengInfo,
+    fortuneLevel: fortune.level,
+    fortuneEmoji: fortune.emoji,
+    fortuneDescription: fortune.description,
+    timeStatus,
+    story,
+  };
+}

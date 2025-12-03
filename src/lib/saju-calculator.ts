@@ -171,7 +171,12 @@ function createPillar(ganji: string, ilgan?: string): Pillar {
 
   // 십신 계산 (일간 기준)
   if (ilgan) {
-    result.cheonganSipsin = SIPSIN_MAP[ilgan]?.[parsed.cheongan];
+    // 일간 자신은 "본인(日主)"으로 표시 (비견이 아님)
+    if (parsed.cheongan === ilgan) {
+      result.cheonganSipsin = "본인";
+    } else {
+      result.cheonganSipsin = SIPSIN_MAP[ilgan]?.[parsed.cheongan];
+    }
     const jijiBongi = JIJI_BONGI[parsed.jiji];
     if (jijiBongi) {
       result.jijiSipsin = SIPSIN_MAP[ilgan]?.[jijiBongi];
@@ -472,8 +477,10 @@ export function calculateSaju(
     ? createPillar("", ilgan)  // 시간 모름이면 빈 기둥
     : createPillar(timeGanji, ilgan);
 
-  // 오행 카운트 (점수 일관성을 위해 항상 시주 제외 - 년/월/일 3기둥만 사용)
-  const pillarsForCount = [yearPillar, monthPillar, dayPillar];
+  // 오행 카운트 (시간 입력 시 8글자 전체, 미입력 시 6글자만 사용)
+  const pillarsForCount = timeUnknown
+    ? [yearPillar, monthPillar, dayPillar]
+    : [yearPillar, monthPillar, dayPillar, timePillar];
   const ohengCount = calculateOhengCount(pillarsForCount);
 
   // 용신 추천 (부족한 오행 기반)

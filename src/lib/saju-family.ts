@@ -525,13 +525,64 @@ export function extractIlju(saju: SajuApiResult): string {
 
 // 가족 관계 한글 라벨
 export const RELATION_LABELS: Record<string, string> = {
+  // 본인
   me: "본인",
+  self: "본인",
+
+  // 부모
   parent: "부모님",
+  father: "아버지",
+  mother: "어머니",
+  dad: "아빠",
+  mom: "엄마",
+
+  // 조부모
   grandparent: "조부모님",
+  grandfather: "할아버지",
+  grandmother: "할머니",
+  grandfather_paternal: "친할아버지",
+  grandmother_paternal: "친할머니",
+  grandfather_maternal: "외할아버지",
+  grandmother_maternal: "외할머니",
+
+  // 형제자매
   sibling: "형제/자매",
+  brother: "형/오빠/남동생",
+  sister: "누나/언니/여동생",
+  older_brother: "형/오빠",
+  younger_brother: "남동생",
+  older_sister: "누나/언니",
+  younger_sister: "여동생",
+
+  // 자녀
   child: "자녀",
+  son: "아들",
+  daughter: "딸",
+
+  // 손자녀
+  grandchild: "손자녀",
+  grandson: "손자",
+  granddaughter: "손녀",
+
+  // 배우자
   spouse: "배우자",
+  husband: "남편",
+  wife: "아내",
+
+  // 배우자 가족
+  in_law: "사돈",
+  father_in_law: "장인/시아버지",
+  mother_in_law: "장모/시어머니",
+
+  // 친척
   relative: "친척",
+  uncle: "삼촌/외삼촌",
+  aunt: "고모/이모",
+  cousin: "사촌",
+  nephew: "조카(남)",
+  niece: "조카(여)",
+
+  // 기타
   other: "기타",
 };
 

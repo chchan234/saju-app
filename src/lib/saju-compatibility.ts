@@ -313,6 +313,12 @@ export interface CompatibilityResult {
     weaknesses: string[];
     advice: string;
   };
+  // 시간 정보
+  timeInfo: {
+    person1TimeUnknown: boolean;
+    person2TimeUnknown: boolean;
+    usingReducedPillars: boolean;  // 한 명이라도 시간 미입력 시 true
+  };
 }
 
 /**
@@ -529,6 +535,24 @@ function generateSummary(
 }
 
 /**
+ * 기둥들로부터 오행 카운트 계산
+ */
+function calculateOhengFromPillars(pillars: SajuApiResult["yearPillar"][]): { 목: number; 화: number; 토: number; 금: number; 수: number } {
+  const count = { 목: 0, 화: 0, 토: 0, 금: 0, 수: 0 };
+
+  for (const pillar of pillars) {
+    if (pillar.cheonganOheng && pillar.cheonganOheng in count) {
+      count[pillar.cheonganOheng as keyof typeof count]++;
+    }
+    if (pillar.jijiOheng && pillar.jijiOheng in count) {
+      count[pillar.jijiOheng as keyof typeof count]++;
+    }
+  }
+
+  return count;
+}
+
+/**
  * 커플 궁합 분석 메인 함수
  */
 export function analyzeCompatibility(
@@ -537,6 +561,11 @@ export function analyzeCompatibility(
 ): CompatibilityResult {
   const ilgan1 = person1.dayPillar.cheongan;
   const ilgan2 = person2.dayPillar.cheongan;
+
+  // 시간 입력 여부 확인 (timePillar.cheongan이 비어있으면 시간 미입력)
+  const person1TimeUnknown = !person1.timePillar.cheongan;
+  const person2TimeUnknown = !person2.timePillar.cheongan;
+  const usingReducedPillars = person1TimeUnknown || person2TimeUnknown;
 
   // 일간 궁합 분석
   const ilganData = ILGAN_COMPATIBILITY[ilgan1]?.[ilgan2] || {
@@ -554,23 +583,28 @@ export function analyzeCompatibility(
     typeDescription: SIPSIN_DESCRIPTIONS[ilganData.type] || "",
   };
 
-  // 지지 추출 (점수 일관성을 위해 시주 제외 - 년/월/일 3기둥만 사용)
-  const jiji1 = [
-    person1.yearPillar.jiji,
-    person1.monthPillar.jiji,
-    person1.dayPillar.jiji,
-  ].filter(Boolean);
-  const jiji2 = [
-    person2.yearPillar.jiji,
-    person2.monthPillar.jiji,
-    person2.dayPillar.jiji,
-  ].filter(Boolean);
+  // 지지 추출 (한 명이라도 시간 미입력이면 둘 다 3기둥, 둘 다 입력하면 4기둥)
+  const jiji1 = usingReducedPillars
+    ? [person1.yearPillar.jiji, person1.monthPillar.jiji, person1.dayPillar.jiji]
+    : [person1.yearPillar.jiji, person1.monthPillar.jiji, person1.dayPillar.jiji, person1.timePillar.jiji];
+  const jiji2 = usingReducedPillars
+    ? [person2.yearPillar.jiji, person2.monthPillar.jiji, person2.dayPillar.jiji]
+    : [person2.yearPillar.jiji, person2.monthPillar.jiji, person2.dayPillar.jiji, person2.timePillar.jiji];
 
   // 지지 관계 분석
-  const jijiAnalysis = analyzeJijiRelations(jiji1, jiji2);
+  const jijiAnalysis = analyzeJijiRelations(jiji1.filter(Boolean), jiji2.filter(Boolean));
 
-  // 오행 분석
-  const ohengAnalysis = analyzeOhengRelation(person1.ohengCount, person2.ohengCount);
+  // 오행 분석 (일관된 기준으로 재계산)
+  const pillars1 = usingReducedPillars
+    ? [person1.yearPillar, person1.monthPillar, person1.dayPillar]
+    : [person1.yearPillar, person1.monthPillar, person1.dayPillar, person1.timePillar];
+  const pillars2 = usingReducedPillars
+    ? [person2.yearPillar, person2.monthPillar, person2.dayPillar]
+    : [person2.yearPillar, person2.monthPillar, person2.dayPillar, person2.timePillar];
+
+  const oheng1 = calculateOhengFromPillars(pillars1);
+  const oheng2 = calculateOhengFromPillars(pillars2);
+  const ohengAnalysis = analyzeOhengRelation(oheng1, oheng2);
 
   // 점수 계산
   let totalScore = ilganData.score;
@@ -601,5 +635,10 @@ export function analyzeCompatibility(
     jijiAnalysis,
     ohengAnalysis,
     summary,
+    timeInfo: {
+      person1TimeUnknown,
+      person2TimeUnknown,
+      usingReducedPillars,
+    },
   };
 }
