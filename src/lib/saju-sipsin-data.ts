@@ -256,48 +256,60 @@ export const SIPSIN_DETAIL: Record<string, SipsinInfo> = {
 // 십신 카테고리별 정보
 export const SIPSIN_CATEGORY_INFO: Record<SipsinCategory, {
   name: string;
+  friendlyName: string;
   hanja: string;
   description: string;
+  friendlyDescription: string;
   members: string[];
   element: string;
   color: string;
 }> = {
   비겁: {
     name: "비겁",
+    friendlyName: "자기 주도력",
     hanja: "比劫",
     description: "나와 같은 오행으로, 형제자매, 동료, 경쟁자를 의미합니다.",
+    friendlyDescription: "자신만의 길을 가려는 독립심이 강합니다. 주체적이고 당당하며, 경쟁에서 지지 않으려는 성향이 있습니다.",
     members: ["비견", "겁재"],
     element: "같은 오행",
     color: "#6B7280",  // gray
   },
   식상: {
     name: "식상",
+    friendlyName: "표현력·창의력",
     hanja: "食傷",
     description: "내가 생(生)해주는 오행으로, 표현력, 창의력, 자녀를 의미합니다.",
+    friendlyDescription: "아이디어가 풍부하고 자기표현을 잘합니다. 예술적 감각과 말재주가 뛰어나며, 새로운 것을 만들어내는 능력이 있습니다.",
     members: ["식신", "상관"],
     element: "내가 생",
     color: "#10B981",  // green
   },
   재성: {
     name: "재성",
+    friendlyName: "현실 감각",
     hanja: "財星",
     description: "내가 극(克)하는 오행으로, 재물, 아버지, 아내(남자의 경우)를 의미합니다.",
+    friendlyDescription: "돈과 물질에 대한 감각이 뛰어납니다. 실용적이고 현실적이며, 재물을 모으고 관리하는 능력이 있습니다.",
     members: ["편재", "정재"],
     element: "내가 극",
     color: "#F59E0B",  // amber
   },
   관성: {
     name: "관성",
+    friendlyName: "책임감·리더십",
     hanja: "官星",
     description: "나를 극(克)하는 오행으로, 직업, 명예, 남편(여자의 경우)을 의미합니다.",
+    friendlyDescription: "사회적 책임감과 명예를 중시합니다. 규율을 잘 지키고, 조직에서 인정받으려는 성향이 강합니다.",
     members: ["편관", "정관"],
     element: "나를 극",
     color: "#EF4444",  // red
   },
   인성: {
     name: "인성",
+    friendlyName: "학습·안정 추구",
     hanja: "印星",
     description: "나를 생(生)해주는 오행으로, 학문, 어머니, 보호를 의미합니다.",
+    friendlyDescription: "배우고 익히는 것을 좋아합니다. 안정을 추구하고, 지식과 지혜를 쌓아가는 성향이 있습니다.",
     members: ["편인", "정인"],
     element: "나를 생",
     color: "#3B82F6",  // blue
@@ -340,11 +352,11 @@ export function analyzeSipsinDistribution(
   let analysis = "";
   if (dominant) {
     const dominantInfo = SIPSIN_CATEGORY_INFO[dominant];
-    analysis = `${dominantInfo.name}(${dominantInfo.hanja})이 강하여 ${dominantInfo.description.split("를 의미합니다")[0]}의 성향이 두드러집니다.`;
+    analysis = `${dominantInfo.friendlyName} 성향이 두드러집니다. ${dominantInfo.friendlyDescription}`;
   }
   if (weak) {
     const weakInfo = SIPSIN_CATEGORY_INFO[weak];
-    analysis += ` ${weakInfo.name}(${weakInfo.hanja})이 없어 ${weakInfo.description.split("를 의미합니다")[0]}의 영역에서 보완이 필요합니다.`;
+    analysis += ` 다만, ${weakInfo.friendlyName} 영역에서 보완이 필요합니다.`;
   }
 
   return { distribution, dominant, weak, analysis };

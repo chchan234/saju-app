@@ -41,7 +41,7 @@ function SipsinDistributionChart({
   distribution: Record<SipsinCategory, number>;
 }) {
   const chartData = Object.entries(distribution).map(([category, count]) => ({
-    category: SIPSIN_CATEGORY_INFO[category as SipsinCategory].name,
+    category: SIPSIN_CATEGORY_INFO[category as SipsinCategory].friendlyName,
     value: count,
     fullMark: 4,
   }));
@@ -92,7 +92,7 @@ function SipsinInfoPanel({ sipsin, pillarName }: { sipsin: string; pillarName: s
           variant="outline"
           style={{ borderColor: categoryInfo.color, color: categoryInfo.color }}
         >
-          {categoryInfo.name}
+          {categoryInfo.friendlyName}
         </Badge>
         <Badge variant="secondary" className="ml-auto">{pillarName}</Badge>
       </div>
@@ -228,7 +228,7 @@ export function SipsinDetailCard({ pillars, timeUnknown = false }: SipsinDetailC
                     style={{ borderColor: catInfo.color, color: catInfo.color }}
                     className="px-2 py-1"
                   >
-                    {catInfo.name} {count}개
+                    {catInfo.friendlyName} {count}개
                   </Badge>
                 );
               })}
@@ -238,10 +238,10 @@ export function SipsinDetailCard({ pillars, timeUnknown = false }: SipsinDetailC
             {dominant && (
               <div className="p-3 bg-[#F9F7F2] dark:bg-[#2C2824] rounded-lg">
                 <p className="text-sm font-medium text-[#5C544A] dark:text-[#D4C5B0] mb-1">
-                  ✨ 가장 강한 영역: {SIPSIN_CATEGORY_INFO[dominant].name}
+                  ✨ 가장 강한 영역: {SIPSIN_CATEGORY_INFO[dominant].friendlyName}
                 </p>
                 <p className="text-xs text-stone-600 dark:text-stone-400">
-                  {SIPSIN_CATEGORY_INFO[dominant].description}
+                  {SIPSIN_CATEGORY_INFO[dominant].friendlyDescription}
                 </p>
               </div>
             )}
@@ -249,10 +249,10 @@ export function SipsinDetailCard({ pillars, timeUnknown = false }: SipsinDetailC
             {weak && (
               <div className="p-3 bg-orange-50/50 dark:bg-orange-950/10 rounded-lg border border-orange-200/50 dark:border-orange-900/50">
                 <p className="text-sm font-medium text-orange-700 dark:text-orange-400 mb-1">
-                  ⚠️ 보완 필요: {SIPSIN_CATEGORY_INFO[weak].name}
+                  ⚠️ 보완이 필요한 영역: {SIPSIN_CATEGORY_INFO[weak].friendlyName}
                 </p>
                 <p className="text-xs text-orange-600 dark:text-orange-300">
-                  {SIPSIN_CATEGORY_INFO[weak].description}
+                  {SIPSIN_CATEGORY_INFO[weak].friendlyDescription}
                 </p>
               </div>
             )}

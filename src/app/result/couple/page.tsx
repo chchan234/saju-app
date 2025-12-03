@@ -342,6 +342,183 @@ function CoupleOhengAdviceCard({ person1, person2, name1, name2 }: {
   );
 }
 
+// 궁합 이유 카드 (왜 잘 맞는가/안 맞는가)
+function CompatibilityReasonCard({ compatibility, name1, name2 }: {
+  compatibility: CompatibilityResult;
+  name1: string;
+  name2: string;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const { ilganAnalysis, ohengAnalysis } = compatibility;
+
+  // 긍정적 요소들 통합
+  const positiveReasons = [
+    ...ilganAnalysis.positive.map(p => ({ text: p, source: "일간 관계" })),
+    ...ohengAnalysis.complementary.map(c => ({ text: `${c} 오행이 서로를 보완합니다`, source: "오행 조화" })),
+  ];
+
+  // 부정적 요소들 통합
+  const negativeReasons = [
+    ...ilganAnalysis.negative.map(n => ({ text: n, source: "일간 관계" })),
+    ...ohengAnalysis.conflict.map(c => ({ text: `${c} 오행에서 충돌이 있습니다`, source: "오행 충돌" })),
+  ];
+
+  return (
+    <Card className="border-stone-200 dark:border-stone-800 shadow-md">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 font-serif text-[#5C544A] dark:text-[#D4C5B0]">
+          <span className="text-xl">🔍</span>
+          왜 이런 궁합인가요?
+        </CardTitle>
+        <p className="text-sm text-muted-foreground">
+          {name1}님과 {name2}님의 사주를 비교한 결과입니다
+        </p>
+      </CardHeader>
+      <CardContent>
+        <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+          {/* 일간 관계 설명 */}
+          <div className="mb-4 p-4 bg-[#F9F7F2] dark:bg-[#2C2824] rounded-lg border border-[#E8DCC4] dark:border-[#3E3832]">
+            <div className="flex items-center gap-2 mb-2">
+              <Badge variant="outline" className="bg-white dark:bg-black/20">{ilganAnalysis.type}</Badge>
+              <span className="text-sm font-medium text-[#5C544A] dark:text-[#D4C5B0]">관계</span>
+            </div>
+            <p className="text-sm text-stone-600 dark:text-stone-400 leading-relaxed">
+              {ilganAnalysis.typeDescription}
+            </p>
+          </div>
+
+          {/* 요약: 잘 맞는 점과 주의할 점 */}
+          <div className="grid md:grid-cols-2 gap-4 mb-4">
+            {/* 잘 맞는 점 */}
+            {positiveReasons.length > 0 && (
+              <div className="p-4 bg-green-50/50 dark:bg-green-950/20 rounded-lg border border-green-100 dark:border-green-900/30">
+                <h4 className="font-semibold text-green-700 dark:text-green-400 mb-2 flex items-center gap-1">
+                  <span>💚</span> 잘 맞는 점
+                </h4>
+                <ul className="space-y-1.5">
+                  {positiveReasons.slice(0, 3).map((item, i) => (
+                    <li key={i} className="text-sm flex items-start gap-2 text-stone-700 dark:text-stone-300">
+                      <span className="text-green-600 mt-0.5">✓</span>
+                      <span>{item.text}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* 주의할 점 */}
+            {negativeReasons.length > 0 && (
+              <div className="p-4 bg-orange-50/50 dark:bg-orange-950/20 rounded-lg border border-orange-100 dark:border-orange-900/30">
+                <h4 className="font-semibold text-orange-700 dark:text-orange-400 mb-2 flex items-center gap-1">
+                  <span>⚠️</span> 주의할 점
+                </h4>
+                <ul className="space-y-1.5">
+                  {negativeReasons.slice(0, 3).map((item, i) => (
+                    <li key={i} className="text-sm flex items-start gap-2 text-stone-700 dark:text-stone-300">
+                      <span className="text-orange-600 mt-0.5">!</span>
+                      <span>{item.text}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+
+          <CollapsibleTrigger asChild>
+            <Button variant="ghost" className="w-full justify-between hover:bg-stone-100 dark:hover:bg-stone-800">
+              <span className="font-serif text-stone-600 dark:text-stone-400">상세 분석 보기</span>
+              {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </Button>
+          </CollapsibleTrigger>
+
+          <CollapsibleContent className="space-y-4 pt-4">
+            {/* 오행 분석 */}
+            <div className="p-4 border border-stone-200 dark:border-stone-800 rounded-lg">
+              <h4 className="font-semibold mb-3 font-serif text-[#5C544A] dark:text-[#D4C5B0]">오행 균형 분석</h4>
+              <div className="grid md:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-muted-foreground mb-1">{name1}님</p>
+                  <div className="space-y-1">
+                    {ohengAnalysis.person1Strong.length > 0 && (
+                      <p className="text-stone-700 dark:text-stone-300">
+                        <span className="text-blue-600">강한 기운:</span> {ohengAnalysis.person1Strong.join(", ")}
+                      </p>
+                    )}
+                    {ohengAnalysis.person1Weak.length > 0 && (
+                      <p className="text-stone-700 dark:text-stone-300">
+                        <span className="text-orange-600">약한 기운:</span> {ohengAnalysis.person1Weak.join(", ")}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-muted-foreground mb-1">{name2}님</p>
+                  <div className="space-y-1">
+                    {ohengAnalysis.person2Strong.length > 0 && (
+                      <p className="text-stone-700 dark:text-stone-300">
+                        <span className="text-blue-600">강한 기운:</span> {ohengAnalysis.person2Strong.join(", ")}
+                      </p>
+                    )}
+                    {ohengAnalysis.person2Weak.length > 0 && (
+                      <p className="text-stone-700 dark:text-stone-300">
+                        <span className="text-orange-600">약한 기운:</span> {ohengAnalysis.person2Weak.join(", ")}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* 보완 관계 */}
+              {ohengAnalysis.complementary.length > 0 && (
+                <div className="mt-3 p-3 bg-green-50/50 dark:bg-green-950/10 rounded border border-green-100 dark:border-green-900/30">
+                  <p className="text-sm text-green-700 dark:text-green-400">
+                    <span className="font-medium">✨ 보완 관계:</span> {ohengAnalysis.complementary.join(", ")} 오행에서 서로를 보완해줍니다.
+                  </p>
+                </div>
+              )}
+
+              {/* 충돌 관계 */}
+              {ohengAnalysis.conflict.length > 0 && (
+                <div className="mt-2 p-3 bg-orange-50/50 dark:bg-orange-950/10 rounded border border-orange-100 dark:border-orange-900/30">
+                  <p className="text-sm text-orange-700 dark:text-orange-400">
+                    <span className="font-medium">⚡ 충돌 관계:</span> {ohengAnalysis.conflict.join(", ")} 오행에서 충돌이 있어 조절이 필요합니다.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* 모든 이유 상세 */}
+            {(positiveReasons.length > 3 || negativeReasons.length > 3) && (
+              <div className="grid md:grid-cols-2 gap-4">
+                {positiveReasons.length > 3 && (
+                  <div className="p-4 border border-stone-200 dark:border-stone-800 rounded-lg">
+                    <h5 className="font-medium mb-2 text-green-700 dark:text-green-400">추가 강점</h5>
+                    <ul className="space-y-1">
+                      {positiveReasons.slice(3).map((item, i) => (
+                        <li key={i} className="text-sm text-stone-600 dark:text-stone-400">• {item.text}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {negativeReasons.length > 3 && (
+                  <div className="p-4 border border-stone-200 dark:border-stone-800 rounded-lg">
+                    <h5 className="font-medium mb-2 text-orange-700 dark:text-orange-400">추가 주의점</h5>
+                    <ul className="space-y-1">
+                      {negativeReasons.slice(3).map((item, i) => (
+                        <li key={i} className="text-sm text-stone-600 dark:text-stone-400">• {item.text}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+          </CollapsibleContent>
+        </Collapsible>
+      </CardContent>
+    </Card>
+  );
+}
+
 // 궁합 결과 카드
 function CompatibilityCard({ compatibility, person1, person2, name1, name2 }: {
   compatibility: CompatibilityResult;
@@ -732,6 +909,13 @@ function CoupleResultContent() {
           name2={names.person2}
         />
 
+        {/* 궁합 이유 (왜 잘 맞는가/안 맞는가) */}
+        <CompatibilityReasonCard
+          compatibility={compatibility}
+          name1={names.person1}
+          name2={names.person2}
+        />
+
         {/* 궁합 분석 결과 (일주 관계 포함) */}
         <CompatibilityCard
           compatibility={compatibility}
@@ -762,14 +946,24 @@ function CoupleResultContent() {
             <div className="grid md:grid-cols-2 gap-3">
               <div className="bg-white/60 dark:bg-black/20 rounded-lg p-3">
                 <div className="text-xs text-muted-foreground mb-1">{names.person1}</div>
-                <div className="font-medium text-sm">
-                  {person1Result.dayPillar.ganji} · {person1Result.yongsin}({OHENG_ICONS[person1Result.yongsin]})
+                <div className="font-medium text-sm flex items-center gap-1">
+                  <span>{person1Result.dayPillar.ganji}</span>
+                  <span>·</span>
+                  <span className="flex items-center gap-0.5">
+                    {person1Result.yongsin}
+                    {OHENG_ICONS[person1Result.yongsin]}
+                  </span>
                 </div>
               </div>
               <div className="bg-white/60 dark:bg-black/20 rounded-lg p-3">
                 <div className="text-xs text-muted-foreground mb-1">{names.person2}</div>
-                <div className="font-medium text-sm">
-                  {person2Result.dayPillar.ganji} · {person2Result.yongsin}({OHENG_ICONS[person2Result.yongsin]})
+                <div className="font-medium text-sm flex items-center gap-1">
+                  <span>{person2Result.dayPillar.ganji}</span>
+                  <span>·</span>
+                  <span className="flex items-center gap-0.5">
+                    {person2Result.yongsin}
+                    {OHENG_ICONS[person2Result.yongsin]}
+                  </span>
                 </div>
               </div>
             </div>

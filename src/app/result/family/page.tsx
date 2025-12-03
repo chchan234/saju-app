@@ -628,6 +628,119 @@ function FamilyOhengAdviceCard({ members }: { members: MemberData[] }) {
   );
 }
 
+// 구성원 간 궁합 이유 요약 카드
+function PairCompatibilityReasonCard({ pairs }: { pairs: PairCompatibility[] }) {
+  const [expandedPair, setExpandedPair] = useState<number | null>(null);
+
+  return (
+    <Card className="border-stone-200 dark:border-stone-800 shadow-md">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 font-serif text-[#5C544A] dark:text-[#D4C5B0]">
+          <span className="text-xl">🔍</span>
+          왜 이런 궁합인가요?
+        </CardTitle>
+        <p className="text-sm text-muted-foreground">
+          각 구성원 간의 궁합이 좋거나 주의가 필요한 이유입니다
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {pairs.map((pair, index) => {
+          const { member1Name, member2Name, member1Relation, member2Relation, compatibility } = pair;
+          const { ilganAnalysis, ohengAnalysis, totalScore } = compatibility;
+          const isExpanded = expandedPair === index;
+
+          // 긍정적/부정적 이유 통합
+          const positiveReasons = [
+            ...ilganAnalysis.positive,
+            ...ohengAnalysis.complementary.map(c => `${c} 오행이 서로를 보완`),
+          ];
+          const negativeReasons = [
+            ...ilganAnalysis.negative,
+            ...ohengAnalysis.conflict.map(c => `${c} 오행에서 충돌`),
+          ];
+
+          return (
+            <div
+              key={index}
+              className="bg-white/50 dark:bg-stone-900/50 rounded-lg border border-stone-200 dark:border-stone-800 overflow-hidden"
+            >
+              <button
+                className="w-full p-3 flex items-center justify-between hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors"
+                onClick={() => setExpandedPair(isExpanded ? null : index)}
+              >
+                <div className="flex items-center gap-2 text-sm">
+                  <Badge variant="outline" className="text-xs bg-white dark:bg-black/20">
+                    {RELATION_LABELS[member1Relation] || member1Relation}
+                  </Badge>
+                  <span className="font-medium font-serif">{member1Name}</span>
+                  <span className="text-muted-foreground">↔</span>
+                  <span className="font-medium font-serif">{member2Name}</span>
+                  <Badge variant="outline" className="text-xs bg-white dark:bg-black/20">
+                    {RELATION_LABELS[member2Relation] || member2Relation}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant={getScoreBadgeVariant(totalScore)} className="text-xs">
+                    {totalScore}점
+                  </Badge>
+                  {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </div>
+              </button>
+
+              {isExpanded && (
+                <div className="px-3 pb-3 space-y-3 border-t border-stone-100 dark:border-stone-800 pt-3">
+                  {/* 일간 관계 */}
+                  <div className="p-3 bg-[#F9F7F2] dark:bg-[#2C2824] rounded-lg">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Badge variant="outline" className="text-xs bg-white dark:bg-black/20">{ilganAnalysis.type}</Badge>
+                      <span className="text-xs font-medium text-[#5C544A] dark:text-[#D4C5B0]">관계</span>
+                    </div>
+                    <p className="text-xs text-stone-600 dark:text-stone-400">{ilganAnalysis.typeDescription}</p>
+                  </div>
+
+                  {/* 잘 맞는 점 / 주의할 점 */}
+                  <div className="grid grid-cols-2 gap-2">
+                    {positiveReasons.length > 0 && (
+                      <div className="p-2 bg-green-50/50 dark:bg-green-950/20 rounded border border-green-100 dark:border-green-900/30">
+                        <h5 className="text-xs font-semibold text-green-700 dark:text-green-400 mb-1 flex items-center gap-1">
+                          <span>💚</span> 잘 맞는 점
+                        </h5>
+                        <ul className="space-y-0.5">
+                          {positiveReasons.slice(0, 2).map((reason, i) => (
+                            <li key={i} className="text-xs text-stone-600 dark:text-stone-400 flex items-start gap-1">
+                              <span className="text-green-600">✓</span>
+                              <span>{reason}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {negativeReasons.length > 0 && (
+                      <div className="p-2 bg-orange-50/50 dark:bg-orange-950/20 rounded border border-orange-100 dark:border-orange-900/30">
+                        <h5 className="text-xs font-semibold text-orange-700 dark:text-orange-400 mb-1 flex items-center gap-1">
+                          <span>⚠️</span> 주의할 점
+                        </h5>
+                        <ul className="space-y-0.5">
+                          {negativeReasons.slice(0, 2).map((reason, i) => (
+                            <li key={i} className="text-xs text-stone-600 dark:text-stone-400 flex items-start gap-1">
+                              <span className="text-orange-600">!</span>
+                              <span>{reason}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </CardContent>
+    </Card>
+  );
+}
+
 // 관계 유형별 분석 카드
 function RelationTypeCard({ analysis }: { analysis: RelationTypeAnalysis }) {
   return (
@@ -1039,6 +1152,9 @@ function FamilyResultContent() {
           </CardContent>
         </Card>
 
+        {/* 구성원 간 궁합 이유 요약 */}
+        <PairCompatibilityReasonCard pairs={analysis.pairCompatibilities} />
+
         {/* 가족 분석 결과 */}
         <FamilyAnalysisCard analysis={analysis} />
 
@@ -1059,8 +1175,13 @@ function FamilyResultContent() {
                     {RELATION_LABELS[member.relation] || member.relation}
                   </div>
                   <div className="font-medium text-sm truncate">{member.name}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {member.saju.dayPillar.ganji} · {OHENG_ICONS[member.saju.yongsin]}
+                  <div className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+                    <span>{member.saju.dayPillar.ganji}</span>
+                    <span>·</span>
+                    <span className="flex items-center gap-0.5">
+                      {member.saju.yongsin}
+                      {OHENG_ICONS[member.saju.yongsin]}
+                    </span>
                   </div>
                 </div>
               ))}

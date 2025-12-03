@@ -59,8 +59,10 @@ export function BokbiModal() {
         }
     };
 
-    const toggleEnvelope = () => {
-        setIsEnvelopeOpen(!isEnvelopeOpen);
+    const openEnvelope = () => {
+        if (!isEnvelopeOpen) {
+            setIsEnvelopeOpen(true);
+        }
     };
 
     return (
@@ -100,7 +102,7 @@ export function BokbiModal() {
                         {/* --- REALISTIC ENVELOPE COMPONENT --- */}
                         <div
                             className="relative w-full h-40 cursor-pointer group perspective-1000"
-                            onClick={toggleEnvelope}
+                            onClick={openEnvelope}
                         >
                             {/* 1. LAYER: BACK (Inside of Envelope) */}
                             {/* This is the dark inside part visible when opened */}
