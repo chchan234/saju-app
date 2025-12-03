@@ -675,7 +675,7 @@ export function OhengEmotionalMessage({ yongsin }: OhengEmotionalMessageProps) {
         "{message.message}"
       </p>
       <p className="text-xs text-muted-foreground mt-2">
-        — {yongsin} 기운을 품은 당신에게
+        — {yongsin} 기운을 채워갈 당신에게
       </p>
     </div>
   );
