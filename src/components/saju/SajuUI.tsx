@@ -87,7 +87,6 @@ export function BokbiModal() {
 
                     <DialogHeader className="mb-8 relative z-10">
                         <DialogTitle className="text-2xl font-serif font-bold text-[#5C544A] dark:text-[#D4C5B0] flex flex-col items-center gap-3">
-                            <span className="text-xs font-sans font-medium text-[#8E7F73] tracking-[0.3em] uppercase">Energy Exchange</span>
                             <span className="text-3xl">복채(福債)를 건네다</span>
                         </DialogTitle>
                     </DialogHeader>
@@ -124,7 +123,7 @@ export function BokbiModal() {
                                     {/* Watermark/Pattern on money */}
                                     <div className="absolute inset-0 opacity-5 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-stone-400 to-transparent"></div>
 
-                                    <p className="text-[10px] text-stone-400 mb-1 uppercase tracking-wider">KakaoBank</p>
+                                    <p className="text-[10px] text-stone-400 mb-1 tracking-wider">카카오뱅크</p>
                                     <p className="font-mono font-bold text-stone-700 dark:text-stone-300 text-lg tracking-wider z-10">3333-01-5848626</p>
 
                                     <Button
