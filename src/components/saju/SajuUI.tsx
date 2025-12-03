@@ -99,66 +99,87 @@ export function BokbiModal() {
                             봉투를 눌러 마음을 전하세요.
                         </p>
 
-                        {/* Envelope UI */}
+                        {/* Envelope UI - 반응형 봉투 */}
                         <div
-                            className="relative h-72 w-full cursor-pointer perspective-1000 mt-8 mb-4 group"
+                            className="relative w-full cursor-pointer mt-6 mb-4"
+                            style={{ aspectRatio: '4/3' }}
                             onClick={toggleEnvelope}
                         >
-                            {/* Money/Bill inside - Slides up when open */}
-                            <div
-                                className={`absolute left-4 right-4 bg-white dark:bg-[#2C2824] border border-stone-200 dark:border-stone-700 rounded-lg flex flex-col items-center justify-center p-4 transition-all duration-700 ease-in-out shadow-md
-                                ${isEnvelopeOpen ? 'bottom-40 z-50' : 'bottom-[-30px] z-10'}`}
-                                style={{ height: '130px' }}
-                            >
-                                <p className="text-xs text-stone-400 mb-2">카카오뱅크</p>
-                                <p className="font-mono font-bold text-stone-700 dark:text-stone-300 text-lg tracking-wider">3333-01-5848626</p>
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="h-7 text-xs gap-1 bg-stone-50 hover:bg-stone-100 dark:bg-stone-800 dark:hover:bg-stone-700 mt-3"
-                                    onClick={handleCopy}
+                            {/* 봉투 컨테이너 (overflow-hidden으로 내용물 가림) */}
+                            <div className="absolute inset-0 overflow-hidden">
+                                {/* 계좌 카드 - 봉투 안에 숨겨져 있다가 위로 튀어나옴 */}
+                                <div
+                                    className={`absolute left-[10%] right-[10%] bg-white dark:bg-[#2C2824] border border-stone-200 dark:border-stone-700 rounded-xl flex flex-col items-center justify-center p-4 shadow-lg transition-all duration-700 ease-out
+                                    ${isEnvelopeOpen ? 'bottom-[55%] z-50 opacity-100' : 'bottom-[5%] z-10 opacity-90'}`}
+                                    style={{ height: '40%' }}
                                 >
-                                    {copied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
-                                    {copied ? "복사완료" : "계좌 복사"}
-                                </Button>
+                                    <p className="text-xs text-stone-400 mb-1">카카오뱅크</p>
+                                    <p className="font-mono font-bold text-stone-700 dark:text-stone-300 text-base sm:text-lg tracking-wider">3333-01-5848626</p>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="h-7 text-xs gap-1 bg-stone-50 hover:bg-stone-100 dark:bg-stone-800 dark:hover:bg-stone-700 mt-2"
+                                        onClick={handleCopy}
+                                    >
+                                        {copied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
+                                        {copied ? "복사완료" : "계좌 복사"}
+                                    </Button>
+                                </div>
                             </div>
 
-                            {/* Envelope Back */}
-                            <div className="absolute bottom-0 left-0 w-full h-32 bg-[#C5B4A0] dark:bg-[#4A4036] rounded-b-lg shadow-lg z-0"></div>
-
-                            {/* Envelope Flap - Rotates open */}
+                            {/* 봉투 뒷면 (그림자용) */}
                             <div
-                                className={`absolute bottom-0 left-0 w-full h-32 transition-all duration-700 ease-in-out origin-top
-                                ${isEnvelopeOpen ? 'z-1 delay-200' : 'z-20 delay-200'}`}
-                                style={{
-                                    transform: isEnvelopeOpen ? 'rotateX(180deg)' : 'rotateX(0deg)',
-                                    transformStyle: 'preserve-3d',
-                                    marginBottom: '128px' /* Positions the flap on top of the back (h-32 = 128px) */
-                                }}
-                            >
-                                {/* Flap Front (Closed state) */}
-                                <div
-                                    className="absolute top-0 left-0 w-full h-full bg-[#BFA588] dark:bg-[#5C5044] rounded-t-lg backface-hidden"
-                                    style={{ clipPath: "polygon(0 0, 100% 0, 50% 55%)", backfaceVisibility: 'hidden' }}
-                                ></div>
-
-                                {/* Flap Back (Open state - visible after rotation) */}
-                                <div
-                                    className="absolute top-0 left-0 w-full h-full bg-[#A89070] dark:bg-[#4A4036] rounded-t-lg"
-                                    style={{ clipPath: "polygon(0 0, 100% 0, 50% 55%)", transform: 'rotateX(180deg)', backfaceVisibility: 'hidden' }}
-                                ></div>
-                            </div>
-
-                            {/* Envelope Body (Front) */}
-                            <div
-                                className="absolute bottom-0 left-0 w-full h-32 bg-[#D4C5B0] dark:bg-[#5C5044] rounded-b-lg z-30 pointer-events-none"
-                                style={{ clipPath: "polygon(0 0, 50% 40%, 100% 0, 100% 100%, 0 100%)" }}
+                                className="absolute bottom-0 left-0 w-full bg-[#C5B4A0] dark:bg-[#4A4036] rounded-b-xl shadow-xl"
+                                style={{ height: '50%' }}
                             ></div>
 
-                            {/* Seal - positioned at envelope flap junction */}
+                            {/* 봉투 플랩 (삼각형 뚜껑) */}
                             <div
-                                className={`absolute bottom-[180px] left-1/2 transform -translate-x-1/2 w-12 h-12 bg-gradient-to-br from-red-700 to-red-900 rounded-full border-2 border-red-950 shadow-lg z-40 flex items-center justify-center text-yellow-100 font-serif text-lg font-bold transition-all duration-500
+                                className="absolute left-0 w-full transition-all duration-500 ease-in-out origin-bottom"
+                                style={{
+                                    height: '35%',
+                                    bottom: '50%',
+                                    transform: isEnvelopeOpen ? 'rotateX(180deg) translateY(100%)' : 'rotateX(0deg)',
+                                    transformStyle: 'preserve-3d',
+                                    zIndex: isEnvelopeOpen ? 5 : 25
+                                }}
+                            >
+                                <div
+                                    className="absolute inset-0 bg-[#BFA588] dark:bg-[#5C5044]"
+                                    style={{
+                                        clipPath: "polygon(0 0, 100% 0, 50% 100%)",
+                                        backfaceVisibility: 'hidden'
+                                    }}
+                                ></div>
+                                <div
+                                    className="absolute inset-0 bg-[#A89070] dark:bg-[#4A4036]"
+                                    style={{
+                                        clipPath: "polygon(0 0, 100% 0, 50% 100%)",
+                                        transform: 'rotateX(180deg)',
+                                        backfaceVisibility: 'hidden'
+                                    }}
+                                ></div>
+                            </div>
+
+                            {/* 봉투 앞면 (V자 모양) */}
+                            <div
+                                className="absolute bottom-0 left-0 w-full bg-[#D4C5B0] dark:bg-[#5C5044] rounded-b-xl pointer-events-none"
+                                style={{
+                                    height: '50%',
+                                    clipPath: "polygon(0 0, 50% 35%, 100% 0, 100% 100%, 0 100%)",
+                                    zIndex: 30
+                                }}
+                            ></div>
+
+                            {/* 福 봉인 - 플랩과 본체 경계에 위치 */}
+                            <div
+                                className={`absolute left-1/2 -translate-x-1/2 w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-red-700 to-red-900 rounded-full border-2 border-red-950 shadow-lg flex items-center justify-center text-yellow-100 font-serif text-base sm:text-lg font-bold transition-all duration-500
                                 ${isEnvelopeOpen ? 'opacity-0 scale-50 rotate-45' : 'opacity-100 scale-100 rotate-0'}`}
+                                style={{
+                                    bottom: '50%',
+                                    transform: `translateX(-50%) translateY(50%)`,
+                                    zIndex: 35
+                                }}
                             >
                                 福
                             </div>
