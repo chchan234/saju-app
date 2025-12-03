@@ -17,6 +17,14 @@ import {
   analyzeHealthConstitution,
   OHENG_HEALTH_INFO,
 } from "@/lib/saju-analysis-extended";
+import { OHENG, type Oheng, isValidOheng } from "@/lib/saju-constants";
+
+// 오행 색상 조합 생성 (text + bg + border)
+const getOhengColorClass = (oheng: string) => {
+  if (!isValidOheng(oheng)) return "text-gray-600 bg-gray-50 border-gray-200";
+  const o = OHENG[oheng as Oheng];
+  return `${o.text} ${o.bgSubtle} ${o.border}`;
+};
 
 // ============================================
 // 격국(格局) 카드
@@ -168,14 +176,6 @@ export function HealthConstitutionCard({ ohengCount }: HealthConstitutionCardPro
   const [isOpen, setIsOpen] = useState(false);
   const analysis = analyzeHealthConstitution(ohengCount);
 
-  const OHENG_COLORS: Record<string, string> = {
-    목: "text-green-600 bg-green-50 border-green-200",
-    화: "text-red-600 bg-red-50 border-red-200",
-    토: "text-yellow-700 bg-yellow-50 border-yellow-200",
-    금: "text-gray-600 bg-gray-50 border-gray-200",
-    수: "text-blue-600 bg-blue-50 border-blue-200",
-  };
-
   return (
     <Card className="border-none shadow-md bg-white/80 dark:bg-stone-900/80 backdrop-blur-sm overflow-hidden">
       <div className="h-2 bg-gradient-to-r from-emerald-500 to-teal-500"></div>
@@ -250,9 +250,9 @@ export function HealthConstitutionCard({ ohengCount }: HealthConstitutionCardPro
           <CollapsibleContent className="space-y-4 pt-4">
             {/* 부족/없는 오행 상세 */}
             {analysis.primaryConcern && (
-              <div className={`p-4 rounded-lg border ${OHENG_COLORS[analysis.primaryConcern.oheng]}`}>
+              <div className={`p-4 rounded-lg border ${getOhengColorClass(analysis.primaryConcern.oheng)}`}>
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="text-xl">{analysis.primaryConcern.oheng === "목" ? "🌳" : analysis.primaryConcern.oheng === "화" ? "🔥" : analysis.primaryConcern.oheng === "토" ? "⛰️" : analysis.primaryConcern.oheng === "금" ? "🪙" : "💧"}</span>
+                  <span className="text-xl">{isValidOheng(analysis.primaryConcern.oheng) ? OHENG[analysis.primaryConcern.oheng as Oheng].emoji : "⚪"}</span>
                   <h4 className="font-serif font-medium">
                     {analysis.primaryConcern.oheng}({analysis.primaryConcern.hanja}) 보강 필요
                   </h4>
@@ -281,9 +281,9 @@ export function HealthConstitutionCard({ ohengCount }: HealthConstitutionCardPro
 
             {/* 과다 오행 상세 */}
             {analysis.secondaryConcern && ohengCount[analysis.secondaryConcern.oheng as keyof OhengCount] >= 3 && (
-              <div className={`p-4 rounded-lg border ${OHENG_COLORS[analysis.secondaryConcern.oheng]}`}>
+              <div className={`p-4 rounded-lg border ${getOhengColorClass(analysis.secondaryConcern.oheng)}`}>
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="text-xl">{analysis.secondaryConcern.oheng === "목" ? "🌳" : analysis.secondaryConcern.oheng === "화" ? "🔥" : analysis.secondaryConcern.oheng === "토" ? "⛰️" : analysis.secondaryConcern.oheng === "금" ? "🪙" : "💧"}</span>
+                  <span className="text-xl">{isValidOheng(analysis.secondaryConcern.oheng) ? OHENG[analysis.secondaryConcern.oheng as Oheng].emoji : "⚪"}</span>
                   <h4 className="font-serif font-medium">
                     {analysis.secondaryConcern.oheng}({analysis.secondaryConcern.hanja}) 과다 주의
                   </h4>

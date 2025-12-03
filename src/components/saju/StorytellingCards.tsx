@@ -24,6 +24,7 @@ import {
   type CoreKeywords,
   type EnrichedDaeunInfo,
 } from "@/lib/saju-storytelling";
+import { OHENG, FORTUNE_LEVEL_STYLES, type Oheng, isValidOheng } from "@/lib/saju-constants";
 
 // 일간에 해당하는 아이콘
 const ILGAN_ICONS: Record<string, React.ReactNode> = {
@@ -371,22 +372,27 @@ export function LifePhaseCard({ birthYear, name }: LifePhaseCardProps) {
 // 인생 여정 타임라인 (대운 스토리 통합)
 // ============================================
 
-// 오행별 색상
-const OHENG_COLORS: Record<string, { bg: string; border: string; text: string; darkBg: string }> = {
-  목: { bg: "bg-green-50", border: "border-green-300", text: "text-green-700", darkBg: "dark:bg-green-950/30" },
-  화: { bg: "bg-red-50", border: "border-red-300", text: "text-red-700", darkBg: "dark:bg-red-950/30" },
-  토: { bg: "bg-yellow-50", border: "border-yellow-300", text: "text-yellow-700", darkBg: "dark:bg-yellow-950/30" },
-  금: { bg: "bg-slate-50", border: "border-slate-300", text: "text-slate-700", darkBg: "dark:bg-slate-950/30" },
-  수: { bg: "bg-blue-50", border: "border-blue-300", text: "text-blue-700", darkBg: "dark:bg-blue-950/30" },
-};
+// 오행별 색상 (saju-constants.ts에서 파생)
+const ohengKeys: Oheng[] = ["목", "화", "토", "금", "수"];
+const OHENG_COLORS: Record<string, { bg: string; border: string; text: string; darkBg: string }> = Object.fromEntries(
+  ohengKeys.map((key) => [
+    key,
+    {
+      bg: OHENG[key].bgSubtle,
+      border: OHENG[key].border,
+      text: OHENG[key].text,
+      darkBg: OHENG[key].bgDark,
+    },
+  ])
+);
 
-// 길흉별 배지 스타일
+// 길흉별 배지 스타일 (saju-constants.ts에서 파생)
 const FORTUNE_BADGE_STYLES: Record<string, string> = {
-  최길: "bg-gradient-to-r from-yellow-400 to-amber-500 text-white",
-  길: "bg-gradient-to-r from-green-400 to-emerald-500 text-white",
-  평: "bg-gradient-to-r from-slate-300 to-slate-400 text-slate-800",
-  흉: "bg-gradient-to-r from-orange-400 to-orange-500 text-white",
-  최흉: "bg-gradient-to-r from-red-500 to-red-600 text-white",
+  최길: FORTUNE_LEVEL_STYLES.최길.badge,
+  길: FORTUNE_LEVEL_STYLES.길.badge,
+  평: FORTUNE_LEVEL_STYLES.평.badge,
+  흉: FORTUNE_LEVEL_STYLES.흉.badge,
+  최흉: FORTUNE_LEVEL_STYLES.최흉.badge,
 };
 
 interface LifeJourneyTimelineProps {

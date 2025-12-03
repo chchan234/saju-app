@@ -14,6 +14,7 @@ import type { SajuApiResult, Pillar, OhengCount } from "@/types/saju";
 import type { MajorFortuneInfo, YearlyFortuneInfo } from "@/lib/saju-calculator";
 import { DaeunTimelineCard, YearlyFortuneCard, FortuneFlowChart } from "@/components/saju/FortuneCards";
 import { SipsinDetailCard, WealthFortuneCard } from "@/components/saju/SipsinCards";
+import { LifeFortuneCard } from "@/components/saju/LifeFortuneCards";
 import { GeokgukCard, HealthConstitutionCard } from "@/components/saju/AnalysisCards";
 import {
   JohuCard,
@@ -909,6 +910,16 @@ export function SajuResult({ result, name, timeUnknown = false }: SajuResultProp
         dayCheongan={dayPillar.cheongan}
         dayJiji={dayPillar.jiji}
       />
+
+      {/* ========== 7.5 분야별 시기 운세 ========== */}
+      {majorFortunes && majorFortunes.length > 0 && gender && (
+        <LifeFortuneCard
+          majorFortunes={majorFortunes}
+          ilgan={dayPillar.cheongan}
+          gender={gender}
+          birthYear={birthInfo.solarYear}
+        />
+      )}
 
       {/* ========== 8. 시간 흐름 (대운/연운) ========== */}
       {/* 현재 인생 단계 */}

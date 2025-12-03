@@ -30,6 +30,11 @@ import {
   type RelationshipPattern,
   type CareerAptitude,
 } from "@/lib/saju-advanced-analysis";
+import { OHENG, type Oheng, isValidOheng } from "@/lib/saju-constants";
+
+// 오행 이모지 헬퍼 함수
+const getOhengEmoji = (oheng: string) =>
+  isValidOheng(oheng) ? OHENG[oheng as Oheng].emoji : "⚪";
 
 // ============================================
 // 조후(調候) 카드 - 계절 오행 분석
@@ -65,14 +70,6 @@ export function JohuCard({ monthJiji, ohengCount, yongsin }: JohuCardProps) {
     여름: "☀️",
     가을: "🍂",
     겨울: "❄️",
-  };
-
-  const OHENG_EMOJI: Record<string, string> = {
-    목: "🌳",
-    화: "🔥",
-    토: "⛰️",
-    금: "🪙",
-    수: "💧",
   };
 
   const seasonKey = getSeasonKey(analysis.birthSeason);
@@ -122,14 +119,11 @@ export function JohuCard({ monthJiji, ohengCount, yongsin }: JohuCardProps) {
         {/* 조후 설명 */}
         <div className="p-4 bg-[#F9F7F2] dark:bg-[#2C2824] rounded-xl border border-[#E8DCC4] dark:border-[#3E3832]">
           <div className="flex items-start gap-2">
-            <span className="text-xl">{OHENG_EMOJI[analysis.neededElement]}</span>
+            <span className="text-xl">{getOhengEmoji(analysis.neededElement)}</span>
             <div>
               <p className="font-medium text-sm text-stone-700 dark:text-stone-300 mb-1">
                 필요한 기운: {analysis.neededElement}(
-                {analysis.neededElement === "목" ? "木" :
-                 analysis.neededElement === "화" ? "火" :
-                 analysis.neededElement === "토" ? "土" :
-                 analysis.neededElement === "금" ? "金" : "水"})
+                {isValidOheng(analysis.neededElement) ? OHENG[analysis.neededElement as Oheng].hanja : ""})
               </p>
               <p className="text-sm text-muted-foreground">{analysis.neededReason}</p>
             </div>

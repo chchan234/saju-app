@@ -30,23 +30,15 @@ import {
   getYeonunStatus,
   getDaeunAgeMeaning,
 } from "@/lib/saju-fortune-data";
+import { OHENG, type Oheng, isValidOheng, getOhengBadgeClass } from "@/lib/saju-constants";
 
-// 오행 색상 매핑
-const OHENG_COLORS: Record<string, string> = {
-  목: "bg-green-500",
-  화: "bg-red-500",
-  토: "bg-yellow-600",
-  금: "bg-gray-400",
-  수: "bg-blue-500",
-};
+// 헬퍼 함수: 오행 배경색 가져오기 (text-white와 함께 사용)
+const getOhengBg = (element: string) =>
+  isValidOheng(element) ? OHENG[element].bg : "bg-gray-500";
 
-const OHENG_LIGHT_COLORS: Record<string, string> = {
-  목: "bg-green-100 border-green-300 text-green-800",
-  화: "bg-red-100 border-red-300 text-red-800",
-  토: "bg-yellow-100 border-yellow-400 text-yellow-800",
-  금: "bg-gray-100 border-gray-300 text-gray-800",
-  수: "bg-blue-100 border-blue-300 text-blue-800",
-};
+// 헬퍼 함수: 오행 라이트 배지 클래스 가져오기
+const getOhengLightBadge = (element: string) =>
+  isValidOheng(element) ? getOhengBadgeClass(element as Oheng) : "bg-gray-100 border-gray-300 text-gray-800";
 
 interface DaeunTimelineCardProps {
   majorFortunes: MajorFortuneInfo[];
@@ -100,7 +92,7 @@ export function DaeunTimelineCard({ majorFortunes, birthYear }: DaeunTimelineCar
                     <span className="text-3xl font-serif font-bold text-purple-700 dark:text-purple-300">
                       {currentDaeun.ganji}
                     </span>
-                    <Badge className={`${OHENG_COLORS[currentDaeun.element]} text-white`}>
+                    <Badge className={`${getOhengBg(currentDaeun.element)} text-white`}>
                       {currentDaeun.element}
                     </Badge>
                   </div>
@@ -142,7 +134,7 @@ export function DaeunTimelineCard({ majorFortunes, birthYear }: DaeunTimelineCar
               </p>
               <div className="flex items-center gap-2">
                 <span className="font-serif font-bold text-lg">{nextDaeun.ganji}</span>
-                <Badge className={`${OHENG_COLORS[nextDaeun.element]} text-white text-xs`}>
+                <Badge className={`${getOhengBg(nextDaeun.element)} text-white text-xs`}>
                   {nextDaeun.element}
                 </Badge>
                 <span className="text-sm text-muted-foreground">
@@ -199,7 +191,7 @@ export function DaeunTimelineCard({ majorFortunes, birthYear }: DaeunTimelineCar
                                 ? "bg-purple-500 border-purple-300"
                                 : isPast
                                 ? "bg-stone-300 border-stone-200"
-                                : `${OHENG_COLORS[fortune.element]} border-white`
+                                : `${getOhengBg(fortune.element)} border-white`
                             }`}
                           ></div>
 
@@ -208,7 +200,7 @@ export function DaeunTimelineCard({ majorFortunes, birthYear }: DaeunTimelineCar
                               <span className={`font-serif font-bold text-xl ${isCurrent ? "text-purple-700 dark:text-purple-300" : ""}`}>
                                 {fortune.ganji}
                               </span>
-                              <Badge className={`${OHENG_LIGHT_COLORS[fortune.element]} border`}>
+                              <Badge className={`${getOhengLightBadge(fortune.element)} border`}>
                                 {fortune.element}
                               </Badge>
                               {isCurrent && (
@@ -327,7 +319,7 @@ export function YearlyFortuneCard({ yearlyFortunes, ilgan, yongsin }: YearlyFort
                   <span className="text-3xl font-serif font-bold text-amber-700 dark:text-amber-300">
                     {thisYear.ganji}
                   </span>
-                  <Badge className={`${OHENG_COLORS[thisYear.element]} text-white`}>
+                  <Badge className={`${getOhengBg(thisYear.element)} text-white`}>
                     {thisYear.element}
                   </Badge>
                 </div>
@@ -362,7 +354,7 @@ export function YearlyFortuneCard({ yearlyFortunes, ilgan, yongsin }: YearlyFort
                   <span className="text-2xl font-serif font-bold">
                     {nextYear.ganji}
                   </span>
-                  <Badge className={`${OHENG_COLORS[nextYear.element]} text-white`}>
+                  <Badge className={`${getOhengBg(nextYear.element)} text-white`}>
                     {nextYear.element}
                   </Badge>
                 </div>
@@ -414,7 +406,7 @@ export function YearlyFortuneCard({ yearlyFortunes, ilgan, yongsin }: YearlyFort
                       <div className="flex items-center gap-3">
                         <span className="font-medium w-12">{fortune.year}</span>
                         <span className="font-serif font-bold">{fortune.ganji}</span>
-                        <Badge className={`${OHENG_LIGHT_COLORS[fortune.element]} border text-xs`}>
+                        <Badge className={`${getOhengLightBadge(fortune.element)} border text-xs`}>
                           {fortune.element}
                         </Badge>
                       </div>
@@ -585,14 +577,14 @@ export function FortuneFlowChart({
           <div className="flex items-center gap-2">
             <span className="text-purple-600">대운:</span>
             <span className="font-serif font-bold">{data.daeunGanji}</span>
-            <Badge className={`${OHENG_COLORS[data.daeunElement]} text-white text-xs`}>
+            <Badge className={`${getOhengBg(data.daeunElement)} text-white text-xs`}>
               {data.daeunElement}
             </Badge>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-amber-600">연운:</span>
             <span className="font-serif font-bold">{data.yeonunGanji}</span>
-            <Badge className={`${OHENG_COLORS[data.yeonunElement]} text-white text-xs`}>
+            <Badge className={`${getOhengBg(data.yeonunElement)} text-white text-xs`}>
               {data.yeonunElement}
             </Badge>
           </div>

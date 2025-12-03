@@ -32,6 +32,7 @@ import {
     ResponsiveContainer,
 } from "recharts";
 import type { Pillar, OhengCount } from "@/types/saju";
+import { OHENG, type Oheng, isValidOheng } from "@/lib/saju-constants";
 
 // --- Bokbi (Fortune Fee) Modal ---
 
@@ -223,31 +224,21 @@ export function BokbiModal() {
     );
 }
 
-// --- Constants ---
+// --- Constants (derived from saju-constants.ts for backward compatibility) ---
 
-export const OHENG_COLORS: Record<string, string> = {
-    목: "bg-green-600",
-    화: "bg-red-600",
-    토: "bg-yellow-600",
-    금: "bg-slate-400",
-    수: "bg-blue-600",
-};
+const ohengKeys: Oheng[] = ["목", "화", "토", "금", "수"];
 
-export const OHENG_TEXT_COLORS: Record<string, string> = {
-    목: "text-green-700",
-    화: "text-red-700",
-    토: "text-yellow-700",
-    금: "text-slate-600",
-    수: "text-blue-700",
-};
+export const OHENG_COLORS: Record<string, string> = Object.fromEntries(
+    ohengKeys.map((key) => [key, OHENG[key].bg])
+);
 
-export const OHENG_CHART_COLORS: Record<string, string> = {
-    목: "#16a34a", // green-600
-    화: "#dc2626", // red-600
-    토: "#ca8a04", // yellow-600
-    금: "#94a3b8", // slate-400
-    수: "#2563eb", // blue-600
-};
+export const OHENG_TEXT_COLORS: Record<string, string> = Object.fromEntries(
+    ohengKeys.map((key) => [key, OHENG[key].text])
+);
+
+export const OHENG_CHART_COLORS: Record<string, string> = Object.fromEntries(
+    ohengKeys.map((key) => [key, OHENG[key].hex])
+);
 
 export const OHENG_ICONS: Record<string, React.ReactNode> = {
     목: <TreeDeciduous className="w-4 h-4" />,
@@ -256,6 +247,10 @@ export const OHENG_ICONS: Record<string, React.ReactNode> = {
     금: <Coins className="w-4 h-4" />,
     수: <Droplets className="w-4 h-4" />,
 };
+
+// 헬퍼 함수: 안전한 오행 텍스트 색상 가져오기
+const getOhengTextColor = (oheng: string) =>
+    isValidOheng(oheng) ? OHENG[oheng].text : "text-gray-600";
 
 // --- Components ---
 
@@ -332,7 +327,7 @@ export function PillarCard({ pillar, label, size = "default" }: { pillar: Pillar
                 <div className={`relative flex flex-col items-center justify-center ${widthClass} ${heightClass} bg-[#F5F1E6] dark:bg-[#2C2824] border-2 border-[#8E7F73] dark:border-[#A89F91] rounded-lg shadow-inner p-1 md:p-2 transform -rotate-1 group-hover:rotate-0 transition-transform duration-300`}>
                     {/* Cheongan */}
                     <div className="flex-1 flex flex-col items-center justify-center w-full border-b border-dashed border-[#8E7F73]/30">
-                        <span className={`${textClass} font-serif font-bold ${OHENG_TEXT_COLORS[pillar.cheonganOheng]}`}>
+                        <span className={`${textClass} font-serif font-bold ${getOhengTextColor(pillar.cheonganOheng)}`}>
                             {pillar.cheongan}
                         </span>
                         {!isSmall && <span className="text-[10px] text-muted-foreground mt-1 font-sans">{pillar.cheonganOheng}</span>}
@@ -340,7 +335,7 @@ export function PillarCard({ pillar, label, size = "default" }: { pillar: Pillar
 
                     {/* Jiji */}
                     <div className="flex-1 flex flex-col items-center justify-center w-full">
-                        <span className={`${textClass} font-serif font-bold ${OHENG_TEXT_COLORS[pillar.jijiOheng]}`}>
+                        <span className={`${textClass} font-serif font-bold ${getOhengTextColor(pillar.jijiOheng)}`}>
                             {pillar.jiji}
                         </span>
                         {!isSmall && <span className="text-[10px] text-muted-foreground mt-1 font-sans">{pillar.jijiOheng}</span>}
