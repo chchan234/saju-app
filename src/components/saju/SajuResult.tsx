@@ -12,7 +12,7 @@ import {
 import { ChevronDown, ChevronUp, Sparkles, Mountain, Flame, Droplets, Coins, TreeDeciduous, Scroll, User, Heart, Briefcase, Brain, MessageCircle } from "lucide-react";
 import type { SajuApiResult, Pillar, OhengCount } from "@/types/saju";
 import type { MajorFortuneInfo, YearlyFortuneInfo } from "@/lib/saju-calculator";
-import { DaeunTimelineCard, YearlyFortuneCard } from "@/components/saju/FortuneCards";
+import { DaeunTimelineCard, YearlyFortuneCard, FortuneFlowChart } from "@/components/saju/FortuneCards";
 import { SipsinDetailCard, WealthFortuneCard } from "@/components/saju/SipsinCards";
 import { GeokgukCard, HealthConstitutionCard } from "@/components/saju/AnalysisCards";
 import {
@@ -722,18 +722,16 @@ export function SajuResult({ result, name, timeUnknown = false }: SajuResultProp
   const geokgukResult = determineGeokguk(monthPillar, dayPillar);
   const geokgukName = geokgukResult.geokguk;
 
+  // 십신 분포 미리 계산 (여러 곳에서 사용)
+  const sipsinDistribution = analyzeSipsinDistribution(pillars).distribution;
+
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
+      {/* ========== 1. 도입부 ========== */}
       {/* 스토리텔링 도입부 */}
       <StoryIntroCard ilju={ilju} dominantOheng={dominantOheng} name={name} />
 
-      {/* Phase 4: 자연 비유 프로필 */}
-      <NatureProfileCard ilgan={dayPillar.cheongan} name={name} />
-
-      {/* Phase 4: 오행 감성 메시지 */}
-      <OhengEmotionalMessage yongsin={yongsin} />
-
-      {/* 기본 정보 */}
+      {/* ========== 2. 기본 정보 ========== */}
       <Card className="overflow-hidden border-none shadow-sm bg-white/50 dark:bg-stone-900/50">
         <CardContent className="p-4">
           <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground">
@@ -755,7 +753,7 @@ export function SajuResult({ result, name, timeUnknown = false }: SajuResultProp
         </CardContent>
       </Card>
 
-      {/* 사주 기둥 (메인) */}
+      {/* ========== 3. 사주 기둥 ========== */}
       <section className="space-y-4">
         <div className="text-center mb-6">
           <h3 className="font-serif text-2xl font-bold text-[#5C544A] dark:text-[#D4C5B0]">
@@ -780,19 +778,27 @@ export function SajuResult({ result, name, timeUnknown = false }: SajuResultProp
         )}
       </section>
 
+      {/* ========== 4. 나의 정체성 ========== */}
       {/* 일주 상징/별명 */}
       {iljuSymbol && <IljuSymbolCard ilju={ilju} symbol={iljuSymbol} />}
 
       {/* 일간 성향 분석 */}
       <IlganTraitsCard ilgan={dayPillar.cheongan} />
 
-      {/* Phase 4: 종합 키워드 */}
+      {/* 자연 비유 프로필 */}
+      <NatureProfileCard ilgan={dayPillar.cheongan} name={name} />
+
+      {/* 종합 키워드 */}
       <CoreKeywordsCard
         ilgan={dayPillar.cheongan}
         yongsin={yongsin}
         geokguk={geokgukName}
         name={name}
       />
+
+      {/* ========== 5. 오행 분석 ========== */}
+      {/* 오행 감성 메시지 */}
+      <OhengEmotionalMessage yongsin={yongsin} />
 
       {/* 오행 분석 (Radar Chart) */}
       <Card>
@@ -801,12 +807,9 @@ export function SajuResult({ result, name, timeUnknown = false }: SajuResultProp
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-            {/* 차트 영역 */}
             <div className="bg-stone-50 dark:bg-stone-900/50 rounded-xl p-4">
               <OhengChart ohengCount={ohengCount} />
             </div>
-
-            {/* 분석 텍스트 영역 */}
             <div className="space-y-4">
               <div>
                 <h4 className="font-medium text-sm text-muted-foreground mb-2">가장 강한 기운</h4>
@@ -821,7 +824,6 @@ export function SajuResult({ result, name, timeUnknown = false }: SajuResultProp
                   당신의 성향과 재능을 주도하는 핵심 에너지입니다.
                 </p>
               </div>
-
               <div>
                 <h4 className="font-medium text-sm text-muted-foreground mb-2">부족하거나 없는 기운</h4>
                 <div className="flex flex-wrap gap-2">
@@ -845,12 +847,20 @@ export function SajuResult({ result, name, timeUnknown = false }: SajuResultProp
       {/* 오행 보완법 */}
       {yongsin && <OhengBoosterDetailCard yongsin={yongsin} />}
 
+      {/* ========== 6. 성격/적성 분석 ========== */}
       {/* 십신 상세 분석 */}
       <SipsinDetailCard pillars={pillars} timeUnknown={timeUnknown} />
 
       {/* 격국 분석 */}
       <GeokgukCard monthPillar={monthPillar} dayPillar={dayPillar} />
 
+      {/* 인간관계 패턴 분석 */}
+      <RelationshipPatternCard sipsinDistribution={sipsinDistribution} />
+
+      {/* 직업 적성 심화 분석 */}
+      <CareerAptitudeCard sipsinDistribution={sipsinDistribution} />
+
+      {/* ========== 7. 운세 분석 ========== */}
       {/* 재물운 분석 */}
       <WealthFortuneCard pillars={pillars.map(p => ({ ...p, ganji: p.cheongan + p.jiji }))} />
 
@@ -871,18 +881,19 @@ export function SajuResult({ result, name, timeUnknown = false }: SajuResultProp
         dayJiji={dayPillar.jiji}
       />
 
-      {/* 인간관계 패턴 분석 */}
-      <RelationshipPatternCard
-        sipsinDistribution={analyzeSipsinDistribution(pillars).distribution}
-      />
-
-      {/* 직업 적성 심화 분석 */}
-      <CareerAptitudeCard
-        sipsinDistribution={analyzeSipsinDistribution(pillars).distribution}
-      />
-
-      {/* Phase 4: 현재 인생 단계 */}
+      {/* ========== 8. 시간 흐름 (대운/연운) ========== */}
+      {/* 현재 인생 단계 */}
       <LifePhaseCard birthYear={birthInfo.solarYear} name={name} />
+
+      {/* 대운+연운 통합 그래프 */}
+      {majorFortunes && majorFortunes.length > 0 && yearlyFortunes && yearlyFortunes.length > 0 && (
+        <FortuneFlowChart
+          majorFortunes={majorFortunes}
+          yearlyFortunes={yearlyFortunes}
+          birthYear={birthInfo.solarYear}
+          yongsin={yongsin}
+        />
+      )}
 
       {/* 대운(大運) 타임라인 */}
       {majorFortunes && majorFortunes.length > 0 && (
@@ -892,7 +903,7 @@ export function SajuResult({ result, name, timeUnknown = false }: SajuResultProp
         />
       )}
 
-      {/* Phase 4: 인생 여정 타임라인 (대운 스토리 통합) */}
+      {/* 인생 여정 타임라인 */}
       {majorFortunes && majorFortunes.length > 0 && (
         <LifeJourneyTimeline
           majorFortunes={majorFortunes}
@@ -909,6 +920,7 @@ export function SajuResult({ result, name, timeUnknown = false }: SajuResultProp
         />
       )}
 
+      {/* ========== 9. 참고 정보 ========== */}
       {/* 사주 기둥별 영역 설명 */}
       <PillarMeaningsCard timeUnknown={timeUnknown} />
 
@@ -923,6 +935,85 @@ export function SajuResult({ result, name, timeUnknown = false }: SajuResultProp
         hourGapja={hourGapja}
         timeUnknown={timeUnknown}
       />
+
+      {/* ========== 10. 총정리 ========== */}
+      <Card className="border-2 border-amber-200 dark:border-amber-900/50 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30">
+        <CardHeader className="text-center pb-2">
+          <CardTitle className="text-2xl font-serif text-[#5C544A] dark:text-[#D4C5B0] flex items-center justify-center gap-2">
+            <Sparkles className="w-6 h-6 text-amber-500" />
+            사주 총정리
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* 핵심 정보 요약 */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="p-3 bg-white/70 dark:bg-stone-900/50 rounded-lg text-center">
+              <p className="text-xs text-muted-foreground mb-1">일주</p>
+              <p className="font-serif font-bold text-lg text-[#5C544A] dark:text-[#D4C5B0]">{ilju}</p>
+              {iljuSymbol && <p className="text-xs text-amber-600">{iljuSymbol.nickname}</p>}
+            </div>
+            <div className="p-3 bg-white/70 dark:bg-stone-900/50 rounded-lg text-center">
+              <p className="text-xs text-muted-foreground mb-1">용신</p>
+              <p className="font-serif font-bold text-lg text-[#5C544A] dark:text-[#D4C5B0]">{yongsin}</p>
+              <p className="text-xs text-amber-600">보완 오행</p>
+            </div>
+            <div className="p-3 bg-white/70 dark:bg-stone-900/50 rounded-lg text-center">
+              <p className="text-xs text-muted-foreground mb-1">격국</p>
+              <p className="font-serif font-bold text-lg text-[#5C544A] dark:text-[#D4C5B0]">{geokgukName}</p>
+            </div>
+            <div className="p-3 bg-white/70 dark:bg-stone-900/50 rounded-lg text-center">
+              <p className="text-xs text-muted-foreground mb-1">주요 오행</p>
+              <p className="font-serif font-bold text-lg text-[#5C544A] dark:text-[#D4C5B0]">{dominantOheng}</p>
+              <p className="text-xs text-amber-600">{maxCount}개로 가장 강함</p>
+            </div>
+          </div>
+
+          {/* 한 줄 요약 */}
+          <div className="p-5 bg-white/80 dark:bg-stone-900/60 rounded-xl border border-amber-200 dark:border-amber-800">
+            <p className="text-center text-stone-700 dark:text-stone-300 leading-relaxed">
+              <span className="font-medium text-[#8E7F73]">{name || "당신"}</span>은(는){" "}
+              <span className="font-medium text-[#5C544A] dark:text-[#D4C5B0]">{iljuSymbol?.nickname || ilju}</span>의 기운을 가진{" "}
+              <span className={`font-medium ${OHENG_TEXT_COLORS[dominantOheng]}`}>{dominantOheng}</span> 성향의 인물로,{" "}
+              <span className="font-medium text-[#5C544A] dark:text-[#D4C5B0]">{geokgukName}</span>의 구조를 갖추고 있습니다.{" "}
+              <span className={`font-medium ${OHENG_TEXT_COLORS[yongsin]}`}>{yongsin}</span>의 기운을 보강하면 더욱 균형 잡힌 삶을 살 수 있습니다.
+            </p>
+          </div>
+
+          {/* 핵심 조언 */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+              <h4 className="font-medium text-green-700 dark:text-green-400 mb-2 text-sm">💪 강점</h4>
+              <p className="text-xs text-green-600 dark:text-green-300">
+                {dominantOheng === "목" && "성장과 창의성, 리더십이 뛰어납니다."}
+                {dominantOheng === "화" && "열정과 표현력, 소통 능력이 탁월합니다."}
+                {dominantOheng === "토" && "안정감과 신뢰성, 중재 능력이 강합니다."}
+                {dominantOheng === "금" && "결단력과 정의감, 실행력이 뛰어납니다."}
+                {dominantOheng === "수" && "지혜와 통찰력, 적응력이 탁월합니다."}
+              </p>
+            </div>
+            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <h4 className="font-medium text-blue-700 dark:text-blue-400 mb-2 text-sm">🎯 추천 방향</h4>
+              <p className="text-xs text-blue-600 dark:text-blue-300">
+                {yongsin === "목" && "자기계발, 교육, 창의적 활동을 추천합니다."}
+                {yongsin === "화" && "표현력 개발, 대인관계 확장을 추천합니다."}
+                {yongsin === "토" && "안정적 기반 구축, 신뢰 관계 형성을 추천합니다."}
+                {yongsin === "금" && "목표 설정, 결단력 있는 실행을 추천합니다."}
+                {yongsin === "수" && "학습과 연구, 내면 성찰을 추천합니다."}
+              </p>
+            </div>
+            <div className="p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
+              <h4 className="font-medium text-orange-700 dark:text-orange-400 mb-2 text-sm">⚠️ 주의할 점</h4>
+              <p className="text-xs text-orange-600 dark:text-orange-300">
+                {dominantOheng === "목" && "조급함과 고집을 줄이고 유연성을 기르세요."}
+                {dominantOheng === "화" && "충동적 결정을 피하고 차분함을 유지하세요."}
+                {dominantOheng === "토" && "고집과 완고함을 줄이고 변화를 받아들이세요."}
+                {dominantOheng === "금" && "지나친 완벽주의를 경계하고 여유를 가지세요."}
+                {dominantOheng === "수" && "우유부단함을 줄이고 결단력을 기르세요."}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

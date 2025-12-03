@@ -1042,6 +1042,64 @@ function FamilyResultContent() {
         {/* 가족 분석 결과 */}
         <FamilyAnalysisCard analysis={analysis} />
 
+        {/* 총정리 */}
+        <Card className="border-2 border-amber-200 dark:border-amber-900/50 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 font-serif text-amber-800 dark:text-amber-300">
+              <span className="text-2xl">📋</span>
+              총정리
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* 가족 구성원 요약 */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {members.map((member, index) => (
+                <div key={index} className="bg-white/60 dark:bg-black/20 rounded-lg p-2 text-center">
+                  <div className="text-xs text-muted-foreground mb-1">
+                    {RELATION_LABELS[member.relation] || member.relation}
+                  </div>
+                  <div className="font-medium text-sm truncate">{member.name}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {member.saju.dayPillar.ganji} · {OHENG_ICONS[member.saju.yongsin]}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* 가족 점수 */}
+            <div className="text-center py-3 bg-white/60 dark:bg-black/20 rounded-lg">
+              <div className="text-sm text-muted-foreground mb-1">가족 조화 점수</div>
+              <div className={`text-3xl font-bold font-serif ${getScoreColor(analysis.familyScore)}`}>
+                {analysis.familyScore}점
+              </div>
+              <Badge className="mt-2">{analysis.familyGrade}</Badge>
+            </div>
+
+            {/* 한줄 요약 */}
+            <div className="p-4 bg-amber-100/50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+              <p className="text-sm leading-relaxed text-amber-900 dark:text-amber-100 font-medium text-center">
+                {analysis.familyAdvice}
+              </p>
+            </div>
+
+            {/* 핵심 조언 */}
+            <div className="grid gap-2">
+              {analysis.familyStrengths.length > 0 && (
+                <div className="flex items-start gap-2 text-sm">
+                  <span className="text-green-600 font-bold">✓</span>
+                  <span className="text-stone-700 dark:text-stone-300">{analysis.familyStrengths[0]}</span>
+                </div>
+              )}
+              {analysis.familyWeaknesses.length > 0 && (
+                <div className="flex items-start gap-2 text-sm">
+                  <span className="text-orange-600 font-bold">!</span>
+                  <span className="text-stone-700 dark:text-stone-300">{analysis.familyWeaknesses[0]}</span>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
         {/* 버튼 */}
         <div className="flex justify-center gap-4 pt-4">
           <Button variant="outline" onClick={() => router.push("/")} className="border-stone-300 hover:bg-stone-100">

@@ -42,7 +42,7 @@ export function SajuForm() {
   // 커플 궁합 폼 상태
   const [couple, setCouple] = useState({
     person1: { ...defaultPerson },
-    person2: { ...defaultPerson, gender: "male" as Gender },
+    person2: { ...defaultPerson, gender: "female" as Gender },
   });
 
   // 가족 통합 폼 상태

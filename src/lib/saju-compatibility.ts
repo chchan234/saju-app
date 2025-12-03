@@ -537,18 +537,16 @@ export function analyzeCompatibility(
     typeDescription: SIPSIN_DESCRIPTIONS[ilganData.type] || "",
   };
 
-  // 지지 추출
+  // 지지 추출 (점수 일관성을 위해 시주 제외 - 년/월/일 3기둥만 사용)
   const jiji1 = [
     person1.yearPillar.jiji,
     person1.monthPillar.jiji,
     person1.dayPillar.jiji,
-    person1.timePillar.jiji,
   ].filter(Boolean);
   const jiji2 = [
     person2.yearPillar.jiji,
     person2.monthPillar.jiji,
     person2.dayPillar.jiji,
-    person2.timePillar.jiji,
   ].filter(Boolean);
 
   // 지지 관계 분석

@@ -9,8 +9,19 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp, Clock, Calendar, Star, Zap, Heart, Cloud } from "lucide-react";
+import { ChevronDown, ChevronUp, Clock, Calendar, Star, Zap, Heart, Cloud, TrendingUp } from "lucide-react";
 import type { MajorFortuneInfo, YearlyFortuneInfo } from "@/lib/saju-calculator";
+import {
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  ReferenceLine,
+  Area,
+  ComposedChart,
+} from "recharts";
 import {
   DAEUN_OHENG_INTERPRETATION,
   YEONUN_STATUS_INTERPRETATION,
@@ -433,6 +444,338 @@ export function YearlyFortuneCard({ yearlyFortunes, ilgan, yongsin }: YearlyFort
                   <div className="flex items-center gap-2">
                     <Cloud className="w-3 h-3 text-gray-400" />
                     <span>평온의 해</span>
+                  </div>
+                </div>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// 오행별 운세 점수 (상대적 지표)
+const OHENG_FORTUNE_SCORE: Record<string, number> = {
+  목: 70,
+  화: 85,
+  토: 60,
+  금: 75,
+  수: 65,
+};
+
+// 연운 상태별 보정 점수
+const YEONUN_STATUS_SCORE: Record<string, number> = {
+  yongsinYear: 20,
+  hapYear: 15,
+  chungYear: -10,
+  neutral: 0,
+};
+
+interface FortuneFlowChartProps {
+  majorFortunes: MajorFortuneInfo[];
+  yearlyFortunes: YearlyFortuneInfo[];
+  birthYear: number;
+  yongsin: string;
+}
+
+/**
+ * 대운+연운 통합 그래프 컴포넌트
+ * 인생 전체의 운세 흐름을 시각적으로 보여줍니다.
+ */
+export function FortuneFlowChart({
+  majorFortunes,
+  yearlyFortunes,
+  birthYear,
+  yongsin,
+}: FortuneFlowChartProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const currentYear = new Date().getFullYear();
+
+  if (!majorFortunes?.length || !yearlyFortunes?.length) {
+    return null;
+  }
+
+  // 대운 데이터를 연도 기반으로 변환
+  const daeunByYear: Record<number, { ganji: string; element: string; score: number }> = {};
+  majorFortunes.forEach((fortune) => {
+    for (let age = fortune.startAge; age <= fortune.endAge; age++) {
+      const year = birthYear + age - 1;
+      const baseScore = OHENG_FORTUNE_SCORE[fortune.element] || 70;
+      // 용신과 같은 오행이면 보너스
+      const yongsinBonus = fortune.element === yongsin ? 10 : 0;
+      daeunByYear[year] = {
+        ganji: fortune.ganji,
+        element: fortune.element,
+        score: baseScore + yongsinBonus,
+      };
+    }
+  });
+
+  // 연운 데이터 매핑
+  const yeonunByYear: Record<number, YearlyFortuneInfo & { score: number }> = {};
+  yearlyFortunes.forEach((fortune) => {
+    const status = fortune.isYongsinYear
+      ? "yongsinYear"
+      : fortune.isHap
+      ? "hapYear"
+      : fortune.isChung
+      ? "chungYear"
+      : "neutral";
+    const statusScore = YEONUN_STATUS_SCORE[status] || 0;
+    yeonunByYear[fortune.year] = {
+      ...fortune,
+      score: statusScore,
+    };
+  });
+
+  // 차트 데이터 생성 (연운이 있는 기간만)
+  const chartData = yearlyFortunes.map((yeonun) => {
+    const year = yeonun.year;
+    const age = year - birthYear + 1;
+    const daeun = daeunByYear[year];
+    const yeonunData = yeonunByYear[year];
+
+    const daeunScore = daeun?.score || 70;
+    const yeonunScore = yeonunData?.score || 0;
+    const totalScore = Math.min(100, Math.max(0, daeunScore + yeonunScore));
+
+    const status = yeonun.isYongsinYear
+      ? "yongsinYear"
+      : yeonun.isHap
+      ? "hapYear"
+      : yeonun.isChung
+      ? "chungYear"
+      : "neutral";
+
+    return {
+      year,
+      age,
+      daeunGanji: daeun?.ganji || "",
+      daeunElement: daeun?.element || "",
+      yeonunGanji: yeonun.ganji,
+      yeonunElement: yeonun.element,
+      daeunScore,
+      yeonunScore,
+      totalScore,
+      status,
+      isCurrent: year === currentYear,
+    };
+  });
+
+  // 운세 점수에 따른 색상
+  const getScoreColor = (score: number) => {
+    if (score >= 85) return "#22c55e"; // green-500
+    if (score >= 70) return "#3b82f6"; // blue-500
+    if (score >= 55) return "#eab308"; // yellow-500
+    return "#f97316"; // orange-500
+  };
+
+  // 커스텀 툴팁
+  const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ payload: typeof chartData[0] }> }) => {
+    if (!active || !payload?.length) return null;
+    const data = payload[0].payload;
+    const statusInfo = YEONUN_STATUS_INTERPRETATION[data.status];
+
+    return (
+      <div className="bg-white dark:bg-stone-800 p-3 rounded-lg shadow-lg border border-stone-200 dark:border-stone-700 text-sm">
+        <div className="font-bold mb-2">
+          {data.year}년 ({data.age}세)
+        </div>
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="text-purple-600">대운:</span>
+            <span className="font-serif font-bold">{data.daeunGanji}</span>
+            <Badge className={`${OHENG_COLORS[data.daeunElement]} text-white text-xs`}>
+              {data.daeunElement}
+            </Badge>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-amber-600">연운:</span>
+            <span className="font-serif font-bold">{data.yeonunGanji}</span>
+            <Badge className={`${OHENG_COLORS[data.yeonunElement]} text-white text-xs`}>
+              {data.yeonunElement}
+            </Badge>
+          </div>
+          <div className="flex items-center gap-2 pt-1 border-t border-stone-200 dark:border-stone-700">
+            <span>{statusInfo.emoji}</span>
+            <span className="font-medium">{statusInfo.status}</span>
+          </div>
+          <div className="text-xs text-muted-foreground">
+            종합 운세 점수: {data.totalScore}점
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <Card className="border-none shadow-md bg-white/80 dark:bg-stone-900/80 backdrop-blur-sm overflow-hidden">
+      <div className="h-2 bg-gradient-to-r from-emerald-500 via-blue-500 to-purple-500"></div>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-3 font-serif text-xl">
+          <span className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-r from-emerald-100 to-blue-100 dark:from-emerald-900/30 dark:to-blue-900/30">
+            <TrendingUp className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+          </span>
+          <div>
+            <span className="block text-sm text-muted-foreground font-sans font-normal">대운 × 연운 통합 분석</span>
+            <span>운세 흐름 그래프</span>
+          </div>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {/* 요약 정보 */}
+          <div className="grid grid-cols-3 gap-3">
+            {(() => {
+              const currentData = chartData.find((d) => d.isCurrent);
+              const bestYear = chartData.reduce((best, curr) =>
+                curr.totalScore > (best?.totalScore || 0) ? curr : best
+              );
+              const worstYear = chartData.reduce((worst, curr) =>
+                curr.totalScore < (worst?.totalScore || 100) ? curr : worst
+              );
+
+              return (
+                <>
+                  <div className="p-3 bg-stone-50 dark:bg-stone-800/50 rounded-lg text-center">
+                    <p className="text-xs text-muted-foreground mb-1">올해 운세</p>
+                    <p className="text-2xl font-bold" style={{ color: getScoreColor(currentData?.totalScore || 0) }}>
+                      {currentData?.totalScore || "-"}점
+                    </p>
+                  </div>
+                  <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg text-center">
+                    <p className="text-xs text-muted-foreground mb-1">최고의 해</p>
+                    <p className="text-lg font-bold text-green-600">{bestYear.year}년</p>
+                    <p className="text-xs text-green-500">{bestYear.totalScore}점</p>
+                  </div>
+                  <div className="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg text-center">
+                    <p className="text-xs text-muted-foreground mb-1">주의할 해</p>
+                    <p className="text-lg font-bold text-orange-600">{worstYear.year}년</p>
+                    <p className="text-xs text-orange-500">{worstYear.totalScore}점</p>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+
+          {/* 그래프 */}
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="fortuneGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis
+                  dataKey="year"
+                  tick={{ fontSize: 10 }}
+                  tickFormatter={(value) => `${value}`}
+                />
+                <YAxis domain={[40, 100]} tick={{ fontSize: 10 }} />
+                <Tooltip content={<CustomTooltip />} />
+                <ReferenceLine x={currentYear} stroke="#f59e0b" strokeDasharray="5 5" label={{ value: "올해", position: "top", fontSize: 10 }} />
+                <Area
+                  type="monotone"
+                  dataKey="totalScore"
+                  stroke="none"
+                  fill="url(#fortuneGradient)"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="totalScore"
+                  stroke="#8b5cf6"
+                  strokeWidth={2}
+                  dot={(props) => {
+                    const { cx, cy, payload } = props as { cx?: number; cy?: number; payload?: typeof chartData[0] };
+                    if (!cx || !cy || !payload) return null;
+                    if (payload.isCurrent) {
+                      return (
+                        <circle
+                          key={payload.year}
+                          cx={cx}
+                          cy={cy}
+                          r={6}
+                          fill="#f59e0b"
+                          stroke="#fff"
+                          strokeWidth={2}
+                        />
+                      );
+                    }
+                    return (
+                      <circle
+                        key={payload.year}
+                        cx={cx}
+                        cy={cy}
+                        r={3}
+                        fill={getScoreColor(payload.totalScore)}
+                        stroke="#fff"
+                        strokeWidth={1}
+                      />
+                    );
+                  }}
+                />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* 범례 */}
+          <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" className="w-full justify-between hover:bg-stone-100 dark:hover:bg-stone-800">
+                <span className="font-serif">그래프 해석 가이드</span>
+                {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-4 space-y-4">
+              <div className="p-4 bg-stone-50 dark:bg-stone-800/50 rounded-lg space-y-3">
+                <h4 className="font-medium text-sm">운세 점수 계산 방법</h4>
+                <div className="text-xs text-muted-foreground space-y-2">
+                  <p>• <strong>대운 기본 점수</strong>: 10년간 지속되는 대운의 오행에 따라 기본 점수가 결정됩니다.</p>
+                  <p>• <strong>용신 보너스</strong>: 대운이 용신({yongsin})과 같은 오행이면 +10점</p>
+                  <p>• <strong>연운 보정</strong>: 해당 연도의 연운 상태에 따라 점수가 조정됩니다.</p>
+                </div>
+                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-stone-200 dark:border-stone-700">
+                  <div className="flex items-center gap-2 text-xs">
+                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                    <span>85점 이상: 대길</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                    <span>70~84점: 길</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                    <span>55~69점: 평</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+                    <span>55점 미만: 주의</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                <h4 className="font-medium text-sm text-purple-700 dark:text-purple-400 mb-2">연운 상태별 점수 보정</h4>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="flex items-center gap-2">
+                    <Star className="w-3 h-3 text-yellow-500" />
+                    <span>행운의 해: +20점</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Heart className="w-3 h-3 text-pink-500" />
+                    <span>인연의 해: +15점</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Zap className="w-3 h-3 text-orange-500" />
+                    <span>변화의 해: -10점</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Cloud className="w-3 h-3 text-gray-400" />
+                    <span>평온의 해: ±0점</span>
                   </div>
                 </div>
               </div>

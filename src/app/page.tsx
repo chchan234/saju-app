@@ -30,7 +30,7 @@ export default function Home() {
 
         {/* 푸터 */}
         <footer className="text-center text-sm text-muted-foreground/60 animate-in fade-in duration-700 delay-500">
-          <p>© 2024 운명. All rights reserved.</p>
+          <p>© 2025 운명. All rights reserved.</p>
         </footer>
       </div>
     </main>

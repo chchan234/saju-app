@@ -472,10 +472,8 @@ export function calculateSaju(
     ? createPillar("", ilgan)  // 시간 모름이면 빈 기둥
     : createPillar(timeGanji, ilgan);
 
-  // 오행 카운트 (시간 모름이면 시주 제외)
-  const pillarsForCount = timeUnknown
-    ? [yearPillar, monthPillar, dayPillar]
-    : [yearPillar, monthPillar, dayPillar, timePillar];
+  // 오행 카운트 (점수 일관성을 위해 항상 시주 제외 - 년/월/일 3기둥만 사용)
+  const pillarsForCount = [yearPillar, monthPillar, dayPillar];
   const ohengCount = calculateOhengCount(pillarsForCount);
 
   // 용신 추천 (부족한 오행 기반)

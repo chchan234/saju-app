@@ -172,10 +172,12 @@ export function BokbiModal() {
                             {/* 4. LAYER: FLAP (The Lid) */}
                             {/* Rotates from the top. */}
                             <div
-                                className="absolute top-0 left-0 w-full h-[55%] z-30 origin-top transition-transform duration-500 ease-in-out"
+                                className="absolute top-0 left-0 w-full h-[55%] origin-top"
                                 style={{
                                     transform: isEnvelopeOpen ? 'rotateX(180deg)' : 'rotateX(0deg)',
                                     transformStyle: 'preserve-3d',
+                                    zIndex: isEnvelopeOpen ? 5 : 30,
+                                    transition: 'transform 500ms ease-in-out, z-index 0ms linear 250ms'
                                 }}
                             >
                                 {/* Flap Front (Visible when closed) */}
@@ -206,10 +208,6 @@ export function BokbiModal() {
                                 </div>
                             </div>
                         </div>
-
-                        <p className={`text-xs text-stone-400 mt-8 transition-opacity duration-500 ${isEnvelopeOpen ? 'opacity-100' : 'opacity-0'}`}>
-                            * 보내주신 복채는 서버 운영과 서비스 개선에 사용됩니다.
-                        </p>
 
                         {!isEnvelopeOpen && (
                             <p className="text-xs text-stone-500 animate-pulse mt-8">

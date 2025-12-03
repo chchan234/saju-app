@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -42,6 +43,27 @@ export function PersonForm({
   values,
   onChange,
 }: PersonFormProps) {
+  const monthRef = useRef<HTMLInputElement>(null);
+  const dayRef = useRef<HTMLInputElement>(null);
+
+  const handleYearChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    onChange("year", value);
+    // 4자리 입력 시 월 필드로 자동 이동
+    if (value.length === 4) {
+      monthRef.current?.focus();
+    }
+  };
+
+  const handleMonthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    onChange("month", value);
+    // 2자리 입력 시 일 필드로 자동 이동
+    if (value.length === 2) {
+      dayRef.current?.focus();
+    }
+  };
+
   return (
     <div className="space-y-4 rounded-xl bg-white/40 p-4 border border-white/50">
       {title && (
@@ -116,19 +138,23 @@ export function PersonForm({
             min={YEAR_RANGE.min}
             max={YEAR_RANGE.max}
             value={values.year}
-            onChange={(e) => onChange("year", e.target.value)}
+            onChange={handleYearChange}
             className="text-center"
+            maxLength={4}
           />
           <Input
+            ref={monthRef}
             type="number"
             placeholder="MM"
             min={1}
             max={12}
             value={values.month}
-            onChange={(e) => onChange("month", e.target.value)}
+            onChange={handleMonthChange}
             className="text-center"
+            maxLength={2}
           />
           <Input
+            ref={dayRef}
             type="number"
             placeholder="DD"
             min={1}
@@ -136,6 +162,7 @@ export function PersonForm({
             value={values.day}
             onChange={(e) => onChange("day", e.target.value)}
             className="text-center"
+            maxLength={2}
           />
         </div>
       </div>

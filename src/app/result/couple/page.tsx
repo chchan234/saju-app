@@ -749,6 +749,65 @@ function CoupleResultContent() {
           name2={names.person2}
         />
 
+        {/* 총정리 */}
+        <Card className="border-2 border-amber-200 dark:border-amber-900/50 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 font-serif text-amber-800 dark:text-amber-300">
+              <span className="text-2xl">📋</span>
+              총정리
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* 핵심 요약 */}
+            <div className="grid md:grid-cols-2 gap-3">
+              <div className="bg-white/60 dark:bg-black/20 rounded-lg p-3">
+                <div className="text-xs text-muted-foreground mb-1">{names.person1}</div>
+                <div className="font-medium text-sm">
+                  {person1Result.dayPillar.ganji} · {person1Result.yongsin}({OHENG_ICONS[person1Result.yongsin]})
+                </div>
+              </div>
+              <div className="bg-white/60 dark:bg-black/20 rounded-lg p-3">
+                <div className="text-xs text-muted-foreground mb-1">{names.person2}</div>
+                <div className="font-medium text-sm">
+                  {person2Result.dayPillar.ganji} · {person2Result.yongsin}({OHENG_ICONS[person2Result.yongsin]})
+                </div>
+              </div>
+            </div>
+
+            {/* 궁합 점수 */}
+            <div className="text-center py-3 bg-white/60 dark:bg-black/20 rounded-lg">
+              <div className="text-sm text-muted-foreground mb-1">궁합 점수</div>
+              <div className={`text-3xl font-bold font-serif ${getScoreColor(compatibility.totalScore)}`}>
+                {compatibility.totalScore}점
+              </div>
+              <Badge className="mt-2">{compatibility.grade}</Badge>
+            </div>
+
+            {/* 한줄 요약 */}
+            <div className="p-4 bg-amber-100/50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+              <p className="text-sm leading-relaxed text-amber-900 dark:text-amber-100 font-medium text-center">
+                {compatibility.summary.advice}
+              </p>
+            </div>
+
+            {/* 핵심 조언 */}
+            <div className="grid gap-2">
+              {compatibility.summary.strengths.length > 0 && (
+                <div className="flex items-start gap-2 text-sm">
+                  <span className="text-green-600 font-bold">✓</span>
+                  <span className="text-stone-700 dark:text-stone-300">{compatibility.summary.strengths[0]}</span>
+                </div>
+              )}
+              {compatibility.summary.weaknesses.length > 0 && (
+                <div className="flex items-start gap-2 text-sm">
+                  <span className="text-orange-600 font-bold">!</span>
+                  <span className="text-stone-700 dark:text-stone-300">{compatibility.summary.weaknesses[0]}</span>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
         {/* 버튼 */}
         <div className="flex justify-center gap-4 pt-4">
           <Button variant="outline" onClick={() => router.push("/")} className="border-stone-300 hover:bg-stone-100">
