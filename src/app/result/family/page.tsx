@@ -16,14 +16,7 @@ import type {
   RelationTypeAnalysis,
 } from "@/lib/saju-family";
 import { RELATION_LABELS } from "@/lib/saju-family";
-import { ChevronDown, ChevronUp, Users, Sparkles, ArrowRight, Star, Heart, Info, Copy, Check } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { ChevronDown, ChevronUp, Users, Sparkles, ArrowRight, Star, Heart } from "lucide-react";
 import {
   ILJU_SYMBOLS,
   OHENG_BOOSTERS,
@@ -36,6 +29,7 @@ import {
   OHENG_COLORS,
   OHENG_TEXT_COLORS,
   OHENG_ICONS,
+  BokbiModal,
 } from "@/components/saju/SajuUI";
 
 function LoadingCard() {
@@ -50,78 +44,6 @@ function LoadingCard() {
         </CardContent>
       </Card>
     </div>
-  );
-}
-
-// 후원하기 버튼
-function DonationInfoButton() {
-  const [copied, setCopied] = useState(false);
-  const accountNumber = "3333-01-5848626";
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(accountNumber);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      const textArea = document.createElement("textarea");
-      textArea.value = accountNumber;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textArea);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
-  return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="outline" className="border-stone-300 hover:bg-stone-100 dark:border-stone-700 dark:hover:bg-stone-800">
-          후원하기
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-md bg-[#F9F7F2] dark:bg-[#2C2824] border-stone-200 dark:border-stone-800">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 font-serif text-[#5C544A] dark:text-[#D4C5B0]">
-            <Info className="w-5 h-5" />
-            서비스 안내
-          </DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4 pt-2">
-          <p className="text-sm text-stone-600 dark:text-stone-400">
-            이 서비스는 개인 서버에서 운영되고 있습니다.
-          </p>
-          <div className="p-4 bg-white/50 dark:bg-black/20 rounded-lg space-y-3 border border-stone-200 dark:border-stone-800">
-            <p className="text-sm font-medium text-[#8E7F73]">
-              후원해주시면 감사하겠습니다 🙏
-            </p>
-            <p className="text-sm text-muted-foreground">카카오뱅크</p>
-            <div className="flex items-center gap-2">
-              <div className="flex-1 p-2 bg-white dark:bg-stone-900 rounded border border-stone-200 dark:border-stone-800 text-sm font-mono">
-                {accountNumber}
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleCopy}
-                className="shrink-0"
-              >
-                {copied ? (
-                  <Check className="w-4 h-4 text-green-500" />
-                ) : (
-                  <Copy className="w-4 h-4" />
-                )}
-              </Button>
-            </div>
-            {copied && (
-              <p className="text-xs text-green-600">계좌번호가 복사되었습니다!</p>
-            )}
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
   );
 }
 
@@ -1118,7 +1040,7 @@ function FamilyResultContent() {
           <Button variant="outline" onClick={() => router.push("/")} className="border-stone-300 hover:bg-stone-100">
             새로 분석하기
           </Button>
-          <DonationInfoButton />
+          <BokbiModal />
         </div>
 
         <footer className="mt-12 text-center text-sm text-muted-foreground">

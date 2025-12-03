@@ -1,7 +1,15 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
 import {
     Mountain,
     Flame,
@@ -11,7 +19,10 @@ import {
     Sparkles,
     ChevronUp,
     ChevronDown,
+    Copy,
+    Check,
 } from "lucide-react";
+import { useState } from "react";
 import {
     Radar,
     RadarChart,
@@ -21,6 +32,100 @@ import {
     ResponsiveContainer,
 } from "recharts";
 import type { Pillar, OhengCount } from "@/types/saju";
+
+// --- Bokbi (Fortune Fee) Modal ---
+
+export function BokbiModal() {
+    const [copied, setCopied] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
+    const accountNumber = "3333-01-5848626";
+
+    const handleCopy = async () => {
+        try {
+            await navigator.clipboard.writeText(accountNumber);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch {
+            const textArea = document.createElement("textarea");
+            textArea.value = accountNumber;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand("copy");
+            document.body.removeChild(textArea);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        }
+    };
+
+    return (
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+                <Button
+                    className="bg-[#BFA588] hover:bg-[#A89070] text-[#2C2824] font-serif border-none shadow-md hover:shadow-lg transition-all duration-300"
+                >
+                    <span className="mr-2">🧧</span> 복채 봉투 건네기
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md bg-[#F5F1E6] dark:bg-[#2C2824] border-[#D4C5B0] dark:border-[#5C544A] p-0 overflow-hidden">
+                <div className="relative p-6 pt-12 flex flex-col items-center text-center">
+                    {/* Decorative Background */}
+                    <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#BFA588] via-[#D4C5B0] to-[#BFA588]"></div>
+                    <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/korean-paper.png')]"></div>
+
+                    <DialogHeader className="mb-6 relative z-10">
+                        <DialogTitle className="text-2xl font-serif font-bold text-[#5C544A] dark:text-[#D4C5B0] flex flex-col items-center gap-2">
+                            <span className="text-sm font-sans font-normal text-[#8E7F73] tracking-widest">ENERGY EXCHANGE</span>
+                            복채(福債)를 건네다
+                        </DialogTitle>
+                    </DialogHeader>
+
+                    <div className="relative z-10 space-y-6 w-full max-w-xs mx-auto">
+                        <p className="text-sm text-stone-600 dark:text-stone-400 leading-relaxed break-keep">
+                            "복비는 단순한 비용이 아니라,<br />
+                            당신의 운명을 긍정적으로 바꾸는<br />
+                            <span className="font-bold text-[#BFA588]">에너지의 교환</span>입니다."
+                        </p>
+
+                        <p className="text-xs text-stone-500 dark:text-stone-500 mt-2">
+                            작은 정성으로 오늘 확인한<br />좋은 운세에 확신을 더하세요.
+                        </p>
+
+                        {/* Envelope UI */}
+                        <div className="relative group cursor-pointer perspective-1000" onClick={handleCopy}>
+                            <div className="w-full h-40 bg-[#D4C5B0] dark:bg-[#4A4036] rounded-lg shadow-lg relative overflow-hidden transition-all duration-500 transform group-hover:-translate-y-1">
+                                {/* Envelope Flap */}
+                                <div className="absolute top-0 left-0 w-full h-1/2 bg-[#C5B4A0] dark:bg-[#5C5044] origin-top transition-transform duration-500 z-20" style={{ clipPath: "polygon(0 0, 100% 0, 50% 100%)" }}></div>
+
+                                {/* Money/Bill inside */}
+                                <div className="absolute top-4 left-4 right-4 bottom-4 bg-white dark:bg-[#2C2824] border border-stone-200 dark:border-stone-700 rounded flex flex-col items-center justify-center p-4 transition-transform duration-500 transform translate-y-8 group-hover:translate-y-0 z-10">
+                                    <p className="text-xs text-stone-400 mb-1">카카오뱅크</p>
+                                    <p className="font-mono font-bold text-stone-700 dark:text-stone-300 text-lg tracking-wider">3333-01</p>
+                                    <p className="font-mono font-bold text-stone-700 dark:text-stone-300 text-lg tracking-wider">5848626</p>
+                                    <div className="mt-2 text-[10px] text-stone-400 flex items-center gap-1">
+                                        {copied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
+                                        {copied ? "복사완료!" : "터치하여 복사"}
+                                    </div>
+                                </div>
+
+                                {/* Envelope Body (Bottom) */}
+                                <div className="absolute bottom-0 left-0 w-full h-1/2 bg-[#BFA588] dark:bg-[#3E352C] z-30" style={{ clipPath: "polygon(0 0, 50% 40%, 100% 0, 100% 100%, 0 100%)" }}></div>
+                            </div>
+
+                            {/* Seal */}
+                            <div className="absolute top-[35%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-red-800 rounded-full border-2 border-red-900 shadow-md z-40 flex items-center justify-center text-white font-serif text-xs font-bold group-hover:opacity-0 transition-opacity duration-300">
+                                福
+                            </div>
+                        </div>
+
+                        <div className="text-[10px] text-stone-400 pt-4">
+                            * 보내주신 복채는 서버 운영과 서비스 개선에 사용됩니다.
+                        </div>
+                    </div>
+                </div>
+            </DialogContent>
+        </Dialog>
+    );
+}
 
 // --- Constants ---
 
