@@ -94,17 +94,17 @@ const SANGGEUK_CONFLICTS: Record<string, SanggeukConflict> = {
     warning: "도전하자는 쪽과 지키자는 쪽이 부딪힐 수 있어요.",
     advice: "무엇을 도전하고 무엇을 지킬지 함께 정해보세요. 둘 다 옳은 방향이에요.",
   },
-  "화금": {
-    element1: "화",
-    element2: "금",
+  "금화": {
+    element1: "금",
+    element2: "화",
     theme: "열정 vs 원칙",
     description: "한 분은 감정대로, 분위기대로 행동하고, 다른 분은 규칙과 계획을 중요시해요.",
     warning: "즉흥적인 행동이 계획을 망친다고 느끼거나, 원칙이 답답하게 느껴질 수 있어요.",
     advice: "'네 방식도 이유가 있구나'라고 인정하는 것부터 시작해보세요.",
   },
-  "토수": {
-    element1: "토",
-    element2: "수",
+  "수토": {
+    element1: "수",
+    element2: "토",
     theme: "고정 vs 변화",
     description: "한 분은 안정과 일관성을 원하고, 다른 분은 흐름에 맡기며 변화를 즐겨요.",
     warning: "변화를 거부하는 것처럼 보이거나, 너무 갈대 같다고 느낄 수 있어요.",

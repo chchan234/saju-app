@@ -13,6 +13,14 @@ export default function Home() {
           <p className="font-serif text-muted-foreground">
             당신의 삶에 숨겨진 이야기를 찾아드립니다.
           </p>
+          <div className="pt-2">
+            <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground/70 bg-muted/50 px-3 py-1.5 rounded-full">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              개인정보 수집 없음 · 데이터 저장 안함
+            </span>
+          </div>
         </header>
 
         {/* 메인 카드 */}
@@ -25,6 +33,9 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             <SajuForm />
+            <p className="text-center text-[11px] text-muted-foreground/60 mt-4 pt-3 border-t border-border/50">
+              입력하신 정보는 분석 후 즉시 삭제됩니다
+            </p>
           </CardContent>
         </Card>
 
