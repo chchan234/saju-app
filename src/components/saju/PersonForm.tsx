@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -29,8 +30,9 @@ interface PersonFormProps {
     day: string;
     hour: BirthHour;
     calendarType: CalendarType;
+    isLeapMonth: boolean;
   };
-  onChange: (field: string, value: string) => void;
+  onChange: (field: string, value: string | boolean) => void;
 }
 
 export function PersonForm({
@@ -209,6 +211,23 @@ export function PersonForm({
           </div>
         </RadioGroup>
       </div>
+
+      {/* 음력 선택 시 윤달 체크박스 표시 */}
+      {values.calendarType === "lunar" && (
+        <div className="flex items-center space-x-2 pl-1">
+          <Checkbox
+            id={`${prefix}-leap`}
+            checked={values.isLeapMonth}
+            onCheckedChange={(checked) => onChange("isLeapMonth", checked === true)}
+          />
+          <Label
+            htmlFor={`${prefix}-leap`}
+            className="font-normal cursor-pointer text-sm text-muted-foreground"
+          >
+            윤달
+          </Label>
+        </div>
+      )}
     </div>
   );
 }

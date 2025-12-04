@@ -1486,6 +1486,7 @@ export function FamilyResultContent() {
           const hour = parseInt(member.hour);
           const minute = parseInt(member.minute);
           const isLunar = member.lunar;
+          const isLeapMonth = member.leap || false;
           const name = member.name || `구성원 ${i + 1}`;
           const gender = member.gender || "female";
           const relation = member.relation || "other";
@@ -1500,7 +1501,7 @@ export function FamilyResultContent() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               year, month, day, hour, minute,
-              isLunar, timeUnknown, gender,
+              isLunar, isLeapMonth, timeUnknown, gender,
             }),
           })
             .then(res => res.json())

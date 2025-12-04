@@ -15,6 +15,7 @@ interface PersonData {
   day: string;
   hour: BirthHour;
   calendarType: CalendarType;
+  isLeapMonth: boolean;
 }
 
 interface FamilyMemberData extends PersonData {
@@ -29,6 +30,7 @@ const defaultPerson: PersonData = {
   day: "",
   hour: "unknown",
   calendarType: "solar",
+  isLeapMonth: false,
 };
 
 export function SajuForm() {
@@ -51,12 +53,12 @@ export function SajuForm() {
   ]);
 
   // 개인 폼 핸들러
-  const handleIndividualChange = (field: string, value: string) => {
+  const handleIndividualChange = (field: string, value: string | boolean) => {
     setIndividual((prev) => ({ ...prev, [field]: value }));
   };
 
   // 커플 폼 핸들러
-  const handleCoupleChange = (person: "person1" | "person2", field: string, value: string) => {
+  const handleCoupleChange = (person: "person1" | "person2", field: string, value: string | boolean) => {
     setCouple((prev) => ({
       ...prev,
       [person]: { ...prev[person], [field]: value },
@@ -64,7 +66,7 @@ export function SajuForm() {
   };
 
   // 가족 폼 핸들러
-  const handleFamilyChange = (index: number, field: string, value: string) => {
+  const handleFamilyChange = (index: number, field: string, value: string | boolean) => {
     setFamily((prev) => {
       const newFamily = [...prev];
       newFamily[index] = { ...newFamily[index], [field]: value };
@@ -113,13 +115,15 @@ export function SajuForm() {
   const navigateToResult = (person: PersonData) => {
     const isTimeUnknown = person.hour === "unknown";
     const time = parseHourToTime(person.hour);
+    const isLunar = person.calendarType === "lunar";
     const data = {
       year: person.year,
       month: person.month,
       day: person.day,
       hour: time.hour.toString(),
       minute: time.minute.toString(),
-      lunar: person.calendarType === "lunar",
+      lunar: isLunar,
+      leap: isLunar && person.isLeapMonth,
       name: person.name,
       gender: person.gender,
       timeUnknown: isTimeUnknown,
@@ -134,6 +138,8 @@ export function SajuForm() {
     const p2TimeUnknown = person2.hour === "unknown";
     const time1 = parseHourToTime(person1.hour);
     const time2 = parseHourToTime(person2.hour);
+    const p1IsLunar = person1.calendarType === "lunar";
+    const p2IsLunar = person2.calendarType === "lunar";
 
     const data = {
       person1: {
@@ -142,7 +148,8 @@ export function SajuForm() {
         day: person1.day,
         hour: time1.hour.toString(),
         minute: time1.minute.toString(),
-        lunar: person1.calendarType === "lunar",
+        lunar: p1IsLunar,
+        leap: p1IsLunar && person1.isLeapMonth,
         name: person1.name || "나",
         gender: person1.gender,
         timeUnknown: p1TimeUnknown,
@@ -153,7 +160,8 @@ export function SajuForm() {
         day: person2.day,
         hour: time2.hour.toString(),
         minute: time2.minute.toString(),
-        lunar: person2.calendarType === "lunar",
+        lunar: p2IsLunar,
+        leap: p2IsLunar && person2.isLeapMonth,
         name: person2.name || "상대방",
         gender: person2.gender,
         timeUnknown: p2TimeUnknown,
@@ -168,13 +176,15 @@ export function SajuForm() {
     const data = members.map((member, index) => {
       const timeUnknown = member.hour === "unknown";
       const time = parseHourToTime(member.hour);
+      const isLunar = member.calendarType === "lunar";
       return {
         year: member.year,
         month: member.month,
         day: member.day,
         hour: time.hour.toString(),
         minute: time.minute.toString(),
-        lunar: member.calendarType === "lunar",
+        lunar: isLunar,
+        leap: isLunar && member.isLeapMonth,
         name: member.name || `구성원 ${index + 1}`,
         gender: member.gender,
         relation: member.relation || "other",

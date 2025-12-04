@@ -503,6 +503,32 @@ function yearToGapja(year: number): string {
   return GAPJA_60[index >= 0 ? index : index + 60];
 }
 
+/**
+ * 입춘 기준 운세 연도 계산
+ * 사주학에서 연도는 1월 1일이 아닌 입춘(보통 2월 4일경)을 기준으로 바뀜
+ * @param date 기준 날짜
+ * @param ipchunDay 해당 연도 입춘일 (기본값: 4일)
+ * @returns 입춘 기준 연도
+ */
+export function getFortuneYear(
+  date: Date = new Date(),
+  ipchunDay: number = 4
+): number {
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1; // 0-indexed
+  const day = date.getDate();
+
+  // 1월이면 무조건 이전 연도
+  // 2월 1-3일이면 이전 연도, 2월 4일 이후면 현재 연도 (입춘일 기준)
+  if (month === 1) {
+    return year - 1;
+  }
+  if (month === 2 && day < ipchunDay) {
+    return year - 1;
+  }
+  return year;
+}
+
 export function calculateYearlyFortunes(
   startYear: number,
   endYear: number,

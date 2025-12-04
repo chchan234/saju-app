@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { getTimeIndex } from "./saju-calculator";
+import {
+  getTimeIndex,
+  getFortuneYear,
+  calculateYearlyFortunes,
+} from "./saju-calculator";
 
 describe("getTimeIndex - 시진 경계값 테스트", () => {
   // 자시: 23:30-01:29
@@ -166,6 +170,110 @@ describe("getTimeIndex - 시진 경계값 테스트", () => {
 
     it("23:30은 자시(0)여야 함", () => {
       expect(getTimeIndex(23, 30)).toBe(0);
+    });
+  });
+});
+
+describe("getFortuneYear - 입춘 기준 연도 테스트", () => {
+  describe("1월은 항상 전년도", () => {
+    it("2025년 1월 1일 → 2024년", () => {
+      expect(getFortuneYear(new Date(2025, 0, 1))).toBe(2024);
+    });
+
+    it("2025년 1월 31일 → 2024년", () => {
+      expect(getFortuneYear(new Date(2025, 0, 31))).toBe(2024);
+    });
+  });
+
+  describe("2월 입춘 전은 전년도", () => {
+    it("2025년 2월 1일 → 2024년", () => {
+      expect(getFortuneYear(new Date(2025, 1, 1))).toBe(2024);
+    });
+
+    it("2025년 2월 3일 → 2024년", () => {
+      expect(getFortuneYear(new Date(2025, 1, 3))).toBe(2024);
+    });
+  });
+
+  describe("2월 입춘일(4일) 이후는 당해년도", () => {
+    it("2025년 2월 4일 → 2025년", () => {
+      expect(getFortuneYear(new Date(2025, 1, 4))).toBe(2025);
+    });
+
+    it("2025년 2월 28일 → 2025년", () => {
+      expect(getFortuneYear(new Date(2025, 1, 28))).toBe(2025);
+    });
+  });
+
+  describe("3월 이후는 당해년도", () => {
+    it("2025년 3월 1일 → 2025년", () => {
+      expect(getFortuneYear(new Date(2025, 2, 1))).toBe(2025);
+    });
+
+    it("2025년 12월 31일 → 2025년", () => {
+      expect(getFortuneYear(new Date(2025, 11, 31))).toBe(2025);
+    });
+  });
+
+  describe("커스텀 입춘일 지원", () => {
+    it("입춘일 5일 기준: 2월 4일 → 2024년", () => {
+      expect(getFortuneYear(new Date(2025, 1, 4), 5)).toBe(2024);
+    });
+
+    it("입춘일 5일 기준: 2월 5일 → 2025년", () => {
+      expect(getFortuneYear(new Date(2025, 1, 5), 5)).toBe(2025);
+    });
+  });
+});
+
+describe("calculateYearlyFortunes - 연운 계산 테스트", () => {
+  // 갑(甲) 일간, 용신 목(木) 기준 테스트
+  const ilgan = "갑";
+  const yongsin = "목";
+
+  describe("연운 범위 계산", () => {
+    it("2024~2029년 연운 계산 시 6개의 결과 반환", () => {
+      const result = calculateYearlyFortunes(2024, 2029, ilgan, yongsin);
+      expect(result).toHaveLength(6);
+    });
+
+    it("각 연운에 year, ganji, cheongan, jiji 포함", () => {
+      const result = calculateYearlyFortunes(2024, 2024, ilgan, yongsin);
+      expect(result[0]).toHaveProperty("year", 2024);
+      expect(result[0]).toHaveProperty("ganji");
+      expect(result[0]).toHaveProperty("cheongan");
+      expect(result[0]).toHaveProperty("jiji");
+    });
+  });
+
+  describe("2024년 갑진년 검증", () => {
+    it("2024년은 갑진년", () => {
+      const result = calculateYearlyFortunes(2024, 2024, ilgan, yongsin);
+      expect(result[0].ganji).toBe("갑진");
+      expect(result[0].cheongan).toBe("갑");
+      expect(result[0].jiji).toBe("진");
+    });
+  });
+
+  describe("2025년 을사년 검증", () => {
+    it("2025년은 을사년", () => {
+      const result = calculateYearlyFortunes(2025, 2025, ilgan, yongsin);
+      expect(result[0].ganji).toBe("을사");
+      expect(result[0].cheongan).toBe("을");
+      expect(result[0].jiji).toBe("사");
+    });
+  });
+
+  describe("연운 용신 해당 여부", () => {
+    it("isYongsinYear 프로퍼티 존재", () => {
+      const result = calculateYearlyFortunes(2024, 2024, ilgan, yongsin);
+      expect(result[0]).toHaveProperty("isYongsinYear");
+    });
+
+    it("갑(목) 일간에 목 용신 → 2024년(갑진) 용신년 체크", () => {
+      const result = calculateYearlyFortunes(2024, 2024, ilgan, "목");
+      // 갑은 목 오행이므로 용신년에 해당
+      expect(result[0].isYongsinYear).toBe(true);
     });
   });
 });

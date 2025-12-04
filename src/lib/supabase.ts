@@ -165,11 +165,18 @@ export async function getJeolgiForMonth(
 // 반환: { 월: 절입일 } 형태 (예: { 1: 6, 2: 4, 3: 6, ... })
 export type YearlyTermDates = Record<number, number>;
 
-export async function getYearlyTermDates(year: number): Promise<YearlyTermDates> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SupabaseClientType = { from: (table: string) => any };
+
+export async function getYearlyTermDates(
+  year: number,
+  client?: SupabaseClientType
+): Promise<YearlyTermDates> {
   const termNames = Object.values(JEOLGI_BY_MONTH);
+  const db = client || supabase;
 
   // 해당 연도의 모든 절기 레코드 조회
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from("calenda_data")
     .select("cd_sm, cd_sd, cd_kterms")
     .eq("cd_sy", year)
@@ -199,13 +206,16 @@ export async function getYearlyTermDates(year: number): Promise<YearlyTermDates>
 }
 
 // 이전 연도 포함 절기 조회 (연초 역행 계산용)
-export async function getTermDatesWithPrevYear(year: number): Promise<{
+export async function getTermDatesWithPrevYear(
+  year: number,
+  client?: SupabaseClientType
+): Promise<{
   current: YearlyTermDates;
   prev: YearlyTermDates;
 }> {
   const [current, prev] = await Promise.all([
-    getYearlyTermDates(year),
-    getYearlyTermDates(year - 1),
+    getYearlyTermDates(year, client),
+    getYearlyTermDates(year - 1, client),
   ]);
 
   return { current, prev };

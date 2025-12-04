@@ -5,14 +5,21 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { calculateSaju, calculateMajorFortunes, calculateYearlyFortunes } from "@/lib/saju-calculator";
+import { calculateSaju, calculateMajorFortunes, calculateYearlyFortunes, getFortuneYear } from "@/lib/saju-calculator";
 import { getIlganTraits, getOhengAdvice, analyzeOhengBalance } from "@/lib/saju-traits";
 import { getTermDatesWithPrevYear } from "@/lib/supabase";
 import type { CalendaData } from "@/types/saju";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+// 서비스 키가 없으면 경고 로그 (보안상 서버 사이드에서는 서비스 키 사용 권장)
+if (!supabaseServiceKey) {
+  console.warn("[API] SUPABASE_SERVICE_ROLE_KEY is not set. Using anon key as fallback.");
+}
+
+const supabase = createClient(supabaseUrl, supabaseServiceKey || supabaseAnonKey);
 
 interface SajuRequest {
   year: number;
@@ -31,7 +38,7 @@ export async function POST(request: NextRequest) {
     const body: SajuRequest = await request.json();
     const { year, month, day, hour, minute, isLunar = false, isLeapMonth = false, timeUnknown = false, gender = "female" } = body;
 
-    // 입력 검증
+    // 입력 검증 - 필수 값 확인
     if (!year || !month || !day || hour === undefined || minute === undefined) {
       return NextResponse.json(
         { error: "생년월일시 정보가 필요합니다." },
@@ -43,6 +50,38 @@ export async function POST(request: NextRequest) {
     if (year < 1900 || year > 2100) {
       return NextResponse.json(
         { error: "1900년부터 2100년 사이의 날짜만 지원합니다." },
+        { status: 400 }
+      );
+    }
+
+    // 월 범위 검증 (1-12)
+    if (month < 1 || month > 12) {
+      return NextResponse.json(
+        { error: "월은 1부터 12 사이여야 합니다." },
+        { status: 400 }
+      );
+    }
+
+    // 일 범위 검증 (1-31)
+    if (day < 1 || day > 31) {
+      return NextResponse.json(
+        { error: "일은 1부터 31 사이여야 합니다." },
+        { status: 400 }
+      );
+    }
+
+    // 시간 범위 검증 (0-23)
+    if (hour < 0 || hour > 23) {
+      return NextResponse.json(
+        { error: "시간은 0부터 23 사이여야 합니다." },
+        { status: 400 }
+      );
+    }
+
+    // 분 범위 검증 (0-59)
+    if (minute < 0 || minute > 59) {
+      return NextResponse.json(
+        { error: "분은 0부터 59 사이여야 합니다." },
         { status: 400 }
       );
     }
@@ -93,7 +132,7 @@ export async function POST(request: NextRequest) {
     const solarYear = calendaData.cd_sy;
     const solarMonth = Number(calendaData.cd_sm);
     const solarDay = Number(calendaData.cd_sd);
-    const termDates = await getTermDatesWithPrevYear(solarYear);
+    const termDates = await getTermDatesWithPrevYear(solarYear, supabase);
 
     // 대운 계산 (성별 필요, 실제 절기 데이터 활용)
     const majorFortunes = calculateMajorFortunes(
@@ -106,11 +145,12 @@ export async function POST(request: NextRequest) {
       termDates
     );
 
-    // 연운 계산 (현재년도 기준 ±5년)
-    const currentYear = new Date().getFullYear();
+    // 연운 계산 (입춘 기준 현재 연도 ±5년)
+    // 사주학에서 연도는 1월 1일이 아닌 입춘(2월 4일경)을 기준으로 바뀜
+    const fortuneYear = getFortuneYear();
     const yearlyFortunes = calculateYearlyFortunes(
-      currentYear - 1,
-      currentYear + 5,
+      fortuneYear - 1,
+      fortuneYear + 5,
       result.dayPillar.cheongan,
       result.yongsin
     );

@@ -1480,6 +1480,7 @@ export function CoupleResultContent() {
         const p1Hour = parseInt(person1.hour);
         const p1Minute = parseInt(person1.minute);
         const p1Lunar = person1.lunar;
+        const p1LeapMonth = person1.leap || false;
         const p1Name = person1.name || "첫 번째 분";
         const p1Gender = person1.gender || "female";
         const p1TimeUnknown = person1.timeUnknown;
@@ -1491,6 +1492,7 @@ export function CoupleResultContent() {
         const p2Hour = parseInt(person2.hour);
         const p2Minute = parseInt(person2.minute);
         const p2Lunar = person2.lunar;
+        const p2LeapMonth = person2.leap || false;
         const p2Name = person2.name || "두 번째 분";
         const p2Gender = person2.gender || "female";
         const p2TimeUnknown = person2.timeUnknown;
@@ -1513,7 +1515,8 @@ export function CoupleResultContent() {
             body: JSON.stringify({
               year: p1Year, month: p1Month, day: p1Day,
               hour: p1Hour, minute: p1Minute,
-              isLunar: p1Lunar, timeUnknown: p1TimeUnknown,
+              isLunar: p1Lunar, isLeapMonth: p1LeapMonth,
+              timeUnknown: p1TimeUnknown,
               gender: p1Gender,
             }),
           }),
@@ -1523,7 +1526,8 @@ export function CoupleResultContent() {
             body: JSON.stringify({
               year: p2Year, month: p2Month, day: p2Day,
               hour: p2Hour, minute: p2Minute,
-              isLunar: p2Lunar, timeUnknown: p2TimeUnknown,
+              isLunar: p2Lunar, isLeapMonth: p2LeapMonth,
+              timeUnknown: p2TimeUnknown,
               gender: p2Gender,
             }),
           }),

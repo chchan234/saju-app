@@ -65,6 +65,7 @@ function ResultContent() {
         const hour = parseInt(data.hour);
         const minute = parseInt(data.minute);
         const isLunar = data.lunar;
+        const isLeapMonth = data.leap || false;
         const personName = data.name || "";
         const personGender = data.gender || "female";
         const isTimeUnknown = data.timeUnknown;
@@ -90,7 +91,7 @@ function ResultContent() {
             hour,
             minute,
             isLunar,
-            isLeapMonth: false,
+            isLeapMonth,
             timeUnknown: isTimeUnknown,
             gender: personGender,
           }),
