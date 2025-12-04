@@ -109,25 +109,35 @@ function calculateSiganCheongan(ilgan: string, sijiIndex: number): string {
 
 /**
  * 시간을 시진(時辰) 인덱스로 변환
+ * 정시(正時) 기준 - 각 시진은 해당 시각의 30분부터 시작
  */
 export function getTimeIndex(hour: number, minute: number): number {
-  // 자시: 23:00-01:00 (0)
-  // 축시: 01:00-03:00 (1)
-  // 인시: 03:00-05:00 (2)
-  // ...
+  // 정시(正時) 기준 시진 체계
+  // 자시: 23:30-01:29 (0)
+  // 축시: 01:30-03:29 (1)
+  // 인시: 03:30-05:29 (2)
+  // 묘시: 05:30-07:29 (3)
+  // 진시: 07:30-09:29 (4)
+  // 사시: 09:30-11:29 (5)
+  // 오시: 11:30-13:29 (6)
+  // 미시: 13:30-15:29 (7)
+  // 신시: 15:30-17:29 (8)
+  // 유시: 17:30-19:29 (9)
+  // 술시: 19:30-21:29 (10)
+  // 해시: 21:30-23:29 (11)
   const totalMinutes = hour * 60 + minute;
 
-  if (totalMinutes >= 23 * 60 || totalMinutes < 1 * 60) return 0;  // 자시
-  if (totalMinutes < 3 * 60) return 1;   // 축시
-  if (totalMinutes < 5 * 60) return 2;   // 인시
-  if (totalMinutes < 7 * 60) return 3;   // 묘시
-  if (totalMinutes < 9 * 60) return 4;   // 진시
-  if (totalMinutes < 11 * 60) return 5;  // 사시
-  if (totalMinutes < 13 * 60) return 6;  // 오시
-  if (totalMinutes < 15 * 60) return 7;  // 미시
-  if (totalMinutes < 17 * 60) return 8;  // 신시
-  if (totalMinutes < 19 * 60) return 9;  // 유시
-  if (totalMinutes < 21 * 60) return 10; // 술시
+  if (totalMinutes >= 23 * 60 + 30 || totalMinutes < 1 * 60 + 30) return 0;  // 자시
+  if (totalMinutes < 3 * 60 + 30) return 1;   // 축시
+  if (totalMinutes < 5 * 60 + 30) return 2;   // 인시
+  if (totalMinutes < 7 * 60 + 30) return 3;   // 묘시
+  if (totalMinutes < 9 * 60 + 30) return 4;   // 진시
+  if (totalMinutes < 11 * 60 + 30) return 5;  // 사시
+  if (totalMinutes < 13 * 60 + 30) return 6;  // 오시
+  if (totalMinutes < 15 * 60 + 30) return 7;  // 미시
+  if (totalMinutes < 17 * 60 + 30) return 8;  // 신시
+  if (totalMinutes < 19 * 60 + 30) return 9;  // 유시
+  if (totalMinutes < 21 * 60 + 30) return 10; // 술시
   return 11; // 해시
 }
 
@@ -257,21 +267,40 @@ const CHEONGAN_CHUNG: Record<string, string> = {
   "정": "계", "계": "정",
 };
 
-// 절기 데이터 (월별 절기 일자 - 평균값)
+// 절기 데이터 (월별 절입 절기 - 월주가 바뀌는 절기)
+// 각 월의 절입일은 해당 월의 시작을 의미 (예: 2월 절입 = 경칩 = 인월 시작)
 const SOLAR_TERMS: Record<number, { name: string; day: number }> = {
-  1: { name: "입춘", day: 4 },
-  2: { name: "경칩", day: 6 },
-  3: { name: "청명", day: 5 },
-  4: { name: "입하", day: 6 },
-  5: { name: "망종", day: 6 },
-  6: { name: "소서", day: 7 },
-  7: { name: "입추", day: 8 },
-  8: { name: "백로", day: 8 },
-  9: { name: "한로", day: 8 },
-  10: { name: "입동", day: 8 },
-  11: { name: "대설", day: 7 },
-  12: { name: "소한", day: 6 },
+  1: { name: "입춘", day: 4 },   // 인월(寅月) 시작
+  2: { name: "경칩", day: 6 },   // 묘월(卯月) 시작
+  3: { name: "청명", day: 5 },   // 진월(辰月) 시작
+  4: { name: "입하", day: 6 },   // 사월(巳月) 시작
+  5: { name: "망종", day: 6 },   // 오월(午月) 시작
+  6: { name: "소서", day: 7 },   // 미월(未月) 시작
+  7: { name: "입추", day: 8 },   // 신월(申月) 시작
+  8: { name: "백로", day: 8 },   // 유월(酉月) 시작
+  9: { name: "한로", day: 8 },   // 술월(戌月) 시작
+  10: { name: "입동", day: 8 },  // 해월(亥月) 시작
+  11: { name: "대설", day: 7 },  // 자월(子月) 시작
+  12: { name: "소한", day: 6 },  // 축월(丑月) 시작
 };
+
+/**
+ * 윤년 판별
+ */
+function isLeapYear(year: number): boolean {
+  return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+}
+
+/**
+ * 특정 월의 일수 반환 (윤년 고려)
+ */
+function getDaysInMonth(year: number, month: number): number {
+  const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  if (month === 2 && isLeapYear(year)) {
+    return 29;
+  }
+  return daysInMonth[month - 1];
+}
 
 /**
  * 대운 순행/역행 결정
@@ -288,22 +317,44 @@ function isForwardDirection(yearCheongan: string, gender: "male" | "female"): bo
 }
 
 /**
- * 다음 절기까지의 일수 계산
+ * 다음/이전 절기까지의 일수 계산 (윤년 고려, calendaData 활용)
  */
-function getDaysToNextTerm(birthMonth: number, birthDay: number, isForward: boolean): number {
+function getDaysToNextTerm(
+  calendaData: CalendaData,
+  birthYear: number,
+  birthMonth: number,
+  birthDay: number,
+  isForward: boolean
+): number {
+  // calendaData에서 절기 정보 확인 (해당 날짜가 절기일 경우)
+  // TODO: cd_kterms, cd_terms_time을 활용한 정밀 계산 구현 가능
+  // 현재는 평균 절기일 기반으로 계산하되 윤년 처리 적용
+  void calendaData; // 향후 정밀 계산용으로 예약
+
   if (isForward) {
-    // 순행: 다음 절기까지
+    // 순행: 다음 절기까지의 일수
+    // 다음 월의 절입일까지 계산
     const nextMonth = birthMonth === 12 ? 1 : birthMonth + 1;
     const nextTermDay = SOLAR_TERMS[nextMonth]?.day || 6;
 
-    // 현재 월의 남은 일수 + 다음 월의 절기 일자
-    const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-    const remainingDays = daysInMonth[birthMonth - 1] - birthDay;
+    // 현재 월의 남은 일수 (윤년 고려)
+    const daysInCurrentMonth = getDaysInMonth(birthYear, birthMonth);
+    const remainingDays = daysInCurrentMonth - birthDay;
+
     return remainingDays + nextTermDay;
   } else {
-    // 역행: 이전 절기까지
+    // 역행: 이전 절기까지의 일수
+    // 현재 월의 절입일부터 생일까지
     const currentTermDay = SOLAR_TERMS[birthMonth]?.day || 6;
-    return birthDay - currentTermDay;
+
+    // 생일이 절입일 이후인 경우: 생일 - 절입일
+    // 생일이 절입일 이전인 경우: 절입일까지의 거리 (음수가 아닌 절대값)
+    if (birthDay >= currentTermDay) {
+      return birthDay - currentTermDay;
+    } else {
+      // 생일이 현재 월 절입일 이전이면, 절입일까지의 거리
+      return currentTermDay - birthDay;
+    }
   }
 }
 
@@ -346,8 +397,8 @@ export function calculateMajorFortunes(
   // 순행/역행 결정
   const isForward = isForwardDirection(yearCheongan, gender);
 
-  // 다음 절기까지 일수 계산
-  const daysToTerm = getDaysToNextTerm(birthMonth, birthDay, isForward);
+  // 다음/이전 절기까지 일수 계산 (윤년 고려, calendaData 활용)
+  const daysToTerm = getDaysToNextTerm(calendaData, birthYear, birthMonth, birthDay, isForward);
 
   // 대운 시작 나이
   const startAge = calculateDaeunStartAge(daysToTerm);

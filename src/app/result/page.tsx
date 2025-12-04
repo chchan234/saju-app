@@ -2,11 +2,26 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { SajuResult } from "@/components/saju/SajuResult";
+import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { BokbiModal } from "@/components/saju/SajuUI";
 import type { SajuApiResult } from "@/types/saju";
+
+// SajuResult를 dynamic import로 lazy load하여 초기 번들 크기 감소
+// 대형 정적 데이터 파일(saju-analysis-data, saju-sipsin-data 등)이 분리됨
+const SajuResult = dynamic(
+  () => import("@/components/saju/SajuResult").then((mod) => mod.SajuResult),
+  {
+    loading: () => (
+      <div className="flex flex-col items-center gap-4 py-12">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
+        <p className="text-muted-foreground text-sm">결과를 불러오는 중...</p>
+      </div>
+    ),
+    ssr: false, // 클라이언트에서만 렌더링
+  }
+);
 
 function LoadingCard() {
   return (

@@ -139,6 +139,7 @@ export async function GET(request: NextRequest) {
   const month = parseInt(searchParams.get("month") || "0");
   const day = parseInt(searchParams.get("day") || "0");
   const isLunar = searchParams.get("lunar") === "true";
+  const isLeapMonth = searchParams.get("leap") === "true";
 
   if (!year || !month || !day) {
     return NextResponse.json(
@@ -150,10 +151,12 @@ export async function GET(request: NextRequest) {
   let query = supabase.from("calenda_data").select("*");
 
   if (isLunar) {
+    // 음력 조회 시 윤달 여부도 필터링
     query = query
       .eq("cd_ly", year)
       .eq("cd_lm", month)
-      .eq("cd_ld", day);
+      .eq("cd_ld", day)
+      .eq("cd_leap_month", isLeapMonth ? 1 : 0);
   } else {
     query = query
       .eq("cd_sy", year)
@@ -161,9 +164,16 @@ export async function GET(request: NextRequest) {
       .eq("cd_sd", day);
   }
 
-  const { data, error } = await query;
+  const { data, error } = await query.single();
 
   if (error) {
+    // PGRST116: 결과가 없거나 여러 개인 경우
+    if (error.code === "PGRST116") {
+      return NextResponse.json(
+        { error: "해당 날짜의 만세력 데이터를 찾을 수 없습니다." },
+        { status: 404 }
+      );
+    }
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
