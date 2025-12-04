@@ -37,16 +37,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
-      <head>
-        <Script
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4481144756114483"
-          strategy="beforeInteractive"
-          crossOrigin="anonymous"
-        />
-      </head>
       <body
         className={`${notoSansKR.variable} ${notoSerifKR.variable} font-sans antialiased`}
       >
+        <Script
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4481144756114483"
+          strategy="beforeInteractive"
+        />
         <div className="fixed inset-0 -z-10 overflow-hidden">
           <div className="absolute top-[10%] left-[10%] w-[40%] h-[40%] rounded-full bg-secondary/30 blur-3xl" />
           <div className="absolute bottom-[10%] right-[10%] w-[35%] h-[35%] rounded-full bg-accent/20 blur-3xl" />
