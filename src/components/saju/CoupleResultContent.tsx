@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronUp, Sparkles, Heart } from "lucide-react";
 import type { SajuApiResult } from "@/types/saju";
-import type { CompatibilityResult } from "@/lib/saju-compatibility";
+import { type CompatibilityResult, getIlganCompatibilityScore } from "@/lib/saju-compatibility";
 import {
   ILJU_SYMBOLS,
   OHENG_BOOSTERS,
@@ -480,16 +480,18 @@ function SipseongRelationCard({
     }
   };
 
-  // 관계 종합 평가
+  // 관계 종합 평가 (실제 궁합 점수 기반)
   const getOverallAssessment = () => {
-    const score1 = { "상": 5, "중상": 4, "중": 3, "중하": 2, "하": 1 }[relation1to2.compatibility] || 3;
-    const score2 = { "상": 5, "중상": 4, "중": 3, "중하": 2, "하": 1 }[relation2to1.compatibility] || 3;
+    // ILGAN_COMPATIBILITY의 실제 점수 사용 (50-90 범위)
+    const score1 = getIlganCompatibilityScore(person1.dayPillar.cheongan, person2.dayPillar.cheongan);
+    const score2 = getIlganCompatibilityScore(person2.dayPillar.cheongan, person1.dayPillar.cheongan);
     const avg = (score1 + score2) / 2;
 
-    if (avg >= 4.5) return { grade: "최상의 조합", desc: "서로를 완벽하게 보완하는 이상적인 관계입니다.", emoji: "💕" };
-    if (avg >= 3.5) return { grade: "좋은 조합", desc: "서로에게 좋은 영향을 주는 조화로운 관계입니다.", emoji: "💝" };
-    if (avg >= 2.5) return { grade: "무난한 조합", desc: "노력하면 좋은 관계를 유지할 수 있습니다.", emoji: "💛" };
-    if (avg >= 1.5) return { grade: "노력 필요", desc: "서로의 차이를 이해하고 배려가 필요합니다.", emoji: "🧡" };
+    // 전체 궁합 점수와 일관된 기준 적용
+    if (avg >= 85) return { grade: "최상의 조합", desc: "서로를 완벽하게 보완하는 이상적인 관계입니다.", emoji: "💕" };
+    if (avg >= 75) return { grade: "좋은 조합", desc: "서로에게 좋은 영향을 주는 조화로운 관계입니다.", emoji: "💝" };
+    if (avg >= 65) return { grade: "무난한 조합", desc: "노력하면 좋은 관계를 유지할 수 있습니다.", emoji: "💛" };
+    if (avg >= 55) return { grade: "노력 필요", desc: "서로의 차이를 이해하고 배려가 필요합니다.", emoji: "🧡" };
     return { grade: "주의 필요", desc: "근본적인 성향 차이가 있어 많은 노력이 필요합니다.", emoji: "💔" };
   };
 

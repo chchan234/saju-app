@@ -856,3 +856,13 @@ export function analyzeCompatibility(
     },
   };
 }
+
+/**
+ * 두 일간의 궁합 점수를 가져오는 헬퍼 함수
+ * @param ilgan1 첫 번째 사람의 일간
+ * @param ilgan2 두 번째 사람의 일간
+ * @returns 점수 (50-90 범위) 또는 기본값 60
+ */
+export function getIlganCompatibilityScore(ilgan1: string, ilgan2: string): number {
+  return ILGAN_COMPATIBILITY[ilgan1]?.[ilgan2]?.score ?? 60;
+}
