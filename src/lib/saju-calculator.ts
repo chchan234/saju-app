@@ -316,31 +316,54 @@ function isForwardDirection(yearCheongan: string, gender: "male" | "female"): bo
   return (isMale && isYangGan) || (!isMale && !isYangGan);
 }
 
+// 연도별 절기 날짜 타입 (supabase.ts에서 조회한 실제 절기 데이터)
+export type TermDates = {
+  current: Record<number, number>;  // { 월: 절입일 }
+  prev: Record<number, number>;     // 이전 연도 절기 (1월 역행용)
+};
+
 /**
- * 다음/이전 절기까지의 일수 계산 (윤년 고려, calendaData 활용)
+ * 실제 절입일 조회 (DB 데이터 우선, 없으면 평균값 fallback)
+ */
+function getTermDay(
+  termDates: TermDates | undefined,
+  year: number,
+  month: number,
+  birthYear: number
+): number {
+  // termDates가 있으면 실제 절기 데이터 사용
+  if (termDates) {
+    if (year === birthYear && termDates.current[month]) {
+      return termDates.current[month];
+    }
+    if (year === birthYear - 1 && termDates.prev[month]) {
+      return termDates.prev[month];
+    }
+  }
+  // fallback: 평균 절기일
+  return SOLAR_TERMS[month]?.day || 6;
+}
+
+/**
+ * 다음/이전 절기까지의 일수 계산 (실제 절기 데이터 활용)
  *
  * 순행(順行): 생일 → 다음 절기까지의 일수
  * 역행(逆行): 생일 → 직전 절기까지의 일수 (과거로 거슬러 감)
  */
 function getDaysToNextTerm(
-  calendaData: CalendaData,
   birthYear: number,
   birthMonth: number,
   birthDay: number,
-  isForward: boolean
+  isForward: boolean,
+  termDates?: TermDates
 ): number {
-  // calendaData에서 절기 정보 확인 (해당 날짜가 절기일 경우)
-  // TODO: cd_kterms, cd_terms_time을 활용한 정밀 계산 구현 가능
-  // 현재는 평균 절기일 기반으로 계산하되 윤년 처리 적용
-  void calendaData; // 향후 정밀 계산용으로 예약
-
-  const currentTermDay = SOLAR_TERMS[birthMonth]?.day || 6;
+  const currentTermDay = getTermDay(termDates, birthYear, birthMonth, birthYear);
 
   if (isForward) {
     // 순행: 다음 절기까지의 일수
-    // 다음 월의 절입일까지 계산
     const nextMonth = birthMonth === 12 ? 1 : birthMonth + 1;
-    const nextTermDay = SOLAR_TERMS[nextMonth]?.day || 6;
+    const nextYear = birthMonth === 12 ? birthYear + 1 : birthYear;
+    const nextTermDay = getTermDay(termDates, nextYear, nextMonth, birthYear);
 
     // 현재 월의 남은 일수 (윤년 고려)
     const daysInCurrentMonth = getDaysInMonth(birthYear, birthMonth);
@@ -353,16 +376,13 @@ function getDaysToNextTerm(
     if (birthDay >= currentTermDay) {
       // Case 1: 생일이 현재 월 절입일 이후
       // 직전 절기 = 현재 월 절입일
-      // 일수 = 생일 - 현재 월 절입일
       return birthDay - currentTermDay;
     } else {
       // Case 2: 생일이 현재 월 절입일 이전
       // 직전 절기 = 이전 월 절입일
-      // 일수 = (이전 월 절입일 ~ 이전 월 말) + (현재 월 1일 ~ 생일)
-
       const prevMonth = birthMonth === 1 ? 12 : birthMonth - 1;
       const prevYear = birthMonth === 1 ? birthYear - 1 : birthYear;
-      const prevTermDay = SOLAR_TERMS[prevMonth]?.day || 6;
+      const prevTermDay = getTermDay(termDates, prevYear, prevMonth, birthYear);
 
       // 이전 월의 일수 (윤년 고려)
       const daysInPrevMonth = getDaysInMonth(prevYear, prevMonth);
@@ -404,21 +424,21 @@ export interface MajorFortuneInfo {
 }
 
 export function calculateMajorFortunes(
-  calendaData: CalendaData,
   yearCheongan: string,
   monthGanji: string,
   gender: "male" | "female",
   birthYear: number,
   birthMonth: number,
-  birthDay: number
+  birthDay: number,
+  termDates?: TermDates
 ): MajorFortuneInfo[] {
   const fortunes: MajorFortuneInfo[] = [];
 
   // 순행/역행 결정
   const isForward = isForwardDirection(yearCheongan, gender);
 
-  // 다음/이전 절기까지 일수 계산 (윤년 고려, calendaData 활용)
-  const daysToTerm = getDaysToNextTerm(calendaData, birthYear, birthMonth, birthDay, isForward);
+  // 다음/이전 절기까지 일수 계산 (실제 절기 데이터 활용)
+  const daysToTerm = getDaysToNextTerm(birthYear, birthMonth, birthDay, isForward, termDates);
 
   // 대운 시작 나이
   const startAge = calculateDaeunStartAge(daysToTerm);

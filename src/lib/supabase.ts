@@ -110,28 +110,28 @@ export async function getIpchunDate(year: number): Promise<ManseryeokRecord | nu
   return data as ManseryeokRecord;
 }
 
+// 각 월의 절기 (절입일 기준) - 월주가 바뀌는 절기
+export const JEOLGI_BY_MONTH: Record<number, string> = {
+  1: "소한",
+  2: "입춘",
+  3: "경칩",
+  4: "청명",
+  5: "입하",
+  6: "망종",
+  7: "소서",
+  8: "입추",
+  9: "백로",
+  10: "한로",
+  11: "입동",
+  12: "대설",
+};
+
 // 특정 년월의 절기 날짜 조회 (월주 계산용)
 export async function getJeolgiForMonth(
   year: number,
   month: number
 ): Promise<ManseryeokRecord | null> {
-  // 각 월의 절기 (절입일 기준)
-  const jeolgiByMonth: Record<number, string> = {
-    1: "소한",
-    2: "입춘",
-    3: "경칩",
-    4: "청명",
-    5: "입하",
-    6: "망종",
-    7: "소서",
-    8: "입추",
-    9: "백로",
-    10: "한로",
-    11: "입동",
-    12: "대설",
-  };
-
-  const targetJeolgi = jeolgiByMonth[month];
+  const targetJeolgi = JEOLGI_BY_MONTH[month];
 
   const { data, error } = await supabase
     .from("calenda_data")
@@ -159,4 +159,54 @@ export async function getJeolgiForMonth(
   }
 
   return data as ManseryeokRecord;
+}
+
+// 연도별 12절기 날짜 일괄 조회 (대운 계산용)
+// 반환: { 월: 절입일 } 형태 (예: { 1: 6, 2: 4, 3: 6, ... })
+export type YearlyTermDates = Record<number, number>;
+
+export async function getYearlyTermDates(year: number): Promise<YearlyTermDates> {
+  const termNames = Object.values(JEOLGI_BY_MONTH);
+
+  // 해당 연도의 모든 절기 레코드 조회
+  const { data, error } = await supabase
+    .from("calenda_data")
+    .select("cd_sm, cd_sd, cd_kterms")
+    .eq("cd_sy", year)
+    .in("cd_kterms", termNames);
+
+  if (error) {
+    console.error("Error fetching yearly term dates:", error);
+    return {};
+  }
+
+  // 절기명 → 월 매핑 (역방향)
+  const termToMonth: Record<string, number> = {};
+  for (const [month, term] of Object.entries(JEOLGI_BY_MONTH)) {
+    termToMonth[term] = Number(month);
+  }
+
+  // 결과 변환: { 월: 절입일 }
+  const result: YearlyTermDates = {};
+  for (const record of data || []) {
+    const month = termToMonth[record.cd_kterms];
+    if (month) {
+      result[month] = Number(record.cd_sd);
+    }
+  }
+
+  return result;
+}
+
+// 이전 연도 포함 절기 조회 (연초 역행 계산용)
+export async function getTermDatesWithPrevYear(year: number): Promise<{
+  current: YearlyTermDates;
+  prev: YearlyTermDates;
+}> {
+  const [current, prev] = await Promise.all([
+    getYearlyTermDates(year),
+    getYearlyTermDates(year - 1),
+  ]);
+
+  return { current, prev };
 }

@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { calculateSaju, calculateMajorFortunes, calculateYearlyFortunes } from "@/lib/saju-calculator";
 import { getIlganTraits, getOhengAdvice, analyzeOhengBalance } from "@/lib/saju-traits";
+import { getTermDatesWithPrevYear } from "@/lib/supabase";
 import type { CalendaData } from "@/types/saju";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -88,15 +89,21 @@ export async function POST(request: NextRequest) {
     // 오행 균형 분석
     const ohengBalance = analyzeOhengBalance(result.ohengCount);
 
-    // 대운 계산 (성별 필요)
+    // 실제 절기 데이터 조회 (양력 연도 기준)
+    const solarYear = calendaData.cd_sy;
+    const solarMonth = Number(calendaData.cd_sm);
+    const solarDay = Number(calendaData.cd_sd);
+    const termDates = await getTermDatesWithPrevYear(solarYear);
+
+    // 대운 계산 (성별 필요, 실제 절기 데이터 활용)
     const majorFortunes = calculateMajorFortunes(
-      calendaData,
       result.yearPillar.cheongan,
       result.monthPillar.ganji,
       gender,
-      year,
-      month,
-      day
+      solarYear,
+      solarMonth,
+      solarDay,
+      termDates
     );
 
     // 연운 계산 (현재년도 기준 ±5년)
