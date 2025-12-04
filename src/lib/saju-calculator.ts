@@ -318,6 +318,9 @@ function isForwardDirection(yearCheongan: string, gender: "male" | "female"): bo
 
 /**
  * 다음/이전 절기까지의 일수 계산 (윤년 고려, calendaData 활용)
+ *
+ * 순행(順行): 생일 → 다음 절기까지의 일수
+ * 역행(逆行): 생일 → 직전 절기까지의 일수 (과거로 거슬러 감)
  */
 function getDaysToNextTerm(
   calendaData: CalendaData,
@@ -331,6 +334,8 @@ function getDaysToNextTerm(
   // 현재는 평균 절기일 기반으로 계산하되 윤년 처리 적용
   void calendaData; // 향후 정밀 계산용으로 예약
 
+  const currentTermDay = SOLAR_TERMS[birthMonth]?.day || 6;
+
   if (isForward) {
     // 순행: 다음 절기까지의 일수
     // 다음 월의 절입일까지 계산
@@ -343,17 +348,32 @@ function getDaysToNextTerm(
 
     return remainingDays + nextTermDay;
   } else {
-    // 역행: 이전 절기까지의 일수
-    // 현재 월의 절입일부터 생일까지
-    const currentTermDay = SOLAR_TERMS[birthMonth]?.day || 6;
+    // 역행: 직전 절기까지의 일수 (과거로 거슬러 감)
 
-    // 생일이 절입일 이후인 경우: 생일 - 절입일
-    // 생일이 절입일 이전인 경우: 절입일까지의 거리 (음수가 아닌 절대값)
     if (birthDay >= currentTermDay) {
+      // Case 1: 생일이 현재 월 절입일 이후
+      // 직전 절기 = 현재 월 절입일
+      // 일수 = 생일 - 현재 월 절입일
       return birthDay - currentTermDay;
     } else {
-      // 생일이 현재 월 절입일 이전이면, 절입일까지의 거리
-      return currentTermDay - birthDay;
+      // Case 2: 생일이 현재 월 절입일 이전
+      // 직전 절기 = 이전 월 절입일
+      // 일수 = (이전 월 절입일 ~ 이전 월 말) + (현재 월 1일 ~ 생일)
+
+      const prevMonth = birthMonth === 1 ? 12 : birthMonth - 1;
+      const prevYear = birthMonth === 1 ? birthYear - 1 : birthYear;
+      const prevTermDay = SOLAR_TERMS[prevMonth]?.day || 6;
+
+      // 이전 월의 일수 (윤년 고려)
+      const daysInPrevMonth = getDaysInMonth(prevYear, prevMonth);
+
+      // 이전 월 절입일부터 이전 월 말까지의 일수
+      const daysFromPrevTerm = daysInPrevMonth - prevTermDay;
+
+      // 현재 월 1일부터 생일까지의 일수
+      const daysInCurrentMonth = birthDay;
+
+      return daysFromPrevTerm + daysInCurrentMonth;
     }
   }
 }

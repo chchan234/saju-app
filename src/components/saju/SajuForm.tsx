@@ -86,24 +86,27 @@ export function SajuForm() {
     setFamily((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // 시진을 시간으로 변환
+  // 시진을 시간으로 변환 (정시 기준: 각 시진은 해당 시각의 30분부터 시작)
   const parseHourToTime = (birthHour: BirthHour): { hour: number; minute: number } => {
-    const hourMap: Record<BirthHour, number> = {
-      "unknown": 12, // 기본값: 정오
-      "23": 23, "01": 0,  // 자시
-      "03": 2,            // 축시
-      "05": 4,            // 인시
-      "07": 6,            // 묘시
-      "09": 8,            // 진시
-      "11": 10,           // 사시
-      "13": 12,           // 오시
-      "15": 14,           // 미시
-      "17": 16,           // 신시
-      "19": 18,           // 유시
-      "21": 20,           // 술시
-      "23-2": 22,         // 해시
+    // 정시(正時) 기준 - getTimeIndex와 일치하도록 각 시진의 시작 시간 사용
+    // 자시: 23:30-01:29, 축시: 01:30-03:29, 인시: 03:30-05:29 ...
+    const hourMinuteMap: Record<BirthHour, { hour: number; minute: number }> = {
+      "unknown": { hour: 12, minute: 0 },  // 기본값: 정오
+      "23": { hour: 23, minute: 30 },      // 자시 (23:30~01:29) - 야자시
+      "01": { hour: 0, minute: 30 },       // 자시 (00:30~01:29) - 조자시
+      "03": { hour: 1, minute: 30 },       // 축시 (01:30~03:29)
+      "05": { hour: 3, minute: 30 },       // 인시 (03:30~05:29)
+      "07": { hour: 5, minute: 30 },       // 묘시 (05:30~07:29)
+      "09": { hour: 7, minute: 30 },       // 진시 (07:30~09:29)
+      "11": { hour: 9, minute: 30 },       // 사시 (09:30~11:29)
+      "13": { hour: 11, minute: 30 },      // 오시 (11:30~13:29)
+      "15": { hour: 13, minute: 30 },      // 미시 (13:30~15:29)
+      "17": { hour: 15, minute: 30 },      // 신시 (15:30~17:29)
+      "19": { hour: 17, minute: 30 },      // 유시 (17:30~19:29)
+      "21": { hour: 19, minute: 30 },      // 술시 (19:30~21:29)
+      "23-2": { hour: 21, minute: 30 },    // 해시 (21:30~23:29)
     };
-    return { hour: hourMap[birthHour] ?? 12, minute: 0 };
+    return hourMinuteMap[birthHour] ?? { hour: 12, minute: 0 };
   };
 
   // 개인 사주 결과 페이지로 이동
