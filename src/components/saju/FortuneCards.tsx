@@ -652,7 +652,7 @@ export function FortuneFlowChart({
 
           {/* 그래프 안내 */}
           <p className="text-xs text-muted-foreground text-center">
-            💡 그래프의 점 위에 마우스를 올리면 해당 연도의 상세 정보를 볼 수 있습니다
+            💡 점 선택 시 상세 정보 표시
           </p>
 
           {/* 그래프 */}
