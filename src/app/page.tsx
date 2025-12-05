@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SajuForm } from "@/components/saju/SajuForm";
 import { ViewCount } from "@/components/ViewCount";
+import { KakaoAdfitBanner } from "@/components/KakaoAdfit";
 
 export default function Home() {
   return (
@@ -40,6 +41,11 @@ export default function Home() {
             </p>
           </CardContent>
         </Card>
+
+        {/* 광고 */}
+        <div className="animate-in fade-in duration-700 delay-300">
+          <KakaoAdfitBanner />
+        </div>
 
         {/* 푸터 */}
         <footer className="text-center text-sm text-muted-foreground/60 animate-in fade-in duration-700 delay-500">
