@@ -27,7 +27,7 @@ interface LifeFortuneCardsProps {
 // 별점 렌더링
 function RatingStars({ rating }: { rating: number }) {
   return (
-    <div className="flex gap-0.5">
+    <span className="inline-flex gap-0.5">
       {[1, 2, 3, 4, 5].map((star) => (
         <Star
           key={star}
@@ -38,7 +38,7 @@ function RatingStars({ rating }: { rating: number }) {
           }`}
         />
       ))}
-    </div>
+    </span>
   );
 }
 

@@ -38,6 +38,18 @@ export async function POST(request: NextRequest) {
     const body: SajuRequest = await request.json();
     const { year, month, day, hour, minute, isLunar = false, isLeapMonth = false, timeUnknown = false, gender = "female" } = body;
 
+    // 조회수 증가 (비동기로 처리하여 응답 지연 최소화)
+    (async () => {
+      try {
+        const { data } = await supabase.from("saju_view_count").select("count").eq("id", 1).single();
+        if (data) {
+          await supabase.from("saju_view_count").update({ count: data.count + 1, updated_at: new Date().toISOString() }).eq("id", 1);
+        }
+      } catch (err) {
+        console.error("카운트 증가 실패:", err);
+      }
+    })();
+
     // 입력 검증 - 필수 값 확인
     if (!year || !month || !day || hour === undefined || minute === undefined) {
       return NextResponse.json(
