@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { KakaoAdfitBanner } from "@/components/KakaoAdfit";
 import type { SajuApiResult } from "@/types/saju";
 import type {
   FamilyAnalysisResult,
@@ -19,6 +20,7 @@ import { RELATION_LABELS, analyzeIlganRelationship, type IlganRelationship } fro
 import type { MajorFortuneInfo } from "@/lib/saju-calculator";
 import { DAEUN_OHENG_INTERPRETATION } from "@/lib/saju-fortune-data";
 import { ChevronDown, ChevronUp, Users, Sparkles, ArrowRight, Star, Heart } from "lucide-react";
+import { apiFetch } from "@/lib/api";
 import {
   ILJU_SYMBOLS,
   OHENG_BOOSTERS,
@@ -1496,7 +1498,7 @@ export function FamilyResultContent() {
             throw new Error(`${name}의 생년월일 정보가 부족합니다.`);
           }
 
-          const promise = fetch("/api/saju", {
+          const promise = apiFetch("/api/saju", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -1537,7 +1539,7 @@ export function FamilyResultContent() {
         })));
 
         // 가족 분석 API 호출
-        const familyRes = await fetch("/api/saju/family", {
+        const familyRes = await apiFetch("/api/saju/family", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -1732,6 +1734,10 @@ export function FamilyResultContent() {
           <BokbiModal />
         </div>
 
+        {/* 광고 */}
+        <div className="mt-8">
+          <KakaoAdfitBanner />
+        </div>
       </div>
     </main>
   );

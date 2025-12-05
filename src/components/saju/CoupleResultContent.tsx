@@ -11,6 +11,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronUp, Sparkles, Heart } from "lucide-react";
+import { KakaoAdfitBanner } from "@/components/KakaoAdfit";
 import type { SajuApiResult } from "@/types/saju";
 import { type CompatibilityResult, getIlganCompatibilityScore } from "@/lib/saju-compatibility";
 import {
@@ -22,6 +23,7 @@ import { analyzeIljuCompatibility, analyzeIlganRelationship, type IlganRelations
 import type { MajorFortuneInfo } from "@/lib/saju-calculator";
 import { DAEUN_OHENG_INTERPRETATION } from "@/lib/saju-fortune-data";
 import { getScoreColorClass } from "@/lib/utils";
+import { apiFetch } from "@/lib/api";
 import {
   PillarCard,
   MysticalIntroCard,
@@ -1509,7 +1511,7 @@ export function CoupleResultContent() {
 
         // 두 사람의 사주 계산 API 호출
         const [res1, res2] = await Promise.all([
-          fetch("/api/saju", {
+          apiFetch("/api/saju", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -1520,7 +1522,7 @@ export function CoupleResultContent() {
               gender: p1Gender,
             }),
           }),
-          fetch("/api/saju", {
+          apiFetch("/api/saju", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -1555,7 +1557,7 @@ export function CoupleResultContent() {
         });
 
         // 궁합 분석 API 호출
-        const compatRes = await fetch("/api/saju/compatibility", {
+        const compatRes = await apiFetch("/api/saju/compatibility", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -1794,6 +1796,10 @@ export function CoupleResultContent() {
           <BokbiModal />
         </div>
 
+        {/* 광고 */}
+        <div className="mt-8">
+          <KakaoAdfitBanner />
+        </div>
       </div>
     </main>
   );
