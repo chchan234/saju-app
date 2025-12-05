@@ -11,7 +11,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronUp, Sparkles, Heart } from "lucide-react";
-import { KakaoAdfitBanner } from "@/components/KakaoAdfit";
+import { KakaoAdfitCoupleBanner } from "@/components/KakaoAdfit";
 import type { SajuApiResult } from "@/types/saju";
 import { type CompatibilityResult, getIlganCompatibilityScore } from "@/lib/saju-compatibility";
 import {
@@ -1798,7 +1798,7 @@ export function CoupleResultContent() {
 
         {/* 광고 */}
         <div className="mt-8">
-          <KakaoAdfitBanner />
+          <KakaoAdfitCoupleBanner />
         </div>
       </div>
     </main>

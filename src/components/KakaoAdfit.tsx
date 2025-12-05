@@ -65,11 +65,47 @@ export function KakaoAdfit({ unit, width, height, className = "" }: KakaoAdfitPr
   );
 }
 
-// 기본 광고 단위 (320x100)
+// 메인 페이지 배너 (320x100)
 export function KakaoAdfitBanner({ className = "" }: { className?: string }) {
   return (
     <KakaoAdfit
       unit="DAN-VKRJoWEGdNAQLQ0U"
+      width={320}
+      height={100}
+      className={className}
+    />
+  );
+}
+
+// 개인결과 하단 배너 (320x100)
+export function KakaoAdfitPersonalBanner({ className = "" }: { className?: string }) {
+  return (
+    <KakaoAdfit
+      unit="DAN-B0YCkWFK4vnM6uGY"
+      width={320}
+      height={100}
+      className={className}
+    />
+  );
+}
+
+// 연인결과 하단 배너 (320x100)
+export function KakaoAdfitCoupleBanner({ className = "" }: { className?: string }) {
+  return (
+    <KakaoAdfit
+      unit="DAN-c3RmatgIhr7pJIId"
+      width={320}
+      height={100}
+      className={className}
+    />
+  );
+}
+
+// 가족결과 하단 배너 (320x100)
+export function KakaoAdfitFamilyBanner({ className = "" }: { className?: string }) {
+  return (
+    <KakaoAdfit
+      unit="DAN-ORfj7F6obvs7m5mm"
       width={320}
       height={100}
       className={className}

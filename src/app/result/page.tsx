@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { BokbiModal } from "@/components/saju/SajuUI";
 import type { SajuApiResult } from "@/types/saju";
 import { apiFetch } from "@/lib/api";
-import { KakaoAdfitBanner } from "@/components/KakaoAdfit";
+import { KakaoAdfitPersonalBanner } from "@/components/KakaoAdfit";
 
 // SajuResult를 dynamic import로 lazy load하여 초기 번들 크기 감소
 // 대형 정적 데이터 파일(saju-analysis-data, saju-sipsin-data 등)이 분리됨
@@ -172,7 +172,7 @@ function ResultContent() {
 
         {/* 광고 */}
         <div className="mt-8">
-          <KakaoAdfitBanner />
+          <KakaoAdfitPersonalBanner />
         </div>
       </div>
     </main>

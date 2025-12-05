@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PersonForm } from "./PersonForm";
 import { BirthHour, CalendarType, Gender } from "@/types/saju";
+import { Star } from "lucide-react";
 
 interface PersonData {
   name: string;
@@ -37,6 +38,25 @@ export function SajuForm() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("individual");
   const [isLoading, setIsLoading] = useState(false);
+
+  // 후기 통계
+  const [reviewStats, setReviewStats] = useState<{ totalCount: number; averageRating: number } | null>(null);
+
+  // 후기 통계 로드
+  useEffect(() => {
+    const fetchReviewStats = async () => {
+      try {
+        const res = await fetch("/api/reviews?limit=1");
+        const data = await res.json();
+        if (data.stats) {
+          setReviewStats(data.stats);
+        }
+      } catch (error) {
+        console.error("Error fetching review stats:", error);
+      }
+    };
+    fetchReviewStats();
+  }, []);
 
   // 개인 사주 폼 상태
   const [individual, setIndividual] = useState<PersonData>(defaultPerson);
@@ -253,15 +273,19 @@ export function SajuForm() {
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-      <TabsList className="grid w-full grid-cols-3 mb-6">
-        <TabsTrigger value="individual" className="font-serif">
+      <TabsList className="grid w-full grid-cols-4 mb-6">
+        <TabsTrigger value="individual" className="font-serif text-xs sm:text-sm">
           개인 사주
         </TabsTrigger>
-        <TabsTrigger value="couple" className="font-serif">
+        <TabsTrigger value="couple" className="font-serif text-xs sm:text-sm">
           연인/부부
         </TabsTrigger>
-        <TabsTrigger value="family" className="font-serif">
+        <TabsTrigger value="family" className="font-serif text-xs sm:text-sm">
           가족 통합
+        </TabsTrigger>
+        <TabsTrigger value="reviews" className="font-serif text-xs sm:text-sm flex items-center gap-1">
+          <Star className="w-3 h-3" />
+          후기
         </TabsTrigger>
       </TabsList>
 
@@ -345,6 +369,51 @@ export function SajuForm() {
 
           <SubmitButton isLoading={isLoading} text="가족 운세 확인하기" />
         </form>
+      </TabsContent>
+
+      {/* 후기 탭 */}
+      <TabsContent value="reviews">
+        <div className="flex flex-col items-center justify-center py-12 space-y-6">
+          {reviewStats ? (
+            <>
+              <div className="flex items-center gap-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star
+                    key={star}
+                    className={`w-8 h-8 ${
+                      star <= Math.round(reviewStats.averageRating)
+                        ? "text-yellow-400 fill-yellow-400"
+                        : "text-gray-300"
+                    }`}
+                  />
+                ))}
+              </div>
+              <div className="text-center space-y-1">
+                <p className="text-3xl font-bold text-primary">
+                  {reviewStats.averageRating.toFixed(1)} / 5.0
+                </p>
+                <p className="text-muted-foreground">
+                  총 {reviewStats.totalCount.toLocaleString()}개 후기
+                </p>
+              </div>
+            </>
+          ) : (
+            <div className="text-center space-y-2">
+              <div className="flex items-center gap-2 justify-center">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star key={star} className="w-8 h-8 text-gray-300" />
+                ))}
+              </div>
+              <p className="text-muted-foreground">아직 후기가 없습니다</p>
+            </div>
+          )}
+          <Button
+            onClick={() => router.push("/reviews")}
+            className="mt-4"
+          >
+            후기 보기
+          </Button>
+        </div>
       </TabsContent>
     </Tabs>
   );

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { KakaoAdfitBanner } from "@/components/KakaoAdfit";
+import { KakaoAdfitFamilyBanner } from "@/components/KakaoAdfit";
 import type { SajuApiResult } from "@/types/saju";
 import type {
   FamilyAnalysisResult,
@@ -1736,7 +1736,7 @@ export function FamilyResultContent() {
 
         {/* 광고 */}
         <div className="mt-8">
-          <KakaoAdfitBanner />
+          <KakaoAdfitFamilyBanner />
         </div>
       </div>
     </main>
