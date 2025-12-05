@@ -374,7 +374,7 @@ export function OhengChart({ ohengCount }: { ohengCount: OhengCount }) {
 
     return (
         <div className="w-full h-[300px] flex items-center justify-center relative">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minHeight={300}>
                 <RadarChart cx="50%" cy="50%" outerRadius="70%" data={data}>
                     <PolarGrid stroke="#e5e7eb" />
                     <PolarAngleAxis dataKey="subject" tick={{ fill: '#666', fontSize: 12, fontFamily: 'var(--font-serif)' }} />
