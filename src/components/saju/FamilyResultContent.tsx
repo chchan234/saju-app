@@ -1734,6 +1734,23 @@ export function FamilyResultContent() {
           <BokbiModal />
         </div>
 
+        {/* 후기 유도 카드 */}
+        <Card className="mt-8 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-green-200 dark:border-green-800">
+          <CardContent className="py-6 text-center">
+            <p className="text-lg font-medium mb-2">👨‍👩‍👧‍👦 가족 분석이 적중했나요?</p>
+            <p className="text-sm text-muted-foreground mb-4">
+              다른 가족들에게 후기를 공유해주세요
+            </p>
+            <Button
+              onClick={() => router.push("/reviews?type=family")}
+              className="bg-green-500 hover:bg-green-600 text-white"
+            >
+              <Star className="w-4 h-4 mr-2" />
+              후기 남기기
+            </Button>
+          </CardContent>
+        </Card>
+
         {/* 광고 */}
         <div className="mt-8">
           <KakaoAdfitFamilyBanner />

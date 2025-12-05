@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { BokbiModal } from "@/components/saju/SajuUI";
+import { Star } from "lucide-react";
 import type { SajuApiResult } from "@/types/saju";
 import { apiFetch } from "@/lib/api";
 import { KakaoAdfitPersonalBanner } from "@/components/KakaoAdfit";
@@ -169,6 +170,23 @@ function ResultContent() {
           </Button>
           <BokbiModal />
         </div>
+
+        {/* 후기 유도 카드 */}
+        <Card className="mt-8 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/20 dark:to-orange-950/20 border-yellow-200 dark:border-yellow-800">
+          <CardContent className="py-6 text-center">
+            <p className="text-lg font-medium mb-2">💬 이 분석이 적중했나요?</p>
+            <p className="text-sm text-muted-foreground mb-4">
+              다른 분들께 후기를 공유해주세요
+            </p>
+            <Button
+              onClick={() => router.push("/reviews?type=personal")}
+              className="bg-yellow-500 hover:bg-yellow-600 text-white"
+            >
+              <Star className="w-4 h-4 mr-2" />
+              후기 남기기
+            </Button>
+          </CardContent>
+        </Card>
 
         {/* 광고 */}
         <div className="mt-8">

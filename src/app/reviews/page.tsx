@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -88,6 +88,7 @@ function formatRelativeTime(dateString: string): string {
 
 export default function ReviewsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [stats, setStats] = useState<{ totalCount: number; averageRating: number } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -98,6 +99,14 @@ export default function ReviewsPage() {
   const [rating, setRating] = useState(5);
   const [reviewType, setReviewType] = useState<string>("");
   const [message, setMessage] = useState("");
+
+  // URL 파라미터에서 타입 자동 설정
+  useEffect(() => {
+    const typeParam = searchParams.get("type");
+    if (typeParam && ["personal", "couple", "family"].includes(typeParam)) {
+      setReviewType(typeParam);
+    }
+  }, [searchParams]);
 
   // 후기 목록 로드
   const fetchReviews = async () => {

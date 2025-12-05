@@ -10,7 +10,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp, Sparkles, Heart } from "lucide-react";
+import { ChevronDown, ChevronUp, Sparkles, Heart, Star } from "lucide-react";
 import { KakaoAdfitCoupleBanner } from "@/components/KakaoAdfit";
 import type { SajuApiResult } from "@/types/saju";
 import { type CompatibilityResult, getIlganCompatibilityScore } from "@/lib/saju-compatibility";
@@ -1795,6 +1795,23 @@ export function CoupleResultContent() {
           </Button>
           <BokbiModal />
         </div>
+
+        {/* 후기 유도 카드 */}
+        <Card className="mt-8 bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-950/20 dark:to-rose-950/20 border-pink-200 dark:border-pink-800">
+          <CardContent className="py-6 text-center">
+            <p className="text-lg font-medium mb-2">💕 궁합 결과가 적중했나요?</p>
+            <p className="text-sm text-muted-foreground mb-4">
+              다른 커플들에게 후기를 공유해주세요
+            </p>
+            <Button
+              onClick={() => router.push("/reviews?type=couple")}
+              className="bg-pink-500 hover:bg-pink-600 text-white"
+            >
+              <Star className="w-4 h-4 mr-2" />
+              후기 남기기
+            </Button>
+          </CardContent>
+        </Card>
 
         {/* 광고 */}
         <div className="mt-8">
