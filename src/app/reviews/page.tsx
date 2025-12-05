@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -86,7 +86,7 @@ function formatRelativeTime(dateString: string): string {
   return date.toLocaleDateString("ko-KR");
 }
 
-export default function ReviewsPage() {
+function ReviewsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -299,5 +299,19 @@ export default function ReviewsPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function ReviewsPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-gradient-to-b from-background to-muted py-8 px-4">
+        <div className="max-w-2xl mx-auto flex justify-center py-12">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
+        </div>
+      </main>
+    }>
+      <ReviewsContent />
+    </Suspense>
   );
 }
