@@ -5,6 +5,24 @@
 
 import type { MajorFortuneInfo } from "./saju-calculator";
 
+// 60갑자 배열
+const GAPJA_60 = [
+  "갑자", "을축", "병인", "정묘", "무진", "기사", "경오", "신미", "임신", "계유",
+  "갑술", "을해", "병자", "정축", "무인", "기묘", "경진", "신사", "임오", "계미",
+  "갑신", "을유", "병술", "정해", "무자", "기축", "경인", "신묘", "임진", "계사",
+  "갑오", "을미", "병신", "정유", "무술", "기해", "경자", "신축", "임인", "계묘",
+  "갑진", "을사", "병오", "정미", "무신", "기유", "경술", "신해", "임자", "계축",
+  "갑인", "을묘", "병진", "정사", "무오", "기미", "경신", "신유", "임술", "계해",
+];
+
+/**
+ * 연도를 60갑자로 변환
+ */
+function yearToGanji(year: number): string {
+  const index = (year - 4) % 60;
+  return GAPJA_60[index >= 0 ? index : index + 60];
+}
+
 // 십신 계산 (일간 기준)
 const SIPSIN_MAP: Record<string, Record<string, string>> = {
   갑: { 갑: "비견", 을: "겁재", 병: "식신", 정: "상관", 무: "편재", 기: "정재", 경: "편관", 신: "정관", 임: "편인", 계: "정인" },
@@ -49,6 +67,33 @@ export interface FortunePeriod {
   sipsin: string;
   message: string;
   isCurrent: boolean;
+}
+
+// 연운 정보 (단일 연도)
+export interface YearlyFortune {
+  year: number;
+  age: number;
+  ganji: string;
+  cheongan: string;
+  jiji: string;
+  rating: 1 | 2 | 3 | 4 | 5;
+  sipsin: string;
+  message: string;
+}
+
+// 구간별 시기 정보
+export interface TimePeriodGroup {
+  immediate: { category: string; emoji: string; period: FortunePeriod }[]; // 5년 이내
+  midTerm: { category: string; emoji: string; period: FortunePeriod }[];   // 5-15년
+  longTerm: { category: string; emoji: string; period: FortunePeriod }[];  // 15년+
+}
+
+// 연운 기반 분야별 점수
+export interface YearlyCategoryFortune {
+  category: FortuneCategory;
+  label: string;
+  emoji: string;
+  yearlyFortunes: YearlyFortune[];
 }
 
 // 분야별 관련 십신
@@ -267,11 +312,11 @@ export function analyzeLifeFortune(
 }
 
 /**
- * 가장 좋은 시기 추천
+ * 가장 좋은 시기 추천 (레거시 - 하위 호환성 유지)
  */
 export function getBestPeriods(
   categoryFortunes: CategoryFortune[],
-  birthYear: number
+  _birthYear: number
 ): { category: string; emoji: string; period: FortunePeriod }[] {
   const currentYear = new Date().getFullYear();
 
@@ -289,4 +334,290 @@ export function getBestPeriods(
     })
     .filter((item): item is NonNullable<typeof item> => item !== null)
     .sort((a, b) => b.period.rating - a.period.rating);
+}
+
+/**
+ * 구간별 좋은 시기 분리 (5년 이내 / 5-15년 / 15년+)
+ */
+export function getGroupedBestPeriods(
+  categoryFortunes: CategoryFortune[]
+): TimePeriodGroup {
+  const currentYear = new Date().getFullYear();
+
+  const immediate: TimePeriodGroup["immediate"] = [];
+  const midTerm: TimePeriodGroup["midTerm"] = [];
+  const longTerm: TimePeriodGroup["longTerm"] = [];
+
+  categoryFortunes.forEach((cf) => {
+    // rating >= 4인 미래 시기만 필터링
+    const goodPeriods = cf.periods.filter(
+      (p) => p.endYear >= currentYear && p.rating >= 4
+    );
+
+    goodPeriods.forEach((period) => {
+      const yearsFromNow = period.startYear - currentYear;
+      const item = { category: cf.label, emoji: cf.emoji, period };
+
+      if (yearsFromNow <= 5) {
+        immediate.push(item);
+      } else if (yearsFromNow <= 15) {
+        midTerm.push(item);
+      } else {
+        longTerm.push(item);
+      }
+    });
+  });
+
+  // 각 구간 내에서 rating 높은 순 → 가까운 시기 순으로 정렬
+  const sortFn = (
+    a: { period: FortunePeriod },
+    b: { period: FortunePeriod }
+  ) => {
+    if (b.period.rating !== a.period.rating) {
+      return b.period.rating - a.period.rating;
+    }
+    return a.period.startYear - b.period.startYear;
+  };
+
+  return {
+    immediate: immediate.sort(sortFn).slice(0, 4),
+    midTerm: midTerm.sort(sortFn).slice(0, 4),
+    longTerm: longTerm.sort(sortFn).slice(0, 3),
+  };
+}
+
+/**
+ * 연운 분석 (특정 연도 범위)
+ */
+export function analyzeYearlyFortune(
+  ilgan: string,
+  gender: "male" | "female",
+  birthYear: number,
+  startYear: number,
+  endYear: number
+): YearlyCategoryFortune[] {
+  const categories: FortuneCategory[] = ["career", "love", "promotion", "wealth", "study", "health"];
+
+  return categories.map((category) => {
+    const yearlyFortunes: YearlyFortune[] = [];
+
+    for (let year = startYear; year <= endYear; year++) {
+      const ganji = yearToGanji(year);
+      const cheongan = ganji[0];
+      const jiji = ganji[1];
+      const age = year - birthYear + 1; // 한국 나이
+
+      const cheonganSipsin = getDaeunSipsin(ilgan, cheongan);
+      const jijiSipsin = getDaeunJijiSipsin(ilgan, jiji);
+      const rating = calculateCategoryScore(category, cheonganSipsin, jijiSipsin, gender) as 1 | 2 | 3 | 4 | 5;
+
+      yearlyFortunes.push({
+        year,
+        age,
+        ganji,
+        cheongan,
+        jiji,
+        rating,
+        sipsin: cheonganSipsin,
+        message: generateMessage(category, rating, cheonganSipsin, gender),
+      });
+    }
+
+    return {
+      category,
+      label: CATEGORY_META[category].label,
+      emoji: CATEGORY_META[category].emoji,
+      yearlyFortunes,
+    };
+  });
+}
+
+// 연간 하이라이트 아이템 타입
+export interface YearlyHighlightItem {
+  category: string;
+  emoji: string;
+  year: number;
+  rating: number;
+  message: string;
+  hasDaeunSynergy: boolean; // 대운과 시너지 여부
+}
+
+// 연도별 하이라이트 타입
+export interface YearHighlight {
+  year: number;
+  good: YearlyHighlightItem[];
+  caution: YearlyHighlightItem[];
+}
+
+// 연간 하이라이트 결과 타입 (3년치)
+export interface YearlyHighlightResult {
+  years: YearHighlight[];
+}
+
+/**
+ * 올해~내후년 주목 분야 추출 (연운 기반, 좋음/주의 구분)
+ * 동점 시 대운과의 시너지로 우선순위 결정
+ */
+export function getImmediateYearlyHighlights(
+  ilgan: string,
+  gender: "male" | "female",
+  birthYear: number,
+  categoryFortunes: CategoryFortune[] // 대운 분석 결과
+): YearlyHighlightResult {
+  const currentYear = new Date().getFullYear();
+  // 3년치 분석 (올해, 내년, 내후년)
+  const yearlyFortunes = analyzeYearlyFortune(ilgan, gender, birthYear, currentYear, currentYear + 2);
+
+  // 현재 대운에서의 분야별 rating 맵 생성
+  const daeunRatingMap: Record<string, number> = {};
+  categoryFortunes.forEach((cf) => {
+    const currentPeriod = cf.periods.find((p) => p.isCurrent);
+    if (currentPeriod) {
+      daeunRatingMap[cf.category] = currentPeriod.rating;
+    }
+  });
+
+  // 연도별로 분류
+  const processYear = (targetYear: number): YearHighlight => {
+    const items: YearlyHighlightItem[] = [];
+
+    yearlyFortunes.forEach((cf) => {
+      const yf = cf.yearlyFortunes.find((y) => y.year === targetYear);
+      if (yf) {
+        const daeunRating = daeunRatingMap[cf.category] || 3;
+        const hasDaeunSynergy = daeunRating >= 4; // 대운에서도 좋으면 시너지
+
+        items.push({
+          category: cf.label,
+          emoji: cf.emoji,
+          year: yf.year,
+          rating: yf.rating,
+          message: yf.message,
+          hasDaeunSynergy,
+        });
+      }
+    });
+
+    // 정렬: rating 높은 순 → 대운 시너지 있는 것 우선
+    const sortedByGood = [...items].sort((a, b) => {
+      if (b.rating !== a.rating) return b.rating - a.rating;
+      // 동점이면 대운 시너지 있는 것 우선
+      if (a.hasDaeunSynergy !== b.hasDaeunSynergy) {
+        return a.hasDaeunSynergy ? -1 : 1;
+      }
+      return 0;
+    });
+
+    // 정렬: rating 낮은 순 → 대운에서도 안 좋은 것 우선 (주의)
+    const sortedByCaution = [...items].sort((a, b) => {
+      if (a.rating !== b.rating) return a.rating - b.rating;
+      // 동점이면 대운에서도 안 좋은 것 우선
+      const aDaeunBad = (daeunRatingMap[getCategoryKey(a.category)] || 3) <= 2;
+      const bDaeunBad = (daeunRatingMap[getCategoryKey(b.category)] || 3) <= 2;
+      if (aDaeunBad !== bDaeunBad) {
+        return aDaeunBad ? -1 : 1;
+      }
+      return 0;
+    });
+
+    return {
+      year: targetYear,
+      good: sortedByGood.slice(0, 2),
+      caution: sortedByCaution.slice(0, 2),
+    };
+  };
+
+  return {
+    years: [
+      processYear(currentYear),
+      processYear(currentYear + 1),
+      processYear(currentYear + 2),
+    ],
+  };
+}
+
+// 카테고리 라벨에서 키 추출
+function getCategoryKey(label: string): string {
+  const map: Record<string, string> = {
+    "취업/직장운": "career",
+    "연애/결혼운": "love",
+    "승진/성취운": "promotion",
+    "재물운": "wealth",
+    "학업/자격증운": "study",
+    "건강운": "health",
+  };
+  return map[label] || "";
+}
+
+// 단기/중기/장기 대운 그룹
+export interface PeriodGroupByTerm {
+  shortTerm: FortunePeriod[];  // 현재~5년
+  midTerm: FortunePeriod[];    // 5-15년
+  longTerm: FortunePeriod[];   // 15년+
+}
+
+/**
+ * 대운을 단기/중기/장기로 분류
+ */
+export function groupPeriodsByTerm(periods: FortunePeriod[]): PeriodGroupByTerm {
+  const currentYear = new Date().getFullYear();
+
+  const shortTerm: FortunePeriod[] = [];
+  const midTerm: FortunePeriod[] = [];
+  const longTerm: FortunePeriod[] = [];
+
+  periods.forEach((period) => {
+    const yearsFromNow = period.startYear - currentYear;
+
+    // 현재 진행 중이거나 5년 이내 시작
+    if (period.isCurrent || (yearsFromNow >= 0 && yearsFromNow <= 5)) {
+      shortTerm.push(period);
+    } else if (yearsFromNow > 5 && yearsFromNow <= 15) {
+      midTerm.push(period);
+    } else if (yearsFromNow > 15) {
+      longTerm.push(period);
+    }
+  });
+
+  return { shortTerm, midTerm, longTerm };
+}
+
+// 분야별 세운 정보 (3년치)
+export interface CategoryYearlyFortune {
+  year: number;
+  rating: 1 | 2 | 3 | 4 | 5;
+  sipsin: string;
+  message: string;
+}
+
+/**
+ * 특정 분야의 3년 세운 분석
+ */
+export function getCategoryYearlyFortunes(
+  category: FortuneCategory,
+  ilgan: string,
+  gender: "male" | "female",
+  birthYear: number
+): CategoryYearlyFortune[] {
+  const currentYear = new Date().getFullYear();
+  const result: CategoryYearlyFortune[] = [];
+
+  for (let year = currentYear; year <= currentYear + 2; year++) {
+    const ganji = yearToGanji(year);
+    const cheongan = ganji[0];
+    const jiji = ganji[1];
+
+    const cheonganSipsin = getDaeunSipsin(ilgan, cheongan);
+    const jijiSipsin = getDaeunJijiSipsin(ilgan, jiji);
+    const rating = calculateCategoryScore(category, cheonganSipsin, jijiSipsin, gender) as 1 | 2 | 3 | 4 | 5;
+
+    result.push({
+      year,
+      rating,
+      sipsin: cheonganSipsin,
+      message: generateMessage(category, rating, cheonganSipsin, gender),
+    });
+  }
+
+  return result;
 }
