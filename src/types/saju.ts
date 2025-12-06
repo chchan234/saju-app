@@ -248,6 +248,7 @@ export interface OhengCount {
 }
 
 // API 사주 결과 (계산기 반환 타입)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface SajuApiResult {
   yearPillar: Pillar;
   monthPillar: Pillar;
@@ -273,4 +274,12 @@ export interface SajuApiResult {
     terms: string;     // 절기
     weekday: string;   // 요일
   };
+  // 확장 필드 (API 응답 시 포함)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  majorFortunes?: any[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  yearlyFortunes?: any[];
+  gender?: Gender;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  analysis?: any;
 }

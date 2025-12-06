@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase";
+import { createServerClient, getTermDatesWithPrevYear } from "@/lib/supabase";
 import { generateExpertAnalysis } from "@/lib/expert/pdf-generator";
 import { verifyAdminRequest } from "@/lib/admin-auth";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { calculateSaju, calculateMajorFortunes, calculateYearlyFortunes, getFortuneYear } from "@/lib/saju-calculator";
+import { getIlganTraits, getOhengAdvice, analyzeOhengBalance } from "@/lib/saju-traits";
 import type {
   Gender,
   RelationshipStatus,
   OccupationStatus,
   SajuApiResult,
+  CalendaData,
 } from "@/types/saju";
 
 interface PartnerInfo {
@@ -21,7 +24,7 @@ interface PartnerInfo {
   isLeapMonth: boolean;
 }
 
-// 내부 사주 API 호출 함수
+// 내부 사주 계산 함수 (HTTP fetch 대신 직접 계산)
 async function calculateSajuInternal(
   year: number,
   month: number,
@@ -31,33 +34,83 @@ async function calculateSajuInternal(
   isLeapMonth: boolean,
   gender: Gender
 ): Promise<SajuApiResult> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const supabase = createServerClient();
+  const timeUnknown = hour === 12;
+  const minute = 0;
 
-  const response = await fetch(`${baseUrl}/api/saju`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      year,
-      month,
-      day,
-      hour,
-      minute: 0,
-      isLunar,
-      isLeapMonth,
-      timeUnknown: hour === 12,
-      gender,
-    }),
-  });
+  // 만세력 데이터 조회
+  let query = supabase.from("calenda_data").select("*");
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || "사주 계산 실패");
+  if (isLunar) {
+    query = query
+      .eq("cd_ly", year)
+      .eq("cd_lm", month)
+      .eq("cd_ld", day)
+      .eq("cd_leap_month", isLeapMonth ? 1 : 0);
+  } else {
+    query = query
+      .eq("cd_sy", year)
+      .eq("cd_sm", month)
+      .eq("cd_sd", day);
   }
 
-  const result = await response.json();
-  return result.data;
+  const { data, error } = await query.single();
+
+  if (error || !data) {
+    throw new Error("해당 날짜의 만세력 데이터를 찾을 수 없습니다.");
+  }
+
+  const calendaData = data as CalendaData;
+
+  // 사주 계산
+  const result = calculateSaju(calendaData, hour, minute, timeUnknown);
+
+  // 일간 성향 분석
+  const ilganTraits = getIlganTraits(result.dayPillar.cheongan);
+
+  // 용신 오행 조언
+  const yongsinAdvice = getOhengAdvice(result.yongsin);
+
+  // 오행 균형 분석
+  const ohengBalance = analyzeOhengBalance(result.ohengCount);
+
+  // 실제 절기 데이터 조회 (양력 연도 기준)
+  const solarYear = calendaData.cd_sy;
+  const solarMonth = Number(calendaData.cd_sm);
+  const solarDay = Number(calendaData.cd_sd);
+  const termDates = await getTermDatesWithPrevYear(solarYear, supabase);
+
+  // 대운 계산
+  const majorFortunes = calculateMajorFortunes(
+    result.yearPillar.cheongan,
+    result.monthPillar.ganji,
+    gender,
+    solarYear,
+    solarMonth,
+    solarDay,
+    termDates
+  );
+
+  // 연운 계산
+  const fortuneYear = getFortuneYear();
+  const yearlyFortunes = calculateYearlyFortunes(
+    fortuneYear - 1,
+    fortuneYear + 5,
+    result.dayPillar.cheongan,
+    result.yongsin
+  );
+
+  return {
+    ...result,
+    majorFortunes,
+    yearlyFortunes,
+    gender,
+    analysis: {
+      ilganTraits,
+      yongsinAdvice,
+      ohengBalance,
+    }
+  };
 }
 
 export async function POST(request: NextRequest) {
