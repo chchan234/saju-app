@@ -43,6 +43,7 @@ export default function Home() {
               개인정보 수집 없음 · 데이터 저장 안함
             </span>
             <ViewCount
+              mode={isExpertMode ? "expert" : "normal"}
               className={`inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full transition-colors duration-700 ${
                 isExpertMode
                   ? "text-[#a89880] bg-[#2d2319]"
