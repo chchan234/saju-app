@@ -71,7 +71,7 @@ export default function Home() {
               정확한 풀이를 위해 정보를 입력해주세요.
             </CardDescription>
             {/* 전문가모드 토글 */}
-            <div className="flex items-center justify-center gap-2 pt-3">
+            <div className="relative flex items-center justify-center pt-3">
               <Switch
                 checked={isExpertMode}
                 onCheckedChange={setIsExpertMode}
@@ -79,7 +79,7 @@ export default function Home() {
               />
               <label
                 htmlFor="expert-mode"
-                className={`text-xs flex items-center gap-1 cursor-pointer transition-colors duration-700 ${
+                className={`text-xs flex items-center gap-1 cursor-pointer transition-colors duration-700 ml-2 ${
                   isExpertMode ? "text-amber-500 font-medium" : "text-muted-foreground"
                 }`}
               >
@@ -89,7 +89,7 @@ export default function Home() {
               {isExpertMode && (
                 <Dialog>
                   <DialogTrigger asChild>
-                    <button className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-500 hover:bg-amber-500/30 transition-colors">
+                    <button className="absolute right-0 text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-500 hover:bg-amber-500/30 transition-colors">
                       샘플
                     </button>
                   </DialogTrigger>
