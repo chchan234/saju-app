@@ -46,7 +46,7 @@ export default function ExpertModePage() {
               </svg>
               개인정보 수집 없음 · 데이터 저장 안함
             </span>
-            <ViewCount />
+            <ViewCount mode="expert" />
           </div>
         </header>
 
