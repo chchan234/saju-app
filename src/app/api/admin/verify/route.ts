@@ -32,10 +32,6 @@ export async function POST(request: NextRequest) {
     // 환경변수에서 어드민 비밀번호 가져오기
     const adminPassword = process.env.ADMIN_PASSWORD;
 
-    // 디버깅용 로그 (프로덕션에서 확인 후 삭제)
-    console.log("Input password:", password, "Type:", typeof password);
-    console.log("Admin password exists:", !!adminPassword, "Length:", adminPassword?.length);
-
     if (!adminPassword) {
       console.error("ADMIN_PASSWORD 환경변수가 설정되지 않았습니다.");
       return NextResponse.json(
