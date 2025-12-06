@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// 런타임에만 초기화 (빌드 시점 에러 방지)
+const getResend = () => new Resend(process.env.RESEND_API_KEY);
 
 // PDF 크기 제한 (25MB - Resend 권장 제한)
 const MAX_PDF_SIZE_MB = 25;
@@ -161,6 +162,7 @@ export async function POST(request: NextRequest) {
       ];
     }
 
+    const resend = getResend();
     const { data: emailResult, error: emailError } = await resend.emails.send(emailOptions);
 
     if (emailError) {
