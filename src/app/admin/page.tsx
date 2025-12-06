@@ -155,7 +155,18 @@ export default function AdminPage() {
   const fetchRequests = async () => {
     try {
       setDbError(null);
-      const res = await fetch("/api/admin/requests");
+      const res = await fetch("/api/admin/requests", {
+        credentials: "include",
+      });
+
+      // 인증 실패 시 로그인 페이지로 리다이렉트
+      if (res.status === 401) {
+        sessionStorage.removeItem("admin_verified");
+        sessionStorage.removeItem("admin_verified_at");
+        router.push("/admin/verify");
+        return;
+      }
+
       const data = await res.json();
 
       if (!data.success || data.message?.toLowerCase().includes("table")) {
@@ -177,7 +188,15 @@ export default function AdminPage() {
   // 커플 신청 목록 조회
   const fetchCoupleRequests = async () => {
     try {
-      const res = await fetch("/api/admin/couple-requests");
+      const res = await fetch("/api/admin/couple-requests", {
+        credentials: "include",
+      });
+
+      if (res.status === 401) {
+        router.push("/admin/verify");
+        return;
+      }
+
       const data = await res.json();
 
       if (data.success && data.requests) {
@@ -213,7 +232,13 @@ export default function AdminPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ requestId }),
+        credentials: "include",
       });
+
+      if (res.status === 401) {
+        router.push("/admin/verify");
+        return;
+      }
 
       const data = await res.json();
       if (data.success) {
@@ -246,7 +271,13 @@ export default function AdminPage() {
     try {
       const res = await fetch(`/api/admin/requests/${requestId}`, {
         method: "DELETE",
+        credentials: "include",
       });
+
+      if (res.status === 401) {
+        router.push("/admin/verify");
+        return;
+      }
 
       const data = await res.json();
       if (data.success) {
@@ -269,7 +300,13 @@ export default function AdminPage() {
     try {
       const res = await fetch(`/api/admin/couple-requests/${requestId}`, {
         method: "DELETE",
+        credentials: "include",
       });
+
+      if (res.status === 401) {
+        router.push("/admin/verify");
+        return;
+      }
 
       const data = await res.json();
       if (data.success) {
@@ -294,7 +331,13 @@ export default function AdminPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ requestId }),
+        credentials: "include",
       });
+
+      if (res.status === 401) {
+        router.push("/admin/verify");
+        return;
+      }
 
       const data = await res.json();
       if (data.success) {
@@ -322,7 +365,18 @@ export default function AdminPage() {
   };
 
   // 로그아웃
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      // 서버에서 쿠키 삭제
+      await fetch("/api/admin/verify", {
+        method: "DELETE",
+        credentials: "include",
+      });
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+
+    // 클라이언트 상태 정리
     sessionStorage.removeItem("admin_verified");
     sessionStorage.removeItem("admin_verified_at");
     router.push("/");

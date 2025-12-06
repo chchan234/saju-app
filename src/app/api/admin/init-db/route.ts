@@ -1,7 +1,30 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { verifyAdminRequest } from "@/lib/admin-auth";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
+    // 인증 확인
+    const authResult = await verifyAdminRequest(request);
+    if (!authResult.authenticated) {
+      return NextResponse.json(
+        { success: false, message: authResult.error || "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    // 레이트 리밋 체크
+    const rateLimitResult = checkRateLimit(
+      request,
+      RATE_LIMITS.ADMIN_API,
+      "admin-init-db"
+    );
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { success: false, message: "요청 한도 초과" },
+        { status: 429 }
+      );
+    }
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -103,8 +126,16 @@ export async function POST() {
 }
 
 // GET 요청으로 테이블 상태 확인
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    // 인증 확인
+    const authResult = await verifyAdminRequest(request);
+    if (!authResult.authenticated) {
+      return NextResponse.json(
+        { success: false, message: authResult.error || "Unauthorized" },
+        { status: 401 }
+      );
+    }
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 

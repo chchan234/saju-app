@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase";
+import { verifyAdminRequest } from "@/lib/admin-auth";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import type { Gender, SajuApiResult } from "@/types/saju";
 import type { CoupleRelationshipStatus, ExpertCoupleResult } from "@/types/expert-couple";
 import {
@@ -62,6 +64,34 @@ async function calculateSajuInternal(
 
 export async function POST(request: NextRequest) {
   try {
+    // 인증 확인
+    const authResult = await verifyAdminRequest(request);
+    if (!authResult.authenticated) {
+      return NextResponse.json(
+        { success: false, message: authResult.error || "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    // 레이트 리밋 체크
+    const rateLimitResult = checkRateLimit(
+      request,
+      RATE_LIMITS.ANALYSIS_GENERATION,
+      "admin-generate-couple-analysis"
+    );
+    if (!rateLimitResult.allowed) {
+      const retryAfter = Math.ceil(
+        (rateLimitResult.resetAt - Date.now()) / 1000
+      );
+      return NextResponse.json(
+        {
+          success: false,
+          message: `분석 생성 요청 한도를 초과했습니다. ${retryAfter}초 후에 다시 시도해주세요.`,
+        },
+        { status: 429 }
+      );
+    }
+
     const { requestId } = await request.json();
 
     if (!requestId) {

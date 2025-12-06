@@ -1,10 +1,40 @@
 import { NextRequest, NextResponse } from "next/server";
 import puppeteer from "puppeteer";
+import { verifyAdminRequest } from "@/lib/admin-auth";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
   let browser = null;
 
   try {
+    // 인증 확인
+    const authResult = await verifyAdminRequest(request);
+    if (!authResult.authenticated) {
+      return NextResponse.json(
+        { success: false, message: authResult.error || "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    // 레이트 리밋 체크 (PDF 생성은 매우 리소스 소모가 큼)
+    const rateLimitResult = checkRateLimit(
+      request,
+      RATE_LIMITS.PDF_GENERATION,
+      "admin-generate-pdf"
+    );
+    if (!rateLimitResult.allowed) {
+      const retryAfter = Math.ceil(
+        (rateLimitResult.resetAt - Date.now()) / 1000
+      );
+      return NextResponse.json(
+        {
+          success: false,
+          message: `PDF 생성 요청 한도를 초과했습니다. ${retryAfter}초 후에 다시 시도해주세요.`,
+        },
+        { status: 429 }
+      );
+    }
+
     const { requestId } = await request.json();
 
     if (!requestId) {

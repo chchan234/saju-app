@@ -1,12 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase";
+import { verifyAdminRequest } from "@/lib/admin-auth";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 // 신청 삭제
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // 인증 확인
+    const authResult = await verifyAdminRequest(request);
+    if (!authResult.authenticated) {
+      return NextResponse.json(
+        { success: false, message: authResult.error || "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    // 레이트 리밋 체크
+    const rateLimitResult = checkRateLimit(
+      request,
+      RATE_LIMITS.ADMIN_API,
+      "admin-couple-delete"
+    );
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { success: false, message: "요청 한도 초과" },
+        { status: 429 }
+      );
+    }
+
     const { id } = await params;
 
     if (!id) {
@@ -47,10 +71,32 @@ export async function DELETE(
 
 // 신청 상세 조회
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // 인증 확인
+    const authResult = await verifyAdminRequest(request);
+    if (!authResult.authenticated) {
+      return NextResponse.json(
+        { success: false, message: authResult.error || "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    // 레이트 리밋 체크
+    const rateLimitResult = checkRateLimit(
+      request,
+      RATE_LIMITS.ADMIN_API,
+      "admin-couple-get"
+    );
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { success: false, message: "요청 한도 초과" },
+        { status: 429 }
+      );
+    }
+
     const { id } = await params;
 
     if (!id) {

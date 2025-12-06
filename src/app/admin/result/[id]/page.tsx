@@ -100,7 +100,18 @@ export default function AdminResultPage() {
 
     const fetchData = async () => {
       try {
-        const res = await fetch(`/api/admin/requests/${requestId}`);
+        const res = await fetch(`/api/admin/requests/${requestId}`, {
+          credentials: "include",
+        });
+
+        // 인증 실패 시 로그인 페이지로 리다이렉트
+        if (res.status === 401 && !isPdfMode) {
+          sessionStorage.removeItem("admin_verified");
+          sessionStorage.removeItem("admin_verified_at");
+          router.push("/admin/verify");
+          return;
+        }
+
         const result = await res.json();
         if (result.success) {
           setData(result.request);
@@ -148,7 +159,13 @@ export default function AdminResultPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ requestId: data.id }),
+        credentials: "include",
       });
+
+      if (res.status === 401) {
+        router.push("/admin/verify");
+        return;
+      }
 
       const result = await res.json();
       if (result.success && result.pdfBase64) {
@@ -202,7 +219,13 @@ export default function AdminResultPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ requestId: data.id }),
+        credentials: "include",
       });
+
+      if (pdfRes.status === 401) {
+        router.push("/admin/verify");
+        return;
+      }
 
       const pdfResult = await pdfRes.json();
       if (!pdfResult.success || !pdfResult.pdfBase64) {
@@ -218,7 +241,13 @@ export default function AdminResultPage() {
           requestId: data.id,
           pdfBase64: pdfResult.pdfBase64,
         }),
+        credentials: "include",
       });
+
+      if (res.status === 401) {
+        router.push("/admin/verify");
+        return;
+      }
 
       const result = await res.json();
       if (result.success) {

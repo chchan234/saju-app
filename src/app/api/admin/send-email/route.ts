@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase";
 import { Resend } from "resend";
+import { verifyAdminRequest } from "@/lib/admin-auth";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 // 런타임에만 초기화 (빌드 시점 에러 방지)
 const getResend = () => new Resend(process.env.RESEND_API_KEY);
@@ -11,6 +13,34 @@ const MAX_PDF_SIZE_BYTES = MAX_PDF_SIZE_MB * 1024 * 1024;
 
 export async function POST(request: NextRequest) {
   try {
+    // 인증 확인
+    const authResult = await verifyAdminRequest(request);
+    if (!authResult.authenticated) {
+      return NextResponse.json(
+        { success: false, message: authResult.error || "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    // 레이트 리밋 체크 (이메일 발송 비용 및 스팸 방지)
+    const rateLimitResult = checkRateLimit(
+      request,
+      RATE_LIMITS.EMAIL_SEND,
+      "admin-send-email"
+    );
+    if (!rateLimitResult.allowed) {
+      const retryAfter = Math.ceil(
+        (rateLimitResult.resetAt - Date.now()) / 1000
+      );
+      return NextResponse.json(
+        {
+          success: false,
+          message: `이메일 발송 요청 한도를 초과했습니다. ${retryAfter}초 후에 다시 시도해주세요.`,
+        },
+        { status: 429 }
+      );
+    }
+
     const { requestId, pdfBase64 } = await request.json();
 
     if (!requestId) {

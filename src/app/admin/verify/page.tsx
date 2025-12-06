@@ -24,17 +24,24 @@ export default function AdminVerifyPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password }),
+        credentials: "include", // 쿠키 포함
       });
 
       const data = await res.json();
 
+      if (res.status === 429) {
+        setError(data.message || "로그인 시도 횟수를 초과했습니다.");
+        return;
+      }
+
       if (data.success) {
-        // 세션 스토리지에 인증 상태 저장
+        // JWT 토큰이 HTTP-only 쿠키로 설정됨
+        // 클라이언트 상태도 유지 (UI 표시용)
         sessionStorage.setItem("admin_verified", "true");
         sessionStorage.setItem("admin_verified_at", Date.now().toString());
         router.push("/admin");
       } else {
-        setError("비밀번호가 일치하지 않습니다.");
+        setError(data.message || "비밀번호가 일치하지 않습니다.");
       }
     } catch {
       setError("오류가 발생했습니다. 다시 시도해주세요.");

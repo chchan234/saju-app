@@ -67,7 +67,18 @@ export default function AdminCoupleResultPage() {
 
     const fetchData = async () => {
       try {
-        const res = await fetch(`/api/admin/couple-requests/${requestId}`);
+        const res = await fetch(`/api/admin/couple-requests/${requestId}`, {
+          credentials: "include",
+        });
+
+        // 인증 실패 시 로그인 페이지로 리다이렉트
+        if (res.status === 401) {
+          sessionStorage.removeItem("admin_verified");
+          sessionStorage.removeItem("admin_verified_at");
+          router.push("/admin/verify");
+          return;
+        }
+
         const result = await res.json();
         if (result.success) {
           setData(result.request);
@@ -141,7 +152,13 @@ export default function AdminCoupleResultPage() {
           requestId: data.id,
           pdfBase64,
         }),
+        credentials: "include",
       });
+
+      if (res.status === 401) {
+        router.push("/admin/verify");
+        return;
+      }
 
       const result = await res.json();
       if (result.success) {
