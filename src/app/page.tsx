@@ -8,7 +8,7 @@ import { ExpertForm } from "@/components/saju/ExpertForm";
 import { ViewCount } from "@/components/ViewCount";
 import { KakaoAdfitBanner } from "@/components/KakaoAdfit";
 import { Switch } from "@/components/ui/switch";
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { Sparkles, X } from "lucide-react";
 
 export default function Home() {
@@ -93,8 +93,9 @@ export default function Home() {
                       샘플
                     </button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto bg-[#1a1410] border-[#3d3127] p-0">
+                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto bg-[#1a1410] border-[#3d3127] p-0" aria-describedby={undefined}>
                     <DialogTitle className="sr-only">전문가 사주 분석 샘플</DialogTitle>
+                    <DialogDescription className="sr-only">전문가 사주 분석 결과 샘플 이미지</DialogDescription>
                     <div className="sticky top-0 z-10 flex justify-between items-center p-4 bg-[#1a1410]/95 backdrop-blur border-b border-[#3d3127]">
                       <span className="text-[#e8dcc8] text-sm font-medium">전문가 사주 분석 샘플 (60페이지)</span>
                       <DialogTrigger asChild>
