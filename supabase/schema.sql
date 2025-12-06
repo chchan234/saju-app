@@ -78,3 +78,29 @@ COMMENT ON COLUMN calenda_data.cd_ddi IS '띠';
 COMMENT ON COLUMN calenda_data.cd_sol_plan IS '양력 기념일';
 COMMENT ON COLUMN calenda_data.cd_lun_plan IS '음력 기념일';
 COMMENT ON COLUMN calenda_data.holiday IS '공휴일 (0:아님, 1:공휴일)';
+
+-- --------------------------------------------------
+-- 사주 조회수 테이블 (공개 API용, 단일 행)
+CREATE TABLE IF NOT EXISTS saju_view_count (
+  id SMALLINT PRIMARY KEY DEFAULT 1,
+  count BIGINT NOT NULL DEFAULT 0,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc', now()),
+  CONSTRAINT saju_view_count_single_row CHECK (id = 1)
+);
+
+-- RLS 활성화
+ALTER TABLE saju_view_count ENABLE ROW LEVEL SECURITY;
+
+-- 익명 조회 허용 (GET /api/saju/count)
+CREATE POLICY "Allow public read saju_view_count" ON saju_view_count
+  FOR SELECT USING (true);
+
+-- 서비스 롤만 업데이트 가능 (POST /api/saju 내부 카운트 증가)
+CREATE POLICY "Allow service role update saju_view_count" ON saju_view_count
+  FOR UPDATE USING (auth.role() = 'service_role')
+  WITH CHECK (auth.role() = 'service_role');
+
+-- 초기 행 생성 (없으면 삽입)
+INSERT INTO saju_view_count (id, count)
+VALUES (1, 0)
+ON CONFLICT (id) DO NOTHING;

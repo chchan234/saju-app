@@ -4,6 +4,34 @@ export type Gender = "male" | "female";
 // 양력/음력
 export type CalendarType = "solar" | "lunar";
 
+// ============================================
+// 전문가 모드 전용 타입
+// ============================================
+
+// 관계 상태 (4가지)
+export type RelationshipStatus = "solo" | "dating" | "married" | "divorced";
+
+// 직업 상태 (6가지)
+export type OccupationStatus =
+  | "student"      // 학생
+  | "jobseeker"    // 취업준비생
+  | "employee"     // 직장인
+  | "business"     // 사업자
+  | "freelance"    // 프리랜서
+  | "homemaker";   // 전업주부
+
+// 연령대 (자동 계산)
+export type AgeGroup = "20s" | "30s" | "40s" | "50plus";
+
+// 전문가 모드 분기 조건
+export interface ExpertModeConditions {
+  gender: Gender;
+  relationshipStatus: RelationshipStatus;
+  hasChildren: boolean;
+  occupationStatus: OccupationStatus;
+  ageGroup: AgeGroup;
+}
+
 // 시진 (12지지 기반 시간)
 export type BirthHour =
   | "unknown"

@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { BIRTH_HOUR_OPTIONS, YEAR_RANGE } from "@/lib/constants";
-import { BirthHour, CalendarType, Gender } from "@/types/saju";
+import { BirthHour, CalendarType, Gender, RelationshipStatus, OccupationStatus } from "@/types/saju";
 
 interface PersonFormProps {
   prefix: string;
@@ -22,6 +22,10 @@ interface PersonFormProps {
   relationValue?: string;
   onRelationChange?: (value: string) => void;
   relationDisabled?: boolean;
+  // 전문가 모드 필드 표시 여부
+  showExpertFields?: boolean;
+  // 다크 모드 여부
+  darkMode?: boolean;
   values: {
     name: string;
     gender: Gender;
@@ -31,6 +35,10 @@ interface PersonFormProps {
     hour: BirthHour;
     calendarType: CalendarType;
     isLeapMonth: boolean;
+    // 전문가 모드 전용 필드
+    relationshipStatus?: RelationshipStatus;
+    hasChildren?: boolean;
+    occupationStatus?: OccupationStatus;
   };
   onChange: (field: string, value: string | boolean) => void;
 }
@@ -42,11 +50,27 @@ export function PersonForm({
   relationValue,
   onRelationChange,
   relationDisabled,
+  showExpertFields = false,
+  darkMode = false,
   values,
   onChange,
 }: PersonFormProps) {
   const monthRef = useRef<HTMLInputElement>(null);
   const dayRef = useRef<HTMLInputElement>(null);
+
+  // 다크 모드 스타일 (커스텀 브라운)
+  const containerClass = darkMode
+    ? "space-y-4 rounded-xl bg-[#3d3127]/30 p-4 border border-[#4d4137]/50"
+    : "space-y-4 rounded-xl bg-white/40 p-4 border border-white/50";
+  const titleClass = darkMode
+    ? "font-serif text-lg text-[#e8dcc8] border-b border-dashed border-[#4d4137] pb-2"
+    : "font-serif text-lg text-primary border-b border-dashed border-secondary pb-2";
+  const labelClass = darkMode ? "text-[#c8bca8]" : "";
+  const inputClass = darkMode
+    ? "bg-[#3d3127]/50 border-[#4d4137] text-[#e8dcc8] placeholder:text-[#7a6a5a] focus:border-[#5d5147] focus:ring-[#5d5147]"
+    : "";
+  const radioLabelClass = darkMode ? "font-normal cursor-pointer text-[#c8bca8]" : "font-normal cursor-pointer";
+  const mutedClass = darkMode ? "text-[#a89880]" : "text-muted-foreground";
 
   const handleYearChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -67,22 +91,22 @@ export function PersonForm({
   };
 
   return (
-    <div className="space-y-4 rounded-xl bg-white/40 p-4 border border-white/50">
+    <div className={containerClass}>
       {title && (
-        <h3 className="font-serif text-lg text-primary border-b border-dashed border-secondary pb-2">
+        <h3 className={titleClass}>
           {title}
         </h3>
       )}
 
       {showRelation && (
         <div className="space-y-2">
-          <Label>관계</Label>
+          <Label className={labelClass}>관계</Label>
           <Select
             value={relationValue}
             onValueChange={onRelationChange}
             disabled={relationDisabled}
           >
-            <SelectTrigger>
+            <SelectTrigger className={inputClass}>
               <SelectValue placeholder="관계 선택" />
             </SelectTrigger>
             <SelectContent>
@@ -100,17 +124,18 @@ export function PersonForm({
       )}
 
       <div className="space-y-2">
-        <Label htmlFor={`${prefix}-name`}>이름</Label>
+        <Label htmlFor={`${prefix}-name`} className={labelClass}>이름</Label>
         <Input
           id={`${prefix}-name`}
           placeholder="이름을 입력하세요"
           value={values.name}
           onChange={(e) => onChange("name", e.target.value)}
+          className={inputClass}
         />
       </div>
 
       <div className="space-y-2">
-        <Label>성별</Label>
+        <Label className={labelClass}>성별</Label>
         <RadioGroup
           value={values.gender}
           onValueChange={(v) => onChange("gender", v)}
@@ -118,13 +143,13 @@ export function PersonForm({
         >
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="female" id={`${prefix}-female`} />
-            <Label htmlFor={`${prefix}-female`} className="font-normal cursor-pointer">
+            <Label htmlFor={`${prefix}-female`} className={radioLabelClass}>
               여성
             </Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="male" id={`${prefix}-male`} />
-            <Label htmlFor={`${prefix}-male`} className="font-normal cursor-pointer">
+            <Label htmlFor={`${prefix}-male`} className={radioLabelClass}>
               남성
             </Label>
           </div>
@@ -132,7 +157,7 @@ export function PersonForm({
       </div>
 
       <div className="space-y-2">
-        <Label>생년월일</Label>
+        <Label className={labelClass}>생년월일</Label>
         <div className="grid grid-cols-3 gap-2">
           <Input
             type="number"
@@ -141,7 +166,7 @@ export function PersonForm({
             max={YEAR_RANGE.max}
             value={values.year}
             onChange={handleYearChange}
-            className="text-center"
+            className={`text-center ${inputClass}`}
             maxLength={4}
           />
           <Input
@@ -152,7 +177,7 @@ export function PersonForm({
             max={12}
             value={values.month}
             onChange={handleMonthChange}
-            className="text-center"
+            className={`text-center ${inputClass}`}
             maxLength={2}
           />
           <Input
@@ -163,19 +188,19 @@ export function PersonForm({
             max={31}
             value={values.day}
             onChange={(e) => onChange("day", e.target.value)}
-            className="text-center"
+            className={`text-center ${inputClass}`}
             maxLength={2}
           />
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label>태어난 시간</Label>
+        <Label className={labelClass}>태어난 시간</Label>
         <Select
           value={values.hour}
           onValueChange={(v) => onChange("hour", v)}
         >
-          <SelectTrigger>
+          <SelectTrigger className={inputClass}>
             <SelectValue placeholder="시간 선택" />
           </SelectTrigger>
           <SelectContent>
@@ -191,7 +216,7 @@ export function PersonForm({
       </div>
 
       <div className="space-y-2">
-        <Label>양력/음력</Label>
+        <Label className={labelClass}>양력/음력</Label>
         <RadioGroup
           value={values.calendarType}
           onValueChange={(v) => onChange("calendarType", v)}
@@ -199,13 +224,13 @@ export function PersonForm({
         >
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="solar" id={`${prefix}-solar`} />
-            <Label htmlFor={`${prefix}-solar`} className="font-normal cursor-pointer">
+            <Label htmlFor={`${prefix}-solar`} className={radioLabelClass}>
               양력
             </Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="lunar" id={`${prefix}-lunar`} />
-            <Label htmlFor={`${prefix}-lunar`} className="font-normal cursor-pointer">
+            <Label htmlFor={`${prefix}-lunar`} className={radioLabelClass}>
               음력
             </Label>
           </div>
@@ -222,11 +247,100 @@ export function PersonForm({
           />
           <Label
             htmlFor={`${prefix}-leap`}
-            className="font-normal cursor-pointer text-sm text-muted-foreground"
+            className={`font-normal cursor-pointer text-sm ${mutedClass}`}
           >
             윤달
           </Label>
         </div>
+      )}
+
+      {/* 전문가 모드 전용 필드 */}
+      {showExpertFields && (
+        <>
+          {/* 관계 상태 */}
+          <div className={`space-y-2 pt-4 border-t border-dashed ${darkMode ? "border-[#4d4137]/50" : "border-secondary/50"}`}>
+            <Label className={darkMode ? "text-[#e8dcc8] font-medium" : "text-primary font-medium"}>현재 관계 상태</Label>
+            <RadioGroup
+              value={values.relationshipStatus || "solo"}
+              onValueChange={(v) => onChange("relationshipStatus", v)}
+              className="grid grid-cols-2 gap-3"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="solo" id={`${prefix}-solo`} />
+                <Label htmlFor={`${prefix}-solo`} className={`font-normal cursor-pointer text-sm ${darkMode ? "text-[#c8bca8]" : ""}`}>
+                  솔로 (연애 안함)
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="dating" id={`${prefix}-dating`} />
+                <Label htmlFor={`${prefix}-dating`} className={`font-normal cursor-pointer text-sm ${darkMode ? "text-[#c8bca8]" : ""}`}>
+                  연애중
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="married" id={`${prefix}-married`} />
+                <Label htmlFor={`${prefix}-married`} className={`font-normal cursor-pointer text-sm ${darkMode ? "text-[#c8bca8]" : ""}`}>
+                  기혼
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="divorced" id={`${prefix}-divorced`} />
+                <Label htmlFor={`${prefix}-divorced`} className={`font-normal cursor-pointer text-sm ${darkMode ? "text-[#c8bca8]" : ""}`}>
+                  이혼/사별
+                </Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          {/* 자녀 유무 (기혼/이혼사별 시만 표시) */}
+          {(values.relationshipStatus === "married" || values.relationshipStatus === "divorced") && (
+            <div className="space-y-2">
+              <Label className={labelClass}>자녀 유무</Label>
+              <RadioGroup
+                value={values.hasChildren ? "yes" : "no"}
+                onValueChange={(v) => onChange("hasChildren", v === "yes")}
+                className="flex gap-6"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="yes" id={`${prefix}-hasChildren-yes`} />
+                  <Label htmlFor={`${prefix}-hasChildren-yes`} className={radioLabelClass}>
+                    있음
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="no" id={`${prefix}-hasChildren-no`} />
+                  <Label htmlFor={`${prefix}-hasChildren-no`} className={radioLabelClass}>
+                    없음
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+          )}
+
+          {/* 직업 상태 */}
+          <div className="space-y-2">
+            <Label className={labelClass}>직업 상태 (선택)</Label>
+            <Select
+              value={values.occupationStatus || ""}
+              onValueChange={(v) => onChange("occupationStatus", v)}
+            >
+              <SelectTrigger className={inputClass}>
+                <SelectValue placeholder="직업 상태 선택 (선택사항)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="student">학생</SelectItem>
+                <SelectItem value="jobseeker">취업준비생</SelectItem>
+                <SelectItem value="employee">직장인</SelectItem>
+                <SelectItem value="business">사업자</SelectItem>
+                <SelectItem value="freelance">프리랜서</SelectItem>
+                <SelectItem value="homemaker">전업주부</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className={`text-xs ${mutedClass}`}>
+              직업 상태에 따른 맞춤형 직업운/학업운 분석을 받으실 수 있습니다.
+            </p>
+          </div>
+        </>
       )}
     </div>
   );

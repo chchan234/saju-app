@@ -1,4 +1,4 @@
-import { BirthHour, FamilyRelation, FiveElement } from "@/types/saju";
+import { BirthHour, FamilyRelation, FiveElement, RelationshipStatus } from "@/types/saju";
 
 // 시진 옵션 (12지지 기반 시간대)
 export const BIRTH_HOUR_OPTIONS: { value: BirthHour; label: string; timeRange: string }[] = [
@@ -98,3 +98,156 @@ export const YEAR_RANGE = {
   min: 1900,
   max: 2100,
 };
+
+// ============================================
+// 영어 → 한글 변환 함수들
+// ============================================
+
+/**
+ * 오행 영어를 한글로 변환
+ * @param element - 영어 오행 (wood, fire, earth, metal, water)
+ * @returns 한글 오행 (목, 화, 토, 금, 수)
+ */
+export function fiveElementToKorean(element: FiveElement | string): string {
+  const map: Record<string, string> = {
+    wood: "목",
+    fire: "화",
+    earth: "토",
+    metal: "금",
+    water: "수",
+  };
+  return map[element] || element;
+}
+
+/**
+ * 관계 상태 영어를 한글로 변환
+ * @param status - 영어 관계 상태 (solo, dating, married, divorced)
+ * @returns 한글 관계 상태
+ */
+export function relationshipStatusToKorean(status: RelationshipStatus | string): string {
+  const map: Record<string, string> = {
+    solo: "솔로",
+    dating: "연애 중",
+    married: "기혼",
+    divorced: "이혼/사별",
+  };
+  return map[status] || status;
+}
+
+/**
+ * 직업 상태 영어를 한글로 변환
+ * @param status - 영어 직업 상태
+ * @returns 한글 직업 상태
+ */
+export function occupationStatusToKorean(status: string): string {
+  const map: Record<string, string> = {
+    student: "학생",
+    jobseeker: "취업준비생",
+    employee: "직장인",
+    business: "사업자",
+    freelance: "프리랜서",
+    homemaker: "전업주부",
+  };
+  return map[status] || status;
+}
+
+/**
+ * 성별 영어를 한글로 변환
+ * @param gender - 영어 성별 (male, female)
+ * @returns 한글 성별
+ */
+export function genderToKorean(gender: string): string {
+  const map: Record<string, string> = {
+    male: "남성",
+    female: "여성",
+  };
+  return map[gender] || gender;
+}
+
+// ============================================
+// 자연스러운 한국어 조사 처리 함수들
+// ============================================
+
+/**
+ * 받침 유무 확인 (한글 문자의 마지막 받침 존재 여부)
+ * @param char - 검사할 한글 문자
+ * @returns 받침이 있으면 true, 없으면 false
+ */
+function hasFinalConsonant(char: string): boolean {
+  if (!char) return false;
+  const code = char.charCodeAt(0);
+  // 한글 유니코드 범위: 0xAC00 ~ 0xD7A3
+  if (code < 0xAC00 || code > 0xD7A3) return false;
+  // 종성(받침) 확인: (code - 0xAC00) % 28 !== 0 이면 받침 있음
+  return (code - 0xAC00) % 28 !== 0;
+}
+
+/**
+ * 단어의 마지막 글자 기준 받침 유무 확인
+ * @param word - 검사할 단어
+ * @returns 받침이 있으면 true
+ */
+function hasWordFinalConsonant(word: string): boolean {
+  if (!word) return false;
+  // 숫자, 영어 등의 경우 특수 처리
+  const lastChar = word[word.length - 1];
+
+  // 숫자인 경우
+  if (/[0-9]/.test(lastChar)) {
+    // 0,1,3,6,7,8 = 받침 있음 / 2,4,5,9 = 받침 없음
+    return ['0', '1', '3', '6', '7', '8'].includes(lastChar);
+  }
+
+  // 영어인 경우 (대부분 받침 있음으로 처리, 모음으로 끝나면 없음)
+  if (/[a-zA-Z]/.test(lastChar)) {
+    return !['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U'].includes(lastChar);
+  }
+
+  return hasFinalConsonant(lastChar);
+}
+
+/**
+ * 적절한 조사 선택
+ * @param word - 앞에 오는 단어
+ * @param particlePair - 조사 쌍 (예: "이/가", "은/는", "을/를", "과/와", "으로/로")
+ * @returns 적절한 조사
+ */
+export function getParticle(word: string, particlePair: string): string {
+  const [withConsonant, withoutConsonant] = particlePair.split('/');
+  return hasWordFinalConsonant(word) ? withConsonant : withoutConsonant;
+}
+
+/**
+ * 단어에 적절한 조사를 붙여서 반환
+ * @param word - 단어
+ * @param particlePair - 조사 쌍
+ * @returns 단어 + 조사
+ */
+export function addParticle(word: string, particlePair: string): string {
+  return word + getParticle(word, particlePair);
+}
+
+/**
+ * 오행 이름에 맞는 자연스러운 문장 생성
+ * @param element - 오행 (목, 화, 토, 금, 수)
+ * @param strength - 상태 (과다, 적정, 부족, 없음)
+ * @returns 자연스러운 문장
+ */
+export function getElementStrengthDescription(element: string, strength: string): string {
+  const hanjaMap: Record<string, string> = {
+    목: "木", 화: "火", 토: "土", 금: "金", 수: "水"
+  };
+  const hanja = hanjaMap[element] || "";
+
+  switch (strength) {
+    case "과다":
+      return `${element}(${hanja})의 기운이 넘치는 편입니다`;
+    case "부족":
+      return `${element}(${hanja}) 기운이 다소 약한 편입니다`;
+    case "없음":
+      return `${element}(${hanja}) 기운이 사주에 보이지 않습니다`;
+    case "적정":
+    default:
+      return `${element}(${hanja}) 기운이 적절하게 갖춰져 있습니다`;
+  }
+}

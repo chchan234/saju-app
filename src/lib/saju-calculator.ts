@@ -217,24 +217,149 @@ function calculateOhengCount(pillars: Pillar[]): OhengCount {
   return count;
 }
 
-/**
- * 용신 추천 (부족한 오행 기반)
- * - 없는 오행(0개)이 있으면 그것을 추천
- * - 없는 게 여러 개면 첫 번째
- * - 없는 게 없으면 가장 적은 오행 추천
- */
-function recommendYongsin(ohengCount: OhengCount): string {
-  const entries = Object.entries(ohengCount) as [string, number][];
-  const sorted = [...entries].sort((a, b) => a[1] - b[1]);
+// 오행 상생상극 관계 (억부론 용신 계산용)
+type FiveElement = "목" | "화" | "토" | "금" | "수";
+const ELEMENT_RELATIONS: Record<FiveElement, {
+  same: FiveElement;       // 비겁 (같은 오행)
+  generates: FiveElement;  // 식상 (내가 생하는)
+  generated: FiveElement;  // 인성 (나를 생하는)
+  controls: FiveElement;   // 재성 (내가 극하는)
+  controlled: FiveElement; // 관성 (나를 극하는)
+}> = {
+  목: { same: "목", generates: "화", generated: "수", controls: "토", controlled: "금" },
+  화: { same: "화", generates: "토", generated: "목", controls: "금", controlled: "수" },
+  토: { same: "토", generates: "금", generated: "화", controls: "수", controlled: "목" },
+  금: { same: "금", generates: "수", generated: "토", controls: "목", controlled: "화" },
+  수: { same: "수", generates: "목", generated: "금", controls: "화", controlled: "토" }
+};
 
-  // 없는 오행(0개) 찾기
-  const missing = sorted.filter(([_, count]) => count === 0);
-  if (missing.length > 0) {
-    return missing[0][0];  // 없는 오행 중 첫 번째
+// 월령 득령 점수 (월지에서 일간이 얼마나 힘을 받는지)
+const MONTH_ELEMENT_STRENGTH: Record<string, Record<FiveElement, number>> = {
+  // 인월(寅) - 목이 왕성
+  "인": { 목: 3, 화: 1, 토: -1, 금: -2, 수: 0 },
+  // 묘월(卯) - 목이 가장 왕성
+  "묘": { 목: 3, 화: 1, 토: -2, 금: -3, 수: 0 },
+  // 진월(辰) - 토 기운 (봄의 마지막)
+  "진": { 목: 1, 화: 0, 토: 2, 금: -1, 수: 1 },
+  // 사월(巳) - 화가 왕성
+  "사": { 목: 0, 화: 3, 토: 1, 금: -2, 수: -3 },
+  // 오월(午) - 화가 가장 왕성
+  "오": { 목: -1, 화: 3, 토: 1, 금: -3, 수: -3 },
+  // 미월(未) - 토 기운 (여름의 마지막)
+  "미": { 목: -1, 화: 1, 토: 2, 금: 0, 수: -1 },
+  // 신월(申) - 금이 왕성
+  "신": { 목: -2, 화: -1, 토: 1, 금: 3, 수: 1 },
+  // 유월(酉) - 금이 가장 왕성
+  "유": { 목: -3, 화: -2, 토: 0, 금: 3, 수: 1 },
+  // 술월(戌) - 토 기운 (가을의 마지막)
+  "술": { 목: -1, 화: 0, 토: 2, 금: 1, 수: 0 },
+  // 해월(亥) - 수가 왕성
+  "해": { 목: 1, 화: -3, 토: -1, 금: 0, 수: 3 },
+  // 자월(子) - 수가 가장 왕성
+  "자": { 목: 1, 화: -3, 토: -2, 금: 1, 수: 3 },
+  // 축월(丑) - 토 기운 (겨울의 마지막)
+  "축": { 목: 0, 화: -1, 토: 2, 금: 1, 수: 1 }
+};
+
+/**
+ * 신강/신약 판정 (억부론 기준)
+ */
+function calculateSinGangSinYak(
+  pillars: Pillar[],
+  ilganElement: FiveElement,
+  monthBranch: string
+): "신강" | "신약" | "중화" {
+  let score = 0;
+  const relations = ELEMENT_RELATIONS[ilganElement];
+
+  // 1. 월령(月令) - 가장 중요 (30%)
+  const monthStrength = MONTH_ELEMENT_STRENGTH[monthBranch]?.[ilganElement] || 0;
+  score += monthStrength * 15; // -45 ~ +45
+
+  // 2. 사주 내 오행 분포
+  for (const pillar of pillars) {
+    // 천간 분석
+    if (pillar.cheonganOheng) {
+      const stemElement = pillar.cheonganOheng as FiveElement;
+      if (stemElement === relations.same) score += 8;        // 비겁
+      else if (stemElement === relations.generated) score += 6; // 인성
+      else if (stemElement === relations.generates) score -= 3; // 식상 (설기)
+      else if (stemElement === relations.controls) score -= 4;  // 재성
+      else if (stemElement === relations.controlled) score -= 5; // 관성
+    }
+
+    // 지지 분석 (지지는 영향력이 더 큼)
+    if (pillar.jijiOheng) {
+      const branchElement = pillar.jijiOheng as FiveElement;
+      if (branchElement === relations.same) score += 10;       // 비겁
+      else if (branchElement === relations.generated) score += 8; // 인성
+      else if (branchElement === relations.generates) score -= 4; // 식상
+      else if (branchElement === relations.controls) score -= 5;  // 재성
+      else if (branchElement === relations.controlled) score -= 6; // 관성
+    }
   }
 
-  // 없는 게 없으면 가장 적은 오행
-  return sorted[0][0];
+  // 점수 범위 조정 및 판정
+  score = Math.max(-100, Math.min(100, score));
+
+  if (score >= 25) return "신강";
+  if (score <= -25) return "신약";
+  return "중화";
+}
+
+/**
+ * 용신 추천 (억부론 기반)
+ * - 신강: 나를 설기(洩氣)하거나 극제(剋制)하는 오행이 용신 (식상, 재성, 관성)
+ * - 신약: 나를 생조(生助)하거나 같은 오행이 용신 (인성, 비겁)
+ * - 중화: 사주에서 가장 부족한 오행 중 균형에 도움 되는 것
+ */
+function recommendYongsin(
+  ilganElement: FiveElement,
+  sinGangSinYak: "신강" | "신약" | "중화",
+  ohengCount: OhengCount
+): string {
+  const relations = ELEMENT_RELATIONS[ilganElement];
+
+  if (sinGangSinYak === "신강") {
+    // 신강: 설기(식상) > 재성 > 관성 순으로 용신 선정
+    // 단, 사주에 너무 많은 오행은 피함
+    const candidates = [
+      { element: relations.generates, priority: 1 },  // 식상 (설기)
+      { element: relations.controls, priority: 2 },   // 재성
+      { element: relations.controlled, priority: 3 }  // 관성
+    ];
+
+    // 사주에 가장 적은 것 우선
+    candidates.sort((a, b) => {
+      const countA = ohengCount[a.element];
+      const countB = ohengCount[b.element];
+      if (countA !== countB) return countA - countB;
+      return a.priority - b.priority;
+    });
+
+    return candidates[0].element;
+  } else if (sinGangSinYak === "신약") {
+    // 신약: 인성 > 비겁 순으로 용신 선정
+    const candidates = [
+      { element: relations.generated, priority: 1 }, // 인성 (생조)
+      { element: relations.same, priority: 2 }       // 비겁
+    ];
+
+    // 사주에 가장 적은 것 우선
+    candidates.sort((a, b) => {
+      const countA = ohengCount[a.element];
+      const countB = ohengCount[b.element];
+      if (countA !== countB) return countA - countB;
+      return a.priority - b.priority;
+    });
+
+    return candidates[0].element;
+  } else {
+    // 중화: 사주의 균형을 위해 가장 부족한 오행
+    const entries = Object.entries(ohengCount) as [FiveElement, number][];
+    const sorted = [...entries].sort((a, b) => a[1] - b[1]);
+    return sorted[0][0];
+  }
 }
 
 /**
@@ -603,8 +728,15 @@ export function calculateSaju(
     : [yearPillar, monthPillar, dayPillar, timePillar];
   const ohengCount = calculateOhengCount(pillarsForCount);
 
-  // 용신 추천 (부족한 오행 기반)
-  const yongsin = recommendYongsin(ohengCount);
+  // 일간 오행과 월지 추출
+  const ilganElement = (dayPillar.cheonganOheng || "목") as FiveElement;
+  const monthBranch = monthPillar.jiji || "";
+
+  // 신강/신약 판정 (억부론 기반)
+  const sinGangSinYak = calculateSinGangSinYak(pillarsForCount, ilganElement, monthBranch);
+
+  // 용신 추천 (억부론 기반)
+  const yongsin = recommendYongsin(ilganElement, sinGangSinYak, ohengCount);
 
   // 결과 반환
   return {

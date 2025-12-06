@@ -39,25 +39,6 @@ export function SajuForm() {
   const [activeTab, setActiveTab] = useState("individual");
   const [isLoading, setIsLoading] = useState(false);
 
-  // 후기 통계
-  const [reviewStats, setReviewStats] = useState<{ totalCount: number; averageRating: number } | null>(null);
-
-  // 후기 통계 로드
-  useEffect(() => {
-    const fetchReviewStats = async () => {
-      try {
-        const res = await fetch("/api/reviews?limit=1");
-        const data = await res.json();
-        if (data.stats) {
-          setReviewStats(data.stats);
-        }
-      } catch (error) {
-        console.error("Error fetching review stats:", error);
-      }
-    };
-    fetchReviewStats();
-  }, []);
-
   // 개인 사주 폼 상태
   const [individual, setIndividual] = useState<PersonData>(defaultPerson);
 
@@ -71,6 +52,36 @@ export function SajuForm() {
   const [family, setFamily] = useState<FamilyMemberData[]>([
     { ...defaultPerson, relation: "me" },
   ]);
+
+  // 후기 상태
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [averageRating, setAverageRating] = useState(0);
+  const [totalReviews, setTotalReviews] = useState(0);
+  const [reviewsFetched, setReviewsFetched] = useState(false);
+
+  // 후기 탭 선택 시 데이터 로드
+  useEffect(() => {
+    if (activeTab === "reviews" && !reviewsFetched) {
+      fetchReviews();
+    }
+  }, [activeTab, reviewsFetched]);
+
+  const fetchReviews = async () => {
+    setReviewsLoading(true);
+    try {
+      const res = await fetch("/api/reviews?limit=1");
+      const data = await res.json();
+      if (data.stats) {
+        setAverageRating(data.stats.averageRating || 0);
+        setTotalReviews(data.stats.totalCount || 0);
+        setReviewsFetched(true);
+      }
+    } catch (error) {
+      console.error("Failed to fetch reviews:", error);
+    } finally {
+      setReviewsLoading(false);
+    }
+  };
 
   // 개인 폼 핸들러
   const handleIndividualChange = (field: string, value: string | boolean) => {
@@ -215,6 +226,19 @@ export function SajuForm() {
     router.push("/result/family");
   };
 
+  // 시크릿 어드민 진입 체크
+  const checkSecretAdminAccess = (member: FamilyMemberData): boolean => {
+    return (
+      member.name.toLowerCase() === "admin" &&
+      member.gender === "male" &&
+      member.calendarType === "lunar" &&
+      member.isLeapMonth === true &&
+      !member.year &&
+      !member.month &&
+      !member.day
+    );
+  };
+
   // 폼 제출
   const handleSubmit = async (e: React.FormEvent, type: string) => {
     e.preventDefault();
@@ -244,6 +268,12 @@ export function SajuForm() {
           break;
 
         case "family":
+          // 시크릿 어드민 진입 체크 (첫 번째 구성원만 체크)
+          if (family.length === 1 && checkSecretAdminAccess(family[0])) {
+            router.push("/admin/verify");
+            return;
+          }
+
           // 최소 2명 이상의 구성원 필요
           if (family.length < 2) {
             alert("가족 분석을 위해 최소 2명의 구성원이 필요합니다.");
@@ -373,48 +403,45 @@ export function SajuForm() {
 
       {/* 후기 탭 */}
       <TabsContent value="reviews">
-        <div className="flex flex-col items-center justify-center py-12 space-y-6">
-          {reviewStats ? (
+        <div className="flex flex-col items-center justify-center py-8 space-y-6">
+          {reviewsLoading ? (
+            <div className="text-center text-muted-foreground">
+              후기를 불러오는 중...
+            </div>
+          ) : (
             <>
-              <div className="flex items-center gap-2">
-                {[1, 2, 3, 4, 5].map((star) => (
+              {/* 별점 표시 */}
+              <div className="flex items-center gap-1">
+                {[...Array(5)].map((_, i) => (
                   <Star
-                    key={star}
-                    className={`w-8 h-8 ${
-                      star <= Math.round(reviewStats.averageRating)
-                        ? "text-yellow-400 fill-yellow-400"
-                        : "text-gray-300"
-                    }`}
+                    key={i}
+                    className={`w-10 h-10 ${i < Math.round(averageRating) ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/30"}`}
                   />
                 ))}
               </div>
-              <div className="text-center space-y-1">
-                <p className="text-3xl font-bold text-primary">
-                  {reviewStats.averageRating.toFixed(1)} / 5.0
+
+              {/* 평균 점수 */}
+              <div className="text-center">
+                <p className="text-4xl font-bold text-foreground">
+                  {averageRating.toFixed(1)} / 5.0
                 </p>
-                <p className="text-muted-foreground">
-                  총 {reviewStats.totalCount.toLocaleString()}개 후기
+                <p className="text-muted-foreground mt-1">
+                  총 {totalReviews}개 후기
                 </p>
               </div>
+
+              {/* 후기 보기 버튼 */}
+              <Button
+                className="px-8"
+                onClick={() => router.push("/reviews")}
+              >
+                후기 보기
+              </Button>
             </>
-          ) : (
-            <div className="text-center space-y-2">
-              <div className="flex items-center gap-2 justify-center">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <Star key={star} className="w-8 h-8 text-gray-300" />
-                ))}
-              </div>
-              <p className="text-muted-foreground">아직 후기가 없습니다</p>
-            </div>
           )}
-          <Button
-            onClick={() => router.push("/reviews")}
-            className="mt-4"
-          >
-            후기 보기
-          </Button>
         </div>
       </TabsContent>
+
     </Tabs>
   );
 }

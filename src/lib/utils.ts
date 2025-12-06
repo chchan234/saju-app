@@ -18,16 +18,21 @@ export function cn(...inputs: ClassValue[]) {
 export function hasBatchim(str: string): boolean {
   if (!str || str.length === 0) return false;
 
-  const lastChar = str[str.length - 1];
+  // 괄호와 그 안의 내용을 제거 (한자 표기 등 무시)
+  // 예: "정축(丁丑)" -> "정축"
+  const cleanStr = str.replace(/\([^)]*\)/g, "").trim();
+  const targetStr = cleanStr.length > 0 ? cleanStr : str;
+
+  const lastChar = targetStr[targetStr.length - 1];
   const code = lastChar.charCodeAt(0);
 
   // 한글 범위 체크 (가-힣: 44032-55203)
   if (code < 44032 || code > 55203) {
     // 숫자나 영문의 경우
     // 숫자: 0,1,3,6,7,8 은 받침 있는 것처럼 처리
-    if (/[013678]$/.test(str)) return true;
+    if (/[013678]$/.test(targetStr)) return true;
     // 영문: l,m,n,r 등은 받침 있는 것처럼 처리
-    if (/[lmnrLMNR]$/.test(str)) return true;
+    if (/[lmnrLMNR]$/.test(targetStr)) return true;
     return false;
   }
 
@@ -44,7 +49,11 @@ export function hasBatchim(str: string): boolean {
 export function hasRieulBatchim(str: string): boolean {
   if (!str || str.length === 0) return false;
 
-  const lastChar = str[str.length - 1];
+  // 괄호와 그 안의 내용을 제거 (한자 표기 등 무시)
+  const cleanStr = str.replace(/\([^)]*\)/g, "").trim();
+  const targetStr = cleanStr.length > 0 ? cleanStr : str;
+
+  const lastChar = targetStr[targetStr.length - 1];
   const code = lastChar.charCodeAt(0);
 
   if (code < 44032 || code > 55203) return false;

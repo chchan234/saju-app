@@ -37,6 +37,25 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 3. `supabase/schema.sql` 파일 내용을 복사하여 붙여넣기
 4. "Run" 클릭
 
+### 3-1. 조회수 테이블 RLS 확인
+- 위 `schema.sql`에 `saju_view_count` 테이블과 RLS 정책이 포함되어 있습니다.
+- 기존에 테이블을 만들어 둔 경우 아래 쿼리로 RLS를 켜고 정책을 추가하세요.
+
+```sql
+ALTER TABLE public.saju_view_count ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow public read saju_view_count" ON public.saju_view_count
+  FOR SELECT USING (true);
+
+CREATE POLICY "Allow service role update saju_view_count" ON public.saju_view_count
+  FOR UPDATE USING (auth.role() = 'service_role')
+  WITH CHECK (auth.role() = 'service_role');
+
+INSERT INTO public.saju_view_count (id, count)
+VALUES (1, 0)
+ON CONFLICT (id) DO NOTHING;
+```
+
 ## 4. 데이터 가져오기
 
 ### 방법 1: CSV 업로드 (권장)
