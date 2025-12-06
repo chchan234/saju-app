@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SajuForm } from "@/components/saju/SajuForm";
 import { ExpertForm } from "@/components/saju/ExpertForm";
 import { ViewCount } from "@/components/ViewCount";
 import { KakaoAdfitBanner } from "@/components/KakaoAdfit";
 import { Switch } from "@/components/ui/switch";
-import { Sparkles } from "lucide-react";
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Sparkles, X } from "lucide-react";
 
 export default function Home() {
   const [isExpertMode, setIsExpertMode] = useState(false);
@@ -84,6 +86,36 @@ export default function Home() {
                 <Sparkles className="w-3 h-3" />
                 전문가모드
               </label>
+              {isExpertMode && (
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <button className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-500 hover:bg-amber-500/30 transition-colors">
+                      샘플
+                    </button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto bg-[#1a1410] border-[#3d3127] p-0">
+                    <DialogTitle className="sr-only">전문가 사주 분석 샘플</DialogTitle>
+                    <div className="sticky top-0 z-10 flex justify-between items-center p-4 bg-[#1a1410]/95 backdrop-blur border-b border-[#3d3127]">
+                      <span className="text-[#e8dcc8] text-sm font-medium">전문가 사주 분석 샘플 (60페이지)</span>
+                      <DialogTrigger asChild>
+                        <button className="text-[#a89880] hover:text-[#e8dcc8] transition-colors">
+                          <X className="w-5 h-5" />
+                        </button>
+                      </DialogTrigger>
+                    </div>
+                    <div className="p-4">
+                      <Image
+                        src="/sample-result.jpg"
+                        alt="전문가 사주 분석 샘플"
+                        width={1200}
+                        height={1600}
+                        className="w-full h-auto rounded-lg"
+                        priority
+                      />
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              )}
             </div>
           </CardHeader>
           <CardContent>
