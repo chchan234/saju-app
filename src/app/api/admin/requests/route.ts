@@ -1,5 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase";
+import { verifyAdminRequest } from "@/lib/admin-auth";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 interface ExpertModeRequestRecord {
   id: string;
@@ -23,8 +25,30 @@ interface ExpertModeRequestRecord {
   email_sent_at: string | null;
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    // 인증 확인
+    const authResult = await verifyAdminRequest(request);
+    if (!authResult.authenticated) {
+      return NextResponse.json(
+        { success: false, message: authResult.error || "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    // 레이트 리밋 체크
+    const rateLimitResult = checkRateLimit(
+      request,
+      RATE_LIMITS.ADMIN_API,
+      "admin-requests"
+    );
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { success: false, message: "요청 한도 초과" },
+        { status: 429 }
+      );
+    }
+
     const supabase = createServerClient();
 
     const { data: requests, error } = await supabase

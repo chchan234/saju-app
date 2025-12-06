@@ -1,7 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createAuthResponse, createLogoutResponse } from "@/lib/admin-auth";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
   try {
+    // 레이트 리밋 체크 (브루트포스 방지)
+    const rateLimitResult = checkRateLimit(
+      request,
+      RATE_LIMITS.LOGIN_ATTEMPT,
+      "admin-login"
+    );
+
+    if (!rateLimitResult.allowed) {
+      const retryAfter = Math.ceil(
+        (rateLimitResult.resetAt - Date.now()) / 1000
+      );
+      return NextResponse.json(
+        {
+          success: false,
+          message: `로그인 시도 횟수를 초과했습니다. ${retryAfter}초 후에 다시 시도해주세요.`,
+        },
+        {
+          status: 429,
+          headers: { "Retry-After": retryAfter.toString() },
+        }
+      );
+    }
+
     const { password } = await request.json();
 
     // 환경변수에서 어드민 비밀번호 가져오기
@@ -17,7 +42,8 @@ export async function POST(request: NextRequest) {
 
     // 비밀번호 검증
     if (password === adminPassword) {
-      return NextResponse.json({ success: true });
+      // JWT 토큰 발급 및 HTTP-only 쿠키 설정
+      return await createAuthResponse({ success: true });
     }
 
     return NextResponse.json(
@@ -31,4 +57,9 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+// 로그아웃 엔드포인트
+export async function DELETE() {
+  return createLogoutResponse();
 }
