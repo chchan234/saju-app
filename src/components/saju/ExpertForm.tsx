@@ -520,6 +520,12 @@ export function ExpertForm() {
               </div>
             </div>
 
+            <div className="bg-amber-900/20 border border-amber-800/30 rounded-lg p-3">
+              <p className="text-xs text-amber-400 text-center font-medium">
+                ⚠️ 입금자명과 신청자명이 반드시 일치해야 합니다
+              </p>
+            </div>
+
             <p className="text-xs text-[#7a6a5a] text-center">
               입금 확인 후 1-2일 내 이메일로 PDF가 발송됩니다.
             </p>
